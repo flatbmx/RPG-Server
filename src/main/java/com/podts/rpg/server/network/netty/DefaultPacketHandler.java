@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.model.Player;
-import com.podts.rpg.server.model.ship.ShipFactory;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
@@ -25,7 +24,7 @@ public class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 			@Override
 			public void accept(NettyStream stream, Packet packet) {
 				RSAHandShakePacket rsaPacket = (RSAHandShakePacket) packet;
-				Player player = new Player(stream, ShipFactory.getStartingShip());
+				Player player = new Player(stream);
 				stream.player = player;
 				AESReplyPacket reply = new AESReplyPacket(player, rsaPacket.getPublicKey(), stream.getSecretKey());
 				stream.sendPacket(reply);

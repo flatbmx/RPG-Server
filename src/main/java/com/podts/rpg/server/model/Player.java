@@ -1,9 +1,8 @@
 package com.podts.rpg.server.model;
 
-import com.podts.rpg.server.model.ship.Ship;
 import com.podts.rpg.server.network.Stream;
 
-public class Player implements Locatable {
+public class Player {
 	
 	private static int currentID = 0;
 	
@@ -25,7 +24,6 @@ public class Player implements Locatable {
 	
 	private final int id;
 	private Stream stream;
-	private Ship ship;
 	
 	public final int getID() {
 		return id;
@@ -35,29 +33,9 @@ public class Player implements Locatable {
 		return stream;
 	}
 	
-	public final Ship getShip() {
-		return ship;
-	}
-
-	public final void setShip(Ship ship) {
-		this.ship = ship;
-	}
-	
-	@Override
-	public Location getLocation() {
-		if(ship == null) return null;
-		return ship.getLocation();
-	}
-	
 	public Player(Stream stream) {
 		id = getNewID();
 		this.stream = stream;
-	}
-	
-	public Player(Stream stream, Ship ship) {
-		id = getNewID();
-		this.stream = stream;
-		this.ship = ship;
 	}
 	
 }

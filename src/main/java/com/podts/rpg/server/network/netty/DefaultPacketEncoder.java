@@ -40,7 +40,6 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 				AESReplyPacket p = (AESReplyPacket) op;
 				
 				buf.writeInt(p.getPlayer().getID());
-				buf.writeInt(p.getPlayer().getShip().getID());
 				
 				//Convert secret into bytes.
 				byte[] encodedSecret = p.getSecret().getEncoded();
