@@ -16,8 +16,8 @@ import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.EntityPacket;
+import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.MessagePacket;
-import com.podts.rpg.server.network.packet.OwnershipPacket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -33,8 +33,13 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		encoder.init();
 	}
 	
+	private static final int PID_AESREPLY = 0;
+	private static final int PID_LOGINRESPONSE = 1;
+	private static final int PID_ENTITY = 2;
+	private static final int PID_MESSAGE = 3;
+	
 	static {
-		addEncoder(AESReplyPacket.class, new PacketEncoder(1) {
+		addEncoder(AESReplyPacket.class, new PacketEncoder(PID_AESREPLY) {
 			@Override
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {
 				AESReplyPacket p = (AESReplyPacket) op;
@@ -50,7 +55,14 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			}
 		});
 		
-		addEncoder(EntityPacket.class, new PacketEncoder(2) {
+		addEncoder(LoginResponsePacket.class, new PacketEncoder(PID_LOGINRESPONSE) {
+			@Override
+			public void encode(NettyStream s, Packet op, ByteBuf buf) {
+				
+			}
+		});
+		
+		addEncoder(EntityPacket.class, new PacketEncoder(PID_ENTITY) {
 			private final Map<EntityPacket.UpdateType,Integer> packetTypeMap = new EnumMap<EntityPacket.UpdateType,Integer>(EntityPacket.UpdateType.class);
 			private final Map<EntityType,Integer> entityTypeMap = new EnumMap<EntityType,Integer>(EntityType.class);
 			void init() {
@@ -78,16 +90,7 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			}
 		});
 		
-		encoders.put(OwnershipPacket.class, new PacketEncoder(3) {
-			@Override
-			public void encode(NettyStream s, Packet op, ByteBuf buf) {
-				OwnershipPacket p = (OwnershipPacket) op;
-				if(!p.getOwner().equals(s.getPlayer())) return;
-				buf.writeInt(p.getEntity().getID());
-			}
-		});
-		
-		encoders.put(MessagePacket.class, new PacketEncoder(4) {
+		encoders.put(MessagePacket.class, new PacketEncoder(PID_MESSAGE) {
 			@Override
 			public void encode(NettyStream stream, Packet op, ByteBuf buf) {
 				MessagePacket p = (MessagePacket) op;
