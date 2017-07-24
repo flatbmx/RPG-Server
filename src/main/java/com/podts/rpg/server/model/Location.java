@@ -1,15 +1,21 @@
 package com.podts.rpg.server.model;
 
-public class Location implements Locatable, Cloneable {
+import com.podts.rpg.server.model.universe.World;
+
+public class Location implements Locatable {
 	
-	private double x, y;
-	private int z;
+	private final World world;
+	private final int x, y, z;
 	
-	public double getX() {
+	public World getWorld() {
+		return world;
+	}
+	
+	public int getX() {
 		return x;
 	}
 	
-	public double getY() {
+	public int getY() {
 		return y;
 	}
 	
@@ -22,23 +28,13 @@ public class Location implements Locatable, Cloneable {
 		return Math.sqrt(Math.pow(x-other.x, 2) + Math.pow(y-other.y, 2));
 	}
 	
-	public void set(double newX, double newY) {
-		x = newX;
-		y = newY;
-	}
-	
-	public void move(double deltaX, double deltaY) {
-		x += deltaX;
-		y += deltaY;
+	public Location move(int deltaX, int deltaY, int deltaZ) {
+		return new Location(world, x + deltaX, y + deltaY, z + deltaZ);
 	}
 	
 	@Override
 	public Location getLocation() {
 		return this;
-	}
-	
-	public Location clone(Location other) {
-		return new Location(other.getX(), other.getY(), other.getZ());
 	}
 	
 	@Override
@@ -56,11 +52,8 @@ public class Location implements Locatable, Cloneable {
 		return (int) (x*27 + y*439);
 	}
 	
-	public Location() {
-		
-	}
-	
-	public Location(double x, double y, int z) {
+	public Location(World world, int x, int y, int z) {
+		this.world = world;
 		this.x = x;
 		this.y = y;
 		this.z = z;

@@ -1,6 +1,8 @@
 package com.podts.rpg.server.model.universe;
 
-public class Tile {
+import com.podts.rpg.server.model.Location;
+
+public final class Tile {
 	
 	public enum TileType {
 		GRASS(),
@@ -24,12 +26,22 @@ public class Tile {
 	}
 	
 	private TileType type;
+	private final Location location;
 	
 	public final TileType getType() {
 		return type;
 	}
 	
-	public Tile(TileType type) {
+	public boolean isTraversable() {
+		return type.isTraversable();
+	}
+	
+	public Location getLocation() {
+		return location;
+	}
+	
+	protected Tile(Location location, TileType type) {
+		this.location = location;
 		this.type = type;
 	}
 	
