@@ -1,7 +1,7 @@
 package com.podts.rpg.server.network.packet;
 
-import com.podts.rpg.server.model.Entity;
 import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.model.entity.Entity;
 import com.podts.rpg.server.network.Packet;
 
 public class OwnershipPacket extends Packet {

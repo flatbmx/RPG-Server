@@ -4,18 +4,30 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import com.podts.rpg.server.model.Galaxy;
+import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.network.NetworkManager;
 import com.podts.rpg.server.network.netty.NettyNetworkManager;
 
 public final class Server {
 	
+	/**
+	 * Stores the instance of the server.
+	 */
 	private static Server instance;
 	
+	/**
+	 * Get the current instance of the server running in this JVM.
+	 * @return The current server instance.
+	 */
 	public static Server get() {
 		return instance;
 	}
 	
+	/**
+	 * Represents the current status of the server.
+	 * @author David
+	 *
+	 */
 	public enum ServerStatus {
 		OFFLINE(),
 		LOADING(),
@@ -67,6 +79,9 @@ public final class Server {
 		}
 	}
 	
+	/**
+	 * Starts the server, the server can only be started in the <code>ServerStatus.OFFLINE</code> phase.
+	 */
 	public void start() {
 		if(status != ServerStatus.OFFLINE) return;
 		changeStatus(ServerStatus.LOADING);
@@ -80,12 +95,15 @@ public final class Server {
 		
 		System.out.println("Server bound to port " + networkManager.getPort());
 		
-		Galaxy.get();
+		Universe.get();
 		
 		changeStatus(ServerStatus.ONLINE);
 		
 	}
 	
+	/**
+	 * Stops the server. This can only be ran when the server is in <code>ServerStatus.ONLINE</code> phase.
+	 */
 	public void stop() {
 		if(status != ServerStatus.ONLINE) return;
 		changeStatus(ServerStatus.UNLOADING);
@@ -95,6 +113,10 @@ public final class Server {
 		changeStatus(ServerStatus.OFFLINE);
 	}
 	
+	/**
+	 * Creates a new instance of a server that will listen on the specified port.
+	 * @param port
+	 */
 	private Server(int port) {
 		if(instance == null) instance = this;
 		status = ServerStatus.OFFLINE;

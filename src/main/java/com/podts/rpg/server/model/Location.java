@@ -2,12 +2,8 @@ package com.podts.rpg.server.model;
 
 public class Location implements Locatable, Cloneable {
 	
-	private System system;
 	private double x, y;
-	
-	public System getSystem() {
-		return system;
-	}
+	private int z;
 	
 	public double getX() {
 		return x;
@@ -17,9 +13,12 @@ public class Location implements Locatable, Cloneable {
 		return y;
 	}
 	
+	public int getZ() {
+		return z;
+	}
+	
 	public double distance(Location other) {
 		if(other == null) throw new IllegalArgumentException("Cannot calculate distance from null Location.");
-		if(!getSystem().equals(other.getSystem())) throw new IllegalArgumentException("Cannot calculate distance from location in different system");
 		return Math.sqrt(Math.pow(x-other.x, 2) + Math.pow(y-other.y, 2));
 	}
 	
@@ -39,7 +38,7 @@ public class Location implements Locatable, Cloneable {
 	}
 	
 	public Location clone(Location other) {
-		return new Location(other.getSystem(), other.getX(), other.getY());
+		return new Location(other.getX(), other.getY(), other.getZ());
 	}
 	
 	@Override
@@ -47,7 +46,7 @@ public class Location implements Locatable, Cloneable {
 		if(o == null) return false;
 		if(o instanceof Location) {
 			Location other = (Location) o;
-			return getSystem().equals(other.getSystem()) && getX() == other.getX() && getY() == other.getY();
+			return getX() == other.getX() && getY() == other.getY();
 		}
 		return false;
 	}
@@ -57,14 +56,14 @@ public class Location implements Locatable, Cloneable {
 		return (int) (x*27 + y*439);
 	}
 	
-	public Location(System system) {
-		this.system = system;
+	public Location() {
+		
 	}
 	
-	public Location(System system, double x, double y) {
-		this.system = system;
+	public Location(double x, double y, int z) {
 		this.x = x;
 		this.y = y;
+		this.z = z;
 	}
 	
 }
