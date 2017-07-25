@@ -29,7 +29,7 @@ public final class Universe {
 		final World other = getWorld(name);
 		if(other != null) throw new WorldAlreadyExistsException(other);
 		final World result = new StaticChunkWorld(name);
-		worlds.put(name, result);
+		worlds.put(result.getName(), result);
 		return result;
 	}
 	
@@ -39,18 +39,26 @@ public final class Universe {
 	 * @param newName - The new name of the world.
 	 * @throws WorldAlreadyExistsException When there is already a world named that currently.
 	 */
-	public synchronized final void renameWorld(World world, String newName) throws WorldAlreadyExistsException {
-		if(world == null) throw new IllegalArgumentException();
-		if(newName == null || newName.length() == 0) throw new IllegalArgumentException();
+	public synchronized final Universe renameWorld(World world, String newName) throws WorldAlreadyExistsException {
+		if(world == null) throw new IllegalArgumentException("Cannot rename a null world.");
+		if(!worlds.containsKey(world.getName())) throw new IllegalArgumentException("Cannot rename deleted world.");
+		if(newName == null || newName.length() == 0) throw new IllegalArgumentException("Cannot rename a world with null or empty name.");
+		if(world.getName().equals(newName)) throw new IllegalArgumentException("Cannot rename a world to itself.");
+		
+		//See if there is another world with the same name.
 		final World other = getWorld(newName);
 		if(other != null) throw new WorldAlreadyExistsException(other);
+		
+		
 		worlds.remove(world.getName());
 		world.setName(newName);
 		worlds.put(newName, world);
+		return this;
 	}
 	
-	public synchronized final void deleteWorld(World world) {
+	public synchronized final Universe deleteWorld(World world) {
 		worlds.remove(world.getName());
+		return this;
 	}
 	
 	private Universe() {
