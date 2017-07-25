@@ -22,13 +22,17 @@ public final class Universe {
 	/**
 	 * Creates a new world with a given name.
 	 * @param name - The name of the newly created world.
+	 * @param generator - The WorldGenerator that this world will use to generate new Tiles.
 	 * @return The new world.
 	 * @throws WorldAlreadyExistsException When there is already a world that has the given name.
 	 */
-	public synchronized World createWorld(String name) throws WorldAlreadyExistsException {
+	public synchronized World createWorld(String name, WorldGenerator generator) throws WorldAlreadyExistsException {
+		if(name == null) throw new IllegalArgumentException("Cannot create World with null name.");
+		if(generator == null) throw new IllegalArgumentException("Cannot create World with null WorldGenerator.");
 		final World other = getWorld(name);
 		if(other != null) throw new WorldAlreadyExistsException(other);
-		final World result = new StaticChunkWorld(name);
+		
+		final World result = new StaticChunkWorld(name, generator);
 		worlds.put(result.getName(), result);
 		return result;
 	}
@@ -43,7 +47,7 @@ public final class Universe {
 		if(world == null) throw new IllegalArgumentException("Cannot rename a null world.");
 		if(!worlds.containsKey(world.getName())) throw new IllegalArgumentException("Cannot rename deleted world.");
 		if(newName == null || newName.length() == 0) throw new IllegalArgumentException("Cannot rename a world with null or empty name.");
-		if(world.getName().equals(newName)) throw new IllegalArgumentException("Cannot rename a world to itself.");
+		if(world.getName().equals(newName)) return this;
 		
 		//See if there is another world with the same name.
 		final World other = getWorld(newName);

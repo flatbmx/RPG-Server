@@ -2,7 +2,7 @@ package com.podts.rpg.server.model;
 
 import com.podts.rpg.server.model.universe.World;
 
-public class Location implements Locatable {
+public final class Location implements Locatable {
 	
 	private final World world;
 	private final int x, y, z;
@@ -57,6 +57,13 @@ public class Location implements Locatable {
 		this.x = x;
 		this.y = y;
 		this.z = z;
+	}
+	
+	public enum MoveType {
+		CREATE(),
+		MOVE(),
+		TELEPORT(),
+		DESTROY();
 	}
 	
 }
