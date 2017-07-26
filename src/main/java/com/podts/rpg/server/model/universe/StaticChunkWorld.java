@@ -7,6 +7,7 @@ import java.util.Map;
 import com.podts.rpg.server.model.Locatable;
 import com.podts.rpg.server.model.Location;
 import com.podts.rpg.server.model.entity.Entity;
+import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
 
 public final class StaticChunkWorld extends World {
@@ -130,6 +131,30 @@ public final class StaticChunkWorld extends World {
 	
 	protected StaticChunkWorld(String name, WorldGenerator generator) {
 		super(name, generator);
+	}
+
+	@Override
+	public Entity getEntity(int id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public World registerRegion(PollableRegion r) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public World deRegisterRegion(PollableRegion r) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<Entity> getEntitiesInRegion(PollableRegion r) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }
