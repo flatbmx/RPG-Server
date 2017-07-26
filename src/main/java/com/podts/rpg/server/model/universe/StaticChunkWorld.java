@@ -2,7 +2,9 @@ package com.podts.rpg.server.model.universe;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
@@ -11,7 +13,7 @@ public final class StaticChunkWorld extends World {
 	
 	private static final int CHUNK_SIZE = 17;
 	
-	private final Map<Integer,Map<ChunkCoordinate,Chunk>> chunks = new HashMap<Integer,Map<ChunkCoordinate,Chunk>>();
+	private final Map<Integer,Map<ChunkCoordinate,Chunk>> chunks = new HashMap<>();
 	
 	private static class ChunkCoordinate {
 		private int x,y,z;
@@ -28,8 +30,8 @@ public final class StaticChunkWorld extends World {
 		private final SLocation topLeft;
 		
 		private final Tile[][] tiles = new Tile[CHUNK_SIZE][CHUNK_SIZE];
-		private final Map<Integer,Entity> entities = new HashMap<Integer,Entity>();
-		
+		private final Map<Integer,Entity> entities = new HashMap<>();
+		private final Set<Region> regions = new HashSet<>();
 		
 		protected Chunk(ChunkCoordinate coord) {
 			this.coord = coord;
@@ -105,8 +107,8 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private ChunkCoordinate getCoordinateFromLocation(Location point) {
-		int cx= (point.getX()-CHUNK_SIZE/2)/CHUNK_SIZE;
-		int cy= (point.getY()-CHUNK_SIZE/2)/CHUNK_SIZE;
+		int cx = (point.getX()-CHUNK_SIZE/2)/CHUNK_SIZE;
+		int cy = (point.getY()-CHUNK_SIZE/2)/CHUNK_SIZE;
 		return new ChunkCoordinate(cx,cy,point.getZ());
 	}
 	
@@ -187,13 +189,16 @@ public final class StaticChunkWorld extends World {
 	}
 
 	@Override
-	public World registerRegion(PollableRegion r) {
-		// TODO Auto-generated method stub
-		return null;
+	public StaticChunkWorld registerRegion(PollableRegion r) {
+		for(Location point : r.getPoints()) {
+			Chunk chunk = getOrGenerateChunkFromLocation(point);
+			chunk.regions.add(r);
+		}
+		return this;
 	}
 
 	@Override
-	public World deRegisterRegion(PollableRegion r) {
+	public StaticChunkWorld deRegisterRegion(PollableRegion r) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -205,9 +210,8 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Location createLocation(int x, int y, int z) {
-		// TODO Auto-generated method stub
-		return null;
+	public SLocation createLocation(int x, int y, int z) {
+		return new SLocation(x, y, z);
 	}
 	
 }
