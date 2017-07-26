@@ -1,7 +1,7 @@
 package com.podts.rpg.server.model.universe.region;
 
-import com.podts.rpg.server.model.Location.MoveType;
-import com.podts.rpg.server.model.entity.Entity;
+import com.podts.rpg.server.model.universe.Entity;
+import com.podts.rpg.server.model.universe.Location.MoveType;
 
 public interface RegionListener {
 	

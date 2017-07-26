@@ -4,9 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.podts.rpg.server.model.Locatable;
-import com.podts.rpg.server.model.Location;
-import com.podts.rpg.server.model.entity.Entity;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
 
@@ -28,7 +25,7 @@ public final class StaticChunkWorld extends World {
 	private class Chunk {
 		
 		private final ChunkCoordinate coord;
-		private final Location topLeft;
+		private final SLocation topLeft;
 		
 		private final Tile[][] tiles = new Tile[CHUNK_SIZE][CHUNK_SIZE];
 		private final Map<Integer,Entity> entities = new HashMap<Integer,Entity>();
@@ -38,7 +35,57 @@ public final class StaticChunkWorld extends World {
 			this.coord = coord;
 			int x = coord.x * CHUNK_SIZE + CHUNK_SIZE/2;
 			int y = coord.y * CHUNK_SIZE + CHUNK_SIZE/2;
-			topLeft = new Location(StaticChunkWorld.this, x, y, coord.z);
+			topLeft = new SLocation(this, x, y, coord.z);
+		}
+		
+	}
+	
+	private final class SLocation extends Location {
+		
+		private final Chunk chunk;
+		private final int x, y, z;
+		
+		@Override
+		public World getWorld() {
+			return StaticChunkWorld.this;
+		}
+
+		@Override
+		public int getX() {
+			return x;
+		}
+
+		@Override
+		public int getY() {
+			return y;
+		}
+
+		@Override
+		public int getZ() {
+			return z;
+		}
+
+		@Override
+		public SLocation move(int dx, int dy, int dz) {
+			SLocation sl = chunk.topLeft;
+			int nX = x + dx, nY = y + dy;
+			if(nX < sl.x || nY < sl.y || nX - sl.x >= CHUNK_SIZE || nY - sl.y >= CHUNK_SIZE)
+				return new SLocation(nX, nY, z + dz);
+			return new SLocation(chunk, nX, nY, z + dz);
+		}
+		
+		protected SLocation(Chunk chunk, int x, int y, int z) {
+			this.chunk = chunk;
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
+		
+		protected SLocation(int x, int y, int z) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
+			chunk = getOrGenerateChunkFromLocation(this);
 		}
 		
 	}
@@ -153,6 +200,12 @@ public final class StaticChunkWorld extends World {
 
 	@Override
 	public Collection<Entity> getEntitiesInRegion(PollableRegion r) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public Location createLocation(int x, int y, int z) {
 		// TODO Auto-generated method stub
 		return null;
 	}

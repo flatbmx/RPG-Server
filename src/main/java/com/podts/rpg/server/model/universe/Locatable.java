@@ -1,6 +1,4 @@
-package com.podts.rpg.server.model;
-
-import com.podts.rpg.server.model.universe.World;
+package com.podts.rpg.server.model.universe;
 
 public interface Locatable {
 	

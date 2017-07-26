@@ -10,8 +10,8 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
 import com.podts.rpg.server.model.EntityType;
-import com.podts.rpg.server.model.Location;
-import com.podts.rpg.server.model.entity.Entity;
+import com.podts.rpg.server.model.universe.Entity;
+import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
 import com.podts.rpg.server.network.packet.AESReplyPacket;

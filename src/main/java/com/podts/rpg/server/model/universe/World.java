@@ -2,9 +2,7 @@ package com.podts.rpg.server.model.universe;
 
 import java.util.Collection;
 
-import com.podts.rpg.server.model.Locatable;
-import com.podts.rpg.server.model.Location;
-import com.podts.rpg.server.model.entity.Entity;
+import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
@@ -135,6 +133,18 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 * however any modifications will not affect the Entities, Region or World in any way.
 	 */
 	public abstract Collection<Entity> getEntitiesInRegion(PollableRegion r);
+	
+	protected final World moveEntity(Entity entity, Location newLocation) {
+		//TODO implement me
+		return this;
+	}
+	
+	protected final World moveEntity(Entity entity, int dx, int dy, int dz) {
+		//TODO implement me
+		return this;
+	}
+	
+	public abstract Location createLocation(int x, int y, int z);
 	
 	@Override
 	public final boolean contains(Locatable loc) {

@@ -1,8 +1,6 @@
-package com.podts.rpg.server.model.entity;
+package com.podts.rpg.server.model.universe;
 
 import com.podts.rpg.server.model.EntityType;
-import com.podts.rpg.server.model.Locatable;
-import com.podts.rpg.server.model.Location;
 
 public class Entity implements Locatable {
 	
