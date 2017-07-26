@@ -92,6 +92,22 @@ public final class StaticChunkWorld extends World {
 		
 	}
 	
+	private Set<Chunk> getChunksFromCoordinates(Collection<ChunkCoordinate> coords) {
+		final Set<Chunk> result = new HashSet<>();
+		for(ChunkCoordinate coord : coords) {
+			result.add(getOrGenerateChunk(coord));
+		}
+		return result;
+	}
+	
+	private Set<ChunkCoordinate> getCoordinatesFromLocations(Collection<Location> points) {
+		final Set<ChunkCoordinate> coords = new HashSet<ChunkCoordinate>();
+		for(Location point : points) {
+			coords.add(getCoordinateFromLocation(point));
+		}
+		return coords;
+	}
+	
 	private Chunk getOrGenerateChunkFromLocation(Location point) {
 		return getOrGenerateChunk(getCoordinateFromLocation(point));
 	}
@@ -190,17 +206,20 @@ public final class StaticChunkWorld extends World {
 
 	@Override
 	public StaticChunkWorld registerRegion(PollableRegion r) {
-		for(Location point : r.getPoints()) {
-			Chunk chunk = getOrGenerateChunkFromLocation(point);
-			chunk.regions.add(r);
+		Set<Chunk> chunks = getChunksFromCoordinates(getCoordinatesFromLocations(r.getPoints()));
+		for(Chunk c : chunks) {
+			c.regions.add(r);
 		}
 		return this;
 	}
 
 	@Override
 	public StaticChunkWorld deRegisterRegion(PollableRegion r) {
-		// TODO Auto-generated method stub
-		return null;
+		Set<Chunk> chunks = getChunksFromCoordinates(getCoordinatesFromLocations(r.getPoints()));
+		for(Chunk c : chunks) {
+			c.regions.remove(r);
+		}
+		return this;
 	}
 
 	@Override
