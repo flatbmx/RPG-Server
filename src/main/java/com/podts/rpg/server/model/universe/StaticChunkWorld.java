@@ -7,8 +7,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
+import com.podts.rpg.server.model.universe.region.RegionListener;
 
 public final class StaticChunkWorld extends World {
 	
@@ -95,6 +97,10 @@ public final class StaticChunkWorld extends World {
 		
 	}
 	
+	private Set<Chunk> getChunksFromLocations(Collection<Location> points) {
+		return getChunksFromCoordinates(getCoordinatesFromLocations(points));
+	}
+	
 	private Set<Chunk> getChunksFromCoordinates(Collection<ChunkCoordinate> coords) {
 		final Set<Chunk> result = new HashSet<>();
 		for(ChunkCoordinate coord : coords) {
@@ -113,6 +119,17 @@ public final class StaticChunkWorld extends World {
 	
 	private Chunk getOrGenerateChunkFromLocation(Location point) {
 		return getOrGenerateChunk(getCoordinateFromLocation(point));
+	}
+	
+	private Chunk[][] getSurroundingChunks(SLocation point) {
+		Chunk[][] result = new Chunk[3][3];
+		ChunkCoordinate center = getCoordinateFromLocation(point);
+		for(int i=-1; i<2; ++i) {
+			for(int j=-1; j<2; ++j) {
+				result[i][j] = getOrGenerateChunk(new ChunkCoordinate(center.x + i, center.y + j, point.getZ()));
+			}
+		}
+		return result;
 	}
 	
 	private Chunk getOrGenerateChunk(ChunkCoordinate coord) {
@@ -169,13 +186,21 @@ public final class StaticChunkWorld extends World {
 	
 	@Override
 	public Collection<Entity> getNearbyEntities(Locatable l) {
-		// TODO Auto-generated method stub
-		return null;
+		Set<Entity> result = new HashSet<>();
+		SLocation point = (SLocation) l.getLocation();
+		Chunk[][] chunks = getSurroundingChunks(point);
+		for(int i=-1; i<2; ++i) {
+			for(int j=-1; j<2; ++j) {
+				result.addAll(chunks[i][j].entities.values());
+			}
+		}
+		return result;
 	}
 	
 	@Override
 	public boolean register(Entity e) {
 		Chunk chunk = getOrGenerateChunkFromLocation(e.getLocation());
+		entities.put(e.getID(), e);
 		synchronized(chunk) {
 			chunk.entities.put(e.getID(), e);
 		}
@@ -185,6 +210,7 @@ public final class StaticChunkWorld extends World {
 	@Override
 	public World deRegister(Entity e) {
 		Chunk chunk = getOrGenerateChunkFromLocation(e.getLocation());
+		entities.remove(e.getID());
 		synchronized(chunk) {
 			chunk.entities.remove(e.getID());
 		}
@@ -195,15 +221,10 @@ public final class StaticChunkWorld extends World {
 	public Collection<Region> getRegionsAtLocation(Locatable loc) {
 		return getOrGenerateChunkFromLocation(loc.getLocation()).safeRegions;
 	}
-	
-	protected StaticChunkWorld(String name, WorldGenerator generator) {
-		super(name, generator);
-	}
 
 	@Override
 	public Entity getEntity(int id) {
-		// TODO Auto-generated method stub
-		return null;
+		return entities.get(id);
 	}
 
 	@Override
@@ -226,35 +247,84 @@ public final class StaticChunkWorld extends World {
 
 	@Override
 	public Collection<Entity> getEntitiesInRegion(PollableRegion r) {
-		// TODO Auto-generated method stub
-		return null;
+		Set<Entity> result = new HashSet<>();
+		for(Location point : r.getPoints()) {
+			result.addAll(getEntitiesAtLocation(point));
+		}
+		return result;
 	}
-	
+
+	private Collection<Entity> getEntitiesAtLocation(Location point) {
+		Set<Entity> result = new HashSet<>();
+		Chunk chunk = getOrGenerateChunkFromLocation(point);
+		for(Entity e : chunk.entities.values()) {
+			if(e.getLocation().equals(point)) result.add(e);
+		}
+		return result;
+	}
+
 	@Override
 	public SLocation createLocation(int x, int y, int z) {
 		return new SLocation(x, y, z);
 	}
-
+	
+	private static final void fireRegionEnter(Region r, Entity e, SLocation newLocation, MoveType type) {
+		for(RegionListener l : r.getRegionListeners()) {
+			l.onEnter(r, e, type);
+		}
+	}
+	
+	private static final void fireRegionMove(Region r, Entity e, SLocation newLocation, MoveType type) {
+		for(RegionListener l : r.getRegionListeners()) {
+			l.onMove(r, e, type);
+		}
+	}
+	
+	private static final void fireRegionLeave(Region r, Entity e, SLocation newLocation, MoveType type) {
+		for(RegionListener l : r.getRegionListeners()) {
+			l.onLeave(r, e, type);
+		}
+	}
+	
 	@Override
-	protected World moveEntity(Entity entity, Location newLocation) {
-		//TODO Handle move types.
+	protected World moveEntity(Entity entity, Location newLocation, MoveType type) {
 		SLocation newLoc = (SLocation) newLocation;
 		SLocation currentLoc = (SLocation) entity.getLocation();
+		
+		Set<Region> oldRegions = new HashSet<>(getRegionsAtLocation(currentLoc));
+		for(Region r : getRegionsAtLocation(newLoc)) {
+			if(!oldRegions.contains(r)) {
+				//New region
+				fireRegionEnter(r, entity, newLoc, type);
+			} else {
+				//Move
+				fireRegionMove(r, entity, newLoc, type);
+				oldRegions.remove(r);
+			}
+		}
+		for(Region r : oldRegions) {
+			fireRegionLeave(r, entity, newLoc, type);
+		}
+		
 		if(newLoc.chunk == currentLoc.chunk) {
 			entity.setLocation(newLocation);
-			for(Region r : getRegionsAtLocation(newLocation)) {
-				//TODO Alot
-			}
 		} else {
-			
+			currentLoc.chunk.entities.remove(entity.getID());
+			newLoc.chunk.entities.put(entity.getID(), entity);
+			entity.setLocation(newLoc);
 		}
 		return this;
 	}
 
 	@Override
-	protected Location moveEntity(Entity entity, int dx, int dy, int dz) {
-		// TODO Auto-generated method stub
-		return null;
+	protected SLocation moveEntity(Entity entity, MoveType type, int dx, int dy, int dz) {
+		SLocation newLoc = (SLocation) entity.getLocation().move(dx, dy, dz);
+		moveEntity(entity, newLoc, type);
+		return newLoc;
+	}
+	
+	protected StaticChunkWorld(String name, WorldGenerator generator) {
+		super(name, generator);
 	}
 	
 }

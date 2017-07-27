@@ -100,12 +100,12 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	public abstract World deRegister(Entity e);
 	
 	/**
-	 * Registers the given {@link PollableRegion} with this {@link World}.
-	 * {@link Region}s that are not registered will not have their
-	 * {@link RegionListener#onEnter(Region, Entity, MoveType)} nor {@link RegionListener#onLeave(Region, Entity, MoveType)} methods called.
-	 * If the {@link Region} is already registered then it will follow any changes made to the Region.
-	 * @param r - The given {@link PollableRegion} to register.
-	 * @return The {@link World} for chaining.
+	 * Registers the given {@link PollableRegion region} with this {@link World world}.
+	 * {@link Region Regions} that are not registered will not have their
+	 * {@link RegionListener#onEnter(Region, Entity, MoveType) onEnter} nor {@link RegionListener#onLeave(Region, Entity, MoveType) onLeave} methods called.
+	 * If the {@link Region region} is already registered then it will follow any changes made to the Region.
+	 * @param r - The given {@link PollableRegion region} to register.
+	 * @return The {@link World world} for chaining.
 	 */
 	public abstract World registerRegion(PollableRegion r);
 	
@@ -126,17 +126,17 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	public abstract Collection<Region> getRegionsAtLocation(Locatable loc);
 	
 	/**
-	 * Returns all {@link Entity}s that are within given {@link PollableRegion}.
-	 * The Region does <b>NOT</b> have to be registered for this method to operate.
+	 * Returns all {@link Entity entities} that are within the given {@link PollableRegion region}.
+	 * The {@link PollableRegion region} does <b>NOT</b> have to be {@link #registerRegion(Region) registered} for this method to operate.
 	 * @param r - The given {@link PollableRegion} that all entities are in.
 	 * @return A {@link Collection} that contains all entities within this {@link Region}. The Collection may be modifable or not
 	 * however any modifications will not affect the Entities, Region or World in any way.
 	 */
 	public abstract Collection<Entity> getEntitiesInRegion(PollableRegion r);
 	
-	protected abstract World moveEntity(Entity entity, Location newLocation);
+	protected abstract World moveEntity(Entity entity, Location newLocation, MoveType type);
 	
-	protected abstract Location moveEntity(Entity entity, int dx, int dy, int dz);
+	protected abstract Location moveEntity(Entity entity, MoveType type, int dx, int dy, int dz);
 	
 	public abstract Location createLocation(int x, int y, int z);
 	

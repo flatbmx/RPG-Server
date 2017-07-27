@@ -1,6 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
 import com.podts.rpg.server.model.EntityType;
+import com.podts.rpg.server.model.universe.Location.MoveType;
 
 public class Entity implements Locatable {
 	
@@ -47,7 +48,7 @@ public class Entity implements Locatable {
 	}
 	
 	public final Entity move(int dx, int dy, int dz) {
-		location = getLocation().getWorld().moveEntity(this, dx, dy, dz);
+		location = getLocation().getWorld().moveEntity(this, MoveType.UPDATE, dx, dy, dz);
 		return this;
 	}
 	

@@ -15,18 +15,18 @@ public abstract class SimpleRegionHandler implements Region {
 	private final Set<RegionListener> safeRegionListeners = Collections.unmodifiableSet(regionListeners);
 	
 	@Override
-	public Set<RegionListener> getRegionListeners() {
+	public final Set<RegionListener> getRegionListeners() {
 		return safeRegionListeners;
 	}
 
 	@Override
-	public Region addRegionListener(RegionListener newRegionListener) {
+	public final Region addRegionListener(RegionListener newRegionListener) {
 		regionListeners.add(newRegionListener);
 		return this;
 	}
 
 	@Override
-	public Region removeRegionListener(RegionListener regionListener) {
+	public final Region removeRegionListener(RegionListener regionListener) {
 		regionListeners.remove(regionListener);
 		return this;
 	}
