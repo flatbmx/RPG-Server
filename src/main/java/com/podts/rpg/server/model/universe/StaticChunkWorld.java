@@ -1,6 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -13,6 +14,7 @@ public final class StaticChunkWorld extends World {
 	
 	private static final int CHUNK_SIZE = 17;
 	
+	private final Map<Integer,Entity> entities = new HashMap<>();
 	private final Map<Integer,Map<ChunkCoordinate,Chunk>> chunks = new HashMap<>();
 	
 	private static class ChunkCoordinate {
@@ -31,7 +33,8 @@ public final class StaticChunkWorld extends World {
 		
 		private final Tile[][] tiles = new Tile[CHUNK_SIZE][CHUNK_SIZE];
 		private final Map<Integer,Entity> entities = new HashMap<>();
-		private final Set<Region> regions = new HashSet<>();
+		private final Set<Region> regions = new HashSet<>(),
+				safeRegions = Collections.unmodifiableSet(regions);
 		
 		protected Chunk(ChunkCoordinate coord) {
 			this.coord = coord;
@@ -190,8 +193,7 @@ public final class StaticChunkWorld extends World {
 	
 	@Override
 	public Collection<Region> getRegionsAtLocation(Locatable loc) {
-		// TODO Auto-generated method stub
-		return null;
+		return getOrGenerateChunkFromLocation(loc.getLocation()).safeRegions;
 	}
 	
 	protected StaticChunkWorld(String name, WorldGenerator generator) {
@@ -231,6 +233,28 @@ public final class StaticChunkWorld extends World {
 	@Override
 	public SLocation createLocation(int x, int y, int z) {
 		return new SLocation(x, y, z);
+	}
+
+	@Override
+	protected World moveEntity(Entity entity, Location newLocation) {
+		//TODO Handle move types.
+		SLocation newLoc = (SLocation) newLocation;
+		SLocation currentLoc = (SLocation) entity.getLocation();
+		if(newLoc.chunk == currentLoc.chunk) {
+			entity.setLocation(newLocation);
+			for(Region r : getRegionsAtLocation(newLocation)) {
+				//TODO Alot
+			}
+		} else {
+			
+		}
+		return this;
+	}
+
+	@Override
+	protected Location moveEntity(Entity entity, int dx, int dy, int dz) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

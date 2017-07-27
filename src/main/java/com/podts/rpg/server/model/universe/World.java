@@ -134,15 +134,9 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 */
 	public abstract Collection<Entity> getEntitiesInRegion(PollableRegion r);
 	
-	protected final World moveEntity(Entity entity, Location newLocation) {
-		//TODO implement me
-		return this;
-	}
+	protected abstract World moveEntity(Entity entity, Location newLocation);
 	
-	protected final World moveEntity(Entity entity, int dx, int dy, int dz) {
-		//TODO implement me
-		return this;
-	}
+	protected abstract Location moveEntity(Entity entity, int dx, int dy, int dz);
 	
 	public abstract Location createLocation(int x, int y, int z);
 	

@@ -5,8 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A basic implementation for managing {@link RegionListener}s using a {@link HashSet}.
- * This does not implement {@link #contains(Locatable)} and therefore leaves that up to it's sub-classes.
+ * A basic implementation for managing {@link RegionListener region listeners} using a {@link HashSet}.
+ * This does not implement {@link #contains(Locatable) contains} and therefore leaves that up to it's sub-classes.
  *
  */
 public abstract class SimpleRegionHandler implements Region {

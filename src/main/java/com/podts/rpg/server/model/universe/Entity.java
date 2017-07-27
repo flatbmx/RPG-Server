@@ -46,7 +46,12 @@ public class Entity implements Locatable {
 		return face;
 	}
 	
-	protected Entity setLocation(Location newLocation) {
+	public final Entity move(int dx, int dy, int dz) {
+		location = getLocation().getWorld().moveEntity(this, dx, dy, dz);
+		return this;
+	}
+	
+	protected final Entity setLocation(Location newLocation) {
 		location = newLocation;
 		return this;
 	}
