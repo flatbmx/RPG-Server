@@ -10,7 +10,6 @@ import java.util.Set;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
-import com.podts.rpg.server.model.universe.region.RegionListener;
 
 public final class StaticChunkWorld extends World {
 	
@@ -199,6 +198,7 @@ public final class StaticChunkWorld extends World {
 	
 	@Override
 	public boolean register(Entity e) {
+		if(entities.containsKey(e.getID())) return false;
 		Chunk chunk = getOrGenerateChunkFromLocation(e.getLocation());
 		entities.put(e.getID(), e);
 		synchronized(chunk) {
@@ -268,43 +268,10 @@ public final class StaticChunkWorld extends World {
 		return new SLocation(x, y, z);
 	}
 	
-	private static final void fireRegionEnter(Region r, Entity e, SLocation newLocation, MoveType type) {
-		for(RegionListener l : r.getRegionListeners()) {
-			l.onEnter(r, e, type);
-		}
-	}
-	
-	private static final void fireRegionMove(Region r, Entity e, SLocation newLocation, MoveType type) {
-		for(RegionListener l : r.getRegionListeners()) {
-			l.onMove(r, e, type);
-		}
-	}
-	
-	private static final void fireRegionLeave(Region r, Entity e, SLocation newLocation, MoveType type) {
-		for(RegionListener l : r.getRegionListeners()) {
-			l.onLeave(r, e, type);
-		}
-	}
-	
 	@Override
-	protected World moveEntity(Entity entity, Location newLocation, MoveType type) {
+	protected World doMoveEntity(Entity entity, Location newLocation, MoveType type) {
 		SLocation newLoc = (SLocation) newLocation;
 		SLocation currentLoc = (SLocation) entity.getLocation();
-		
-		Set<Region> oldRegions = new HashSet<>(getRegionsAtLocation(currentLoc));
-		for(Region r : getRegionsAtLocation(newLoc)) {
-			if(!oldRegions.contains(r)) {
-				//New region
-				fireRegionEnter(r, entity, newLoc, type);
-			} else {
-				//Move
-				fireRegionMove(r, entity, newLoc, type);
-				oldRegions.remove(r);
-			}
-		}
-		for(Region r : oldRegions) {
-			fireRegionLeave(r, entity, newLoc, type);
-		}
 		
 		if(newLoc.chunk == currentLoc.chunk) {
 			entity.setLocation(newLocation);
@@ -314,13 +281,6 @@ public final class StaticChunkWorld extends World {
 			entity.setLocation(newLoc);
 		}
 		return this;
-	}
-
-	@Override
-	protected SLocation moveEntity(Entity entity, MoveType type, int dx, int dy, int dz) {
-		SLocation newLoc = (SLocation) entity.getLocation().move(dx, dy, dz);
-		moveEntity(entity, newLoc, type);
-		return newLoc;
 	}
 	
 	protected StaticChunkWorld(String name, WorldGenerator generator) {

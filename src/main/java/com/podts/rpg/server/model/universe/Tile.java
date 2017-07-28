@@ -24,9 +24,9 @@ public final class Tile {
 		
 	}
 	
-	private TileType type;
+	private final TileType type;
 	
-	public final TileType getType() {
+	public TileType getType() {
 		return type;
 	}
 	

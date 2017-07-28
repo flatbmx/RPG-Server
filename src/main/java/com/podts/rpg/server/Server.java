@@ -121,7 +121,7 @@ public final class Server {
 		if(instance == null) instance = this;
 		status = ServerStatus.OFFLINE;
 		networkListenPort = port;
-		statusHooks = new HashSet<BiConsumer<ServerStatus,ServerStatus>>();
+		statusHooks = new HashSet<>();
 		networkManager = new NettyNetworkManager();
 	}
 	

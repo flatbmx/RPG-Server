@@ -131,7 +131,7 @@ public final class NettyNetworkManager extends NetworkManager {
 	}
 	
 	public NettyNetworkManager() {
-		streams = new HashSet<NettyStream>();
+		streams = new HashSet<>();
 		safeStreams = Collections.unmodifiableSet(streams);
 	}
 

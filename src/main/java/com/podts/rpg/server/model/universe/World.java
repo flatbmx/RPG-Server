@@ -1,6 +1,8 @@
 package com.podts.rpg.server.model.universe;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
@@ -134,9 +136,37 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 */
 	public abstract Collection<Entity> getEntitiesInRegion(PollableRegion r);
 	
-	protected abstract World moveEntity(Entity entity, Location newLocation, MoveType type);
+	protected final World moveEntity(Entity entity, Location newLoc, MoveType type) {
+		Location currentLoc = entity.getLocation();
+		
+		Set<Region> oldRegions = new HashSet<>(getRegionsAtLocation(currentLoc));
+		for(Region r : getRegionsAtLocation(newLoc)) {
+			if(!oldRegions.contains(r)) {
+				//New region
+				fireRegionEnter(r, entity, newLoc, type);
+			} else {
+				//Move
+				fireRegionMove(r, entity, newLoc, type);
+				oldRegions.remove(r);
+			}
+		}
+		for(Region r : oldRegions) {
+			//Old regions
+			fireRegionLeave(r, entity, newLoc, type);
+		}
+		
+		doMoveEntity(entity, newLoc, type);
+		
+		return this;
+	}
 	
-	protected abstract Location moveEntity(Entity entity, MoveType type, int dx, int dy, int dz);
+	protected abstract World doMoveEntity(Entity entity, Location newLocation, MoveType type);
+	
+	protected final Location moveEntity(Entity entity, MoveType type, int dx, int dy, int dz) {
+		Location result = entity.getLocation().move(dx, dy, dz);
+		doMoveEntity(entity, result, type);
+		return result;
+	}
 	
 	public abstract Location createLocation(int x, int y, int z);
 	
@@ -149,6 +179,24 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	@Override
 	public String toString() {
 		return "World - " + name;
+	}
+	
+	private static final void fireRegionEnter(Region r, Entity e, Location newLocation, MoveType type) {
+		for(RegionListener l : r.getRegionListeners()) {
+			l.onEnter(r, e, type);
+		}
+	}
+	
+	private static final void fireRegionMove(Region r, Entity e, Location newLocation, MoveType type) {
+		for(RegionListener l : r.getRegionListeners()) {
+			l.onMove(r, e, type);
+		}
+	}
+	
+	private static final void fireRegionLeave(Region r, Entity e, Location newLocation, MoveType type) {
+		for(RegionListener l : r.getRegionListeners()) {
+			l.onLeave(r, e, type);
+		}
 	}
 	
 	protected World(String name, WorldGenerator generator) {
