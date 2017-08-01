@@ -60,6 +60,10 @@ public class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 				
 				//stream.sendPacket(new LoginResponsePacket(responseType, response));
 				
+				if(responseType.equals(LoginResponseType.DECLINE)) {
+					stream.close();
+				}
+				
 			}
 		});
 		
