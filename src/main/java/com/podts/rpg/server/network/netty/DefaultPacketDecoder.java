@@ -82,10 +82,13 @@ public class DefaultPacketDecoder extends ByteToMessageDecoder {
 		int encryptedLength = buf.readInt();
 		byte[] encryptedBytes = new byte[encryptedLength];
 		buf.readBytes(encryptedBytes);
-		ByteBuf realBuf = Unpooled.copiedBuffer(decrypt(encryptedBytes, stream.getSecretKey()));
+		ByteBuf realBuf = Unpooled.buffer();
+		realBuf.writeBytes(decrypt(encryptedBytes, stream.getSecretKey()));
+		realBuf.resetReaderIndex();
 		int size = realBuf.readInt();
 		String result = null;
-		byte[] realChars = realBuf.readBytes(size).array();
+		byte[] realChars = new byte[size];
+		realBuf.readBytes(realChars);
 		try {
 			result = new String(realChars, "UTF-8");
 		} catch (UnsupportedEncodingException e) {

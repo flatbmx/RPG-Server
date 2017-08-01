@@ -22,7 +22,7 @@ public class NettyStream extends NioSocketChannel implements Stream {
 	static {
 		try {
 			keyGenerator = KeyGenerator.getInstance("AES");
-			keyGenerator.init(256);
+			keyGenerator.init(128);
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}

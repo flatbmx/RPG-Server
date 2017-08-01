@@ -7,6 +7,7 @@ import java.util.function.BiConsumer;
 import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
+import com.podts.rpg.server.network.packet.LoginPacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -31,6 +32,14 @@ public class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 			}
 		});
 		
+		handlers.put(LoginPacket.class, new BiConsumer<NettyStream,Packet>() {
+			@Override
+			public void accept(NettyStream stream, Packet packet) {
+				LoginPacket p = (LoginPacket) packet;
+				System.out.println("Recieved login | username: "+ p.getUsername() + " | password: " + p.getPassword());
+			}
+		});
+		
 	}
 	
 	@Override
@@ -40,10 +49,10 @@ public class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 		
 		BiConsumer<NettyStream,Packet> handler = handlers.get(packet.getClass());
 		
-		if(handlers != null) {
+		if(handler != null) {
 			handler.accept(stream, packet);
 		} else {
-			
+			System.out.println("Recieved unhandled packet " + packet.getClass().getSimpleName());
 		}
 		
 	}
