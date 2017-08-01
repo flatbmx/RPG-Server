@@ -59,7 +59,7 @@ public class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 					responseType = LoginResponseType.DECLINE;
 				}
 				
-				stream.sendPacket(new LoginResponsePacket(responseType, response));
+				//stream.sendPacket(new LoginResponsePacket(responseType, response));
 				
 			}
 		});
