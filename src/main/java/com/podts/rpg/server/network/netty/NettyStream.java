@@ -40,6 +40,10 @@ public class NettyStream extends NioSocketChannel implements Stream {
 		return player;
 	}
 	
+	public final void setPlayer(Player player) {
+		this.player = player;
+	}
+	
 	@Override
 	public void sendPacket(Packet p) {
 		this.writeAndFlush(p);

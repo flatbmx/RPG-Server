@@ -16,6 +16,8 @@ public interface Stream {
 	
 	public Player getPlayer();
 	
+	public void setPlayer(Player player);
+	
 	public SecretKey getSecretKey();
 	
 	public void sendPacket(Packet p);

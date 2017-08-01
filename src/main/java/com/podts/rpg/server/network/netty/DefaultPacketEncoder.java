@@ -45,8 +45,6 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {
 				AESReplyPacket p = (AESReplyPacket) op;
 				
-				buf.writeInt(p.getPlayer().getID());
-				
 				//Convert secret into bytes.
 				byte[] encodedSecret = p.getSecret().getEncoded();
 				//Encrypt secret bytes using public key.

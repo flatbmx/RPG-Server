@@ -4,12 +4,9 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
-import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.network.Packet;
 
 public class AESReplyPacket extends Packet {
-	
-	private final Player player;
 	
 	/**
 	 * The RSA public key to encrypt the AES key with.
@@ -20,10 +17,6 @@ public class AESReplyPacket extends Packet {
 	 */
 	private final SecretKey secret;
 	
-	public final Player getPlayer() {
-		return player;
-	}
-	
 	public final PublicKey getPublicKey() {
 		return publicKey;
 	}
@@ -32,8 +25,7 @@ public class AESReplyPacket extends Packet {
 		return secret;
 	}
 	
-	public AESReplyPacket(Player player, PublicKey publicKey, SecretKey secret) {
-		this.player = player;
+	public AESReplyPacket(PublicKey publicKey, SecretKey secret) {
 		this.publicKey = publicKey;
 		this.secret = secret;
 	}
