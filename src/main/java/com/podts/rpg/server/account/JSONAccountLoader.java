@@ -4,7 +4,7 @@ import java.io.File;
 
 import com.podts.rpg.server.model.Player;
 
-public final class JSONAccountLoader implements AccountLoader {
+public final class JSONAccountLoader extends AccountLoader {
 	
 	private final File root;
 	
@@ -13,13 +13,11 @@ public final class JSONAccountLoader implements AccountLoader {
 	}
 	
 	private final File getValidAccountFile(String username) {
-		if(username == null) throw new NullPointerException("Cannot determine if account exists with null name.");
-		if(username.length() == 0) throw new IllegalArgumentException("Cannot determine if account exists with empty name.");
 		return getAccountFile(username);
 	}
 	
 	@Override
-	public boolean accountExists(String username) {
+	public boolean doAccountExists(String username) {
 		return getValidAccountFile(username).exists();
 	}
 	
