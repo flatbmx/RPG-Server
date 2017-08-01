@@ -17,6 +17,7 @@ import com.podts.rpg.server.network.Stream;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
+import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.MessagePacket;
 
 import io.netty.buffer.ByteBuf;
@@ -56,9 +57,16 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		});
 		
 		addEncoder(LoginResponsePacket.class, new PacketEncoder(PID_LOGINRESPONSE) {
+			private final Map<LoginResponseType,Integer> responseTypeMap = new EnumMap<>(LoginResponseType.class);
 			@Override
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {
-				
+				LoginResponsePacket p = (LoginResponsePacket) op;
+				buf.writeByte(responseTypeMap.get(p.getType()));
+				writeString(p.getResponse(), buf);
+			}
+			void init() {
+				responseTypeMap.put(LoginResponseType.ACCEPT, 0);
+				responseTypeMap.put(LoginResponseType.DECLINE, 1);
 			}
 		});
 		
@@ -139,6 +147,17 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}	
+	}
+	
+	private static void writeString(String string, ByteBuf buf) {
+		byte[] plain;
+		try {
+			plain = string.getBytes("UTF-8");
+			buf.writeInt(plain.length).writeBytes(plain);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private static byte[] encrypt(byte[] bytes, SecretKey secretKey) {

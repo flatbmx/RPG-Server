@@ -1,9 +1,12 @@
 package com.podts.rpg.server;
 
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
+import com.podts.rpg.server.account.AccountLoader;
+import com.podts.rpg.server.account.JSONAccountLoader;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.network.NetworkManager;
 import com.podts.rpg.server.network.netty.NettyNetworkManager;
@@ -25,7 +28,6 @@ public final class Server {
 	
 	/**
 	 * Represents the current status of the server.
-	 * @author David
 	 *
 	 */
 	public enum ServerStatus {
@@ -40,6 +42,7 @@ public final class Server {
 	private int networkListenPort;
 	
 	private final NetworkManager networkManager;
+	private final AccountLoader accountLoader;
 	
 	private Thread shutdownHook = new Thread() {
 		@Override
@@ -77,6 +80,10 @@ public final class Server {
 				hook.accept(oldStatus, newStatus);
 			}
 		}
+	}
+	
+	public AccountLoader getAccountLoader() {
+		return accountLoader;
 	}
 	
 	/**
@@ -123,6 +130,7 @@ public final class Server {
 		networkListenPort = port;
 		statusHooks = new HashSet<>();
 		networkManager = new NettyNetworkManager();
+		accountLoader = new JSONAccountLoader(Paths.get("").toFile());
 	}
 	
 	public static void main(String[] args) {

@@ -4,10 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import com.podts.rpg.server.Server;
+import com.podts.rpg.server.account.AccountLoader.AccountDoesNotExistException;
+import com.podts.rpg.server.account.AccountLoader.IncorrectPasswordException;
 import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
+import com.podts.rpg.server.network.packet.LoginResponsePacket;
+import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -37,6 +42,25 @@ public class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 			public void accept(NettyStream stream, Packet packet) {
 				LoginPacket p = (LoginPacket) packet;
 				System.out.println("Recieved login | username: "+ p.getUsername() + " | password: " + p.getPassword());
+				
+				String response;
+				LoginResponseType responseType;
+				
+				try {
+					Player player = Server.get().getAccountLoader().loadAccount(p.getUsername(), p.getPassword());
+					stream.player = player;
+					responseType = LoginResponseType.ACCEPT;
+					response = "Successfully logged in.";
+				} catch (AccountDoesNotExistException e) {
+					response = "Account not found!";
+					responseType = LoginResponseType.DECLINE;
+				} catch (IncorrectPasswordException e) {
+					response = "Incorrect password!";
+					responseType = LoginResponseType.DECLINE;
+				}
+				
+				stream.sendPacket(new LoginResponsePacket(responseType, response));
+				
 			}
 		});
 		
