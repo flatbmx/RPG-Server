@@ -105,6 +105,8 @@ public final class Server {
 		
 		System.out.println("Server bound to port " + networkManager.getPort());
 		
+		GameEngine.create(4);
+		
 		try {
 			Universe.get().createWorld("Earth", new FillGenerator(TileType.GRASS));
 		} catch (WorldAlreadyExistsException e) {
@@ -122,6 +124,7 @@ public final class Server {
 		if(status != ServerStatus.ONLINE) return;
 		changeStatus(ServerStatus.UNLOADING);
 		System.out.println("Stopping Server.");
+		GameEngine.get().shutdown();
 		Runtime.getRuntime().removeShutdownHook(shutdownHook);
 		networkManager.unbind();
 		changeStatus(ServerStatus.OFFLINE);

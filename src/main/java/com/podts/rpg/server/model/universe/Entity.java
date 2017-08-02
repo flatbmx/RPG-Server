@@ -39,6 +39,10 @@ public class Entity implements Locatable {
 		return type;
 	}
 	
+	public final boolean isPlayer() {
+		return EntityType.PLAYER.equals(type);
+	}
+	
 	public Location getLocation() {
 		return location;
 	}

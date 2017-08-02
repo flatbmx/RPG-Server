@@ -1,12 +1,17 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
@@ -15,6 +20,8 @@ public final class StaticChunkWorld extends World {
 	
 	private static final int CHUNK_SIZE = 17;
 	
+	private final Map<Integer,Player> players = new HashMap<>();
+	private final Collection<Player> safePlayers = Collections.unmodifiableCollection(players.values());
 	private final Map<Integer,Entity> entities = new HashMap<>();
 	private final Map<Integer,Map<ChunkCoordinate,Chunk>> chunks = new HashMap<>();
 	
@@ -33,6 +40,7 @@ public final class StaticChunkWorld extends World {
 		private final SLocation topLeft;
 		
 		private final Tile[][] tiles = new Tile[CHUNK_SIZE][CHUNK_SIZE];
+		private final Map<Integer,Player> players = new HashMap<>();
 		private final Map<Integer,Entity> entities = new HashMap<>();
 		private final Set<Region> regions = new HashSet<>(),
 				safeRegions = Collections.unmodifiableSet(regions);
@@ -148,6 +156,11 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
+	public Collection<Player> getPlayers() {
+		return safePlayers;
+	}
+	
+	@Override
 	public Tile getTile(Locatable loc) {
 		if(loc == null) throw new IllegalArgumentException("Cannot get Tile for null location.");
 		final Location point = loc.getLocation();
@@ -162,12 +175,8 @@ public final class StaticChunkWorld extends World {
 		}
 	}
 	
-	public StaticChunkWorld setTile(Tile newTile) {
-		if(newTile == null) throw new IllegalArgumentException("Cannot set a Tile as null.");
+	public void doSetTile(Tile newTile) {
 		Location point = newTile.getLocation();
-		if(point == null) throw new IllegalArgumentException("Cannot set a Tile at a null location.");
-		if(!equals(point.getWorld())) throw new IllegalArgumentException("Cannot set a Tile that exists in another World.");
-		
 		Chunk chunk = getOrGenerateChunk(getCoordinateFromLocation(point));
 		Location topLeft = chunk.topLeft;
 		int x = point.getX() - topLeft.getX();
@@ -175,7 +184,6 @@ public final class StaticChunkWorld extends World {
 		synchronized(chunk) {
 			chunk.tiles[x][y] = newTile;
 		}
-		return this;
 	}
 	
 	@Override
@@ -197,25 +205,54 @@ public final class StaticChunkWorld extends World {
 		return result;
 	}
 	
+	public Collection<Player> getNearbyPlayers(Locatable l) {
+		List<Player> result;
+		Chunk[][] chunks = getSurroundingChunks((SLocation) l.getLocation());
+		int size = 0;
+		for(int i=0; i<2; ++i) {
+			for(int j=0; j<2; ++j) {
+				size += chunks[i][j].players.size();
+			}
+		}
+		result = Arrays.asList(new Player[size]);
+		size = 0;
+		for(int i=0; i<2; ++i) {
+			for(int j=0; j<2; ++j) {
+				for(Player player : chunks[i][j].players.values()) {
+					result.add(size++, player);
+				}
+			}
+		}
+		return result;
+	}
+	
 	@Override
-	public boolean register(Entity e) {
+	public boolean doRegister(Entity e) {
 		if(entities.containsKey(e.getID())) return false;
-		Chunk chunk = getOrGenerateChunkFromLocation(e.getLocation());
+		final Chunk chunk = ((SLocation)e.getLocation()).chunk;
 		entities.put(e.getID(), e);
 		synchronized(chunk) {
 			chunk.entities.put(e.getID(), e);
+			if(e.isPlayer()) {
+				PlayerEntity pE = (PlayerEntity) e;
+				chunk.players.put(pE.getPlayer().getID(), pE.getPlayer());
+			}
 		}
 		return true;
 	}
 	
 	@Override
-	public World deRegister(Entity e) {
-		Chunk chunk = getOrGenerateChunkFromLocation(e.getLocation());
-		entities.remove(e.getID());
+	public boolean doDeRegister(Entity e) {
+		if(entities.remove(e.getID()) == null) return false;
+		final Chunk chunk = ((SLocation)e.getLocation()).chunk;
 		synchronized(chunk) {
 			chunk.entities.remove(e.getID());
+			if(e.isPlayer()) {
+				PlayerEntity pE = (PlayerEntity) e;
+				chunk.players.remove(pE.getPlayer().getID());
+			}
 		}
-		return this;
+		return true;
 	}
 	
 	@Override

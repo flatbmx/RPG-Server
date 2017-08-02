@@ -4,11 +4,16 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
 import com.podts.rpg.server.model.universe.region.SimpleRegionHandler;
+import com.podts.rpg.server.network.Packet;
+import com.podts.rpg.server.network.packet.EntityPacket;
+import com.podts.rpg.server.network.packet.EntityPacket.UpdateType;
+import com.podts.rpg.server.network.packet.TilePacket;
 
 /**
  * A collection of Tiles that represent a world that entities such as NPCs, players, etc can inhabit and interact with
@@ -40,6 +45,8 @@ public abstract class World extends SimpleRegionHandler implements Region {
 		return generator;
 	}
 	
+	public abstract Collection<Player> getPlayers();
+	
 	/**
 	 * Returns the tile that is located at the given point in this World.
 	 * @param point - The location of the Tile.
@@ -53,7 +60,22 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 * @param point - The location of the new Tile.
 	 * @return The World for chaining.
 	 */
-	public abstract World setTile(Tile newTile);
+	public final World setTile(Tile newTile) {
+		if(newTile == null) throw new IllegalArgumentException("Cannot set a Tile as null.");
+		Location point = newTile.getLocation();
+		if(point == null) throw new IllegalArgumentException("Cannot set a Tile at a null location.");
+		if(!equals(point.getWorld())) throw new IllegalArgumentException("Cannot set a Tile that exists in another World.");
+		
+		doSetTile(newTile);
+		
+		TilePacket updatePacket = new TilePacket(newTile);
+		for(Player player : getNearbyPlayers(point)) {
+			player.getStream().sendPacket(updatePacket);
+		}
+		return this;
+	}
+	
+	protected abstract void doSetTile(Tile newTile);
 	
 	/**
 	 * Returns all registered entities that are within a given distance around a given point in this World.
@@ -76,6 +98,8 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 */
 	public abstract Collection<Entity> getNearbyEntities(Locatable l);
 	
+	public abstract Collection<Player> getNearbyPlayers(Locatable l);
+	
 	/**
 	 * Returns the {@link #register(Entity) registered} {@link Entity} with the given id.
 	 * @param id - The ID of the desired {@link Entity}.
@@ -91,7 +115,14 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 * @return True if the {@link Entity} was sucessfully registered, false if there already exists an 
 	 * {@link Entity} that has the same ID in this {@link Word}.
 	 */
-	public abstract boolean register(Entity e);
+	public boolean register(Entity e) {
+		boolean result = doRegister(e);
+		if(result)
+			sendToNearbyPlayers(e, new EntityPacket(e, UpdateType.CREATE));
+		return result;
+	}
+	
+	protected abstract boolean doRegister(Entity e);
 	
 	/**
 	 * Un-registers an {@link Entity} that is already {@link #register(Entity) registered} in this {@link Word}.
@@ -99,7 +130,14 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 * @param e - The {@link Entity} that will be un-registered.
 	 * @return The World for chaining.
 	 */
-	public abstract World deRegister(Entity e);
+	public World deRegister(Entity e) {
+		if(doDeRegister(e)) {
+			sendToNearbyPlayers(e, new EntityPacket(e, UpdateType.DESTROY));
+		}
+		return this;
+	}
+	
+	protected abstract boolean doDeRegister(Entity e);
 	
 	/**
 	 * Registers the given {@link PollableRegion region} with this {@link World world}.
@@ -157,6 +195,8 @@ public abstract class World extends SimpleRegionHandler implements Region {
 		
 		doMoveEntity(entity, newLoc, type);
 		
+		sendToNearbyPlayers(entity, new EntityPacket(entity,UpdateType.UPDATE));
+		
 		return this;
 	}
 	
@@ -196,6 +236,12 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	private static final void fireRegionLeave(Region r, Entity e, Location newLocation, MoveType type) {
 		for(RegionListener l : r.getRegionListeners()) {
 			l.onLeave(r, e, type);
+		}
+	}
+	
+	private void sendToNearbyPlayers(Locatable l, Packet packet) {
+		for(Player player : getNearbyPlayers(l)) {
+			player.getStream().sendPacket(packet);
 		}
 	}
 	
