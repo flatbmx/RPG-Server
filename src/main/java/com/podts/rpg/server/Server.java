@@ -7,7 +7,10 @@ import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.account.AccountLoader;
 import com.podts.rpg.server.account.JSONAccountLoader;
+import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.model.universe.Universe;
+import com.podts.rpg.server.model.universe.Universe.WorldAlreadyExistsException;
+import com.podts.rpg.server.model.universe.generators.FillGenerator;
 import com.podts.rpg.server.network.NetworkManager;
 import com.podts.rpg.server.network.netty.NettyNetworkManager;
 
@@ -102,7 +105,11 @@ public final class Server {
 		
 		System.out.println("Server bound to port " + networkManager.getPort());
 		
-		Universe.get();
+		try {
+			Universe.get().createWorld("Earth", new FillGenerator(TileType.GRASS));
+		} catch (WorldAlreadyExistsException e) {
+			e.printStackTrace();
+		}
 		
 		changeStatus(ServerStatus.ONLINE);
 		

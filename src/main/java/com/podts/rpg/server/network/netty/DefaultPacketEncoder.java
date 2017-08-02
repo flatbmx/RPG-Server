@@ -115,7 +115,7 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 				packetTypeMap.put(EntityPacket.UpdateType.UPDATE, 1);
 				packetTypeMap.put(EntityPacket.UpdateType.DESTROY, 2);
 				
-				entityTypeMap.put(EntityType.SHIP_ESCAPEPOD, 0);
+				entityTypeMap.put(EntityType.PLAYER, 0);
 			}
 			@Override
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {

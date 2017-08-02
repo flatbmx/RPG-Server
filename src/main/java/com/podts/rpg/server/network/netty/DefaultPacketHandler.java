@@ -43,26 +43,27 @@ public class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 				LoginPacket p = (LoginPacket) packet;
 				System.out.println("Recieved login | username: "+ p.getUsername() + " | password: " + p.getPassword());
 				
+				Player player = null;
 				String response;
-				LoginResponseType responseType;
+				LoginResponseType responseType = LoginResponseType.DECLINE;
 				
 				try {
-					Player player = Server.get().getAccountLoader().loadAccount(p.getUsername(), p.getPassword());
+					player = Server.get().getAccountLoader().loadAccount(p.getUsername(), p.getPassword());
 					stream.player = player;
 					responseType = LoginResponseType.ACCEPT;
 					response = "Successfully logged in.";
 				} catch (AccountDoesNotExistException e) {
 					response = "Account not found!";
-					responseType = LoginResponseType.DECLINE;
 				} catch (IncorrectPasswordException e) {
 					response = "Incorrect password!";
-					responseType = LoginResponseType.DECLINE;
 				}
 				
 				stream.sendPacket(new LoginResponsePacket(responseType, response));
 				
 				if(responseType.equals(LoginResponseType.DECLINE)) {
 					stream.close();
+				} else {
+					
 				}
 				
 			}

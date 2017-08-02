@@ -15,6 +15,12 @@ public final class Universe {
 	
 	private final Map<String,World> worlds = new HashMap<String,World>();
 	
+	private World defaultWorld;
+	
+	public World getDefaultWorld() {
+		return defaultWorld;
+	}
+	
 	public synchronized World getWorld(String name) {
 		return worlds.get(name);
 	}
@@ -34,6 +40,7 @@ public final class Universe {
 		
 		final World result = new StaticChunkWorld(name, generator);
 		worlds.put(result.getName(), result);
+		if(defaultWorld == null) defaultWorld = result;
 		return result;
 	}
 	

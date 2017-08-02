@@ -4,6 +4,22 @@ import com.podts.rpg.server.network.Stream;
 
 public class Player {
 	
+	private final int id;
+	private Stream stream;
+	
+	public final int getID() {
+		return id;
+	}
+	
+	public final Stream getStream() {
+		return stream;
+	}
+	
+	public Player(Stream stream) {
+		id = getNewID();
+		this.stream = stream;
+	}
+	
 	private static int currentID = 0;
 	
 	private static int getNewID() {
@@ -20,22 +36,6 @@ public class Player {
 	public static final Player getPlayer(int id) {
 		if(id >= 0 && id < MAX_PLAYERS) return players[id];
 		return null;
-	}
-	
-	private final int id;
-	private Stream stream;
-	
-	public final int getID() {
-		return id;
-	}
-	
-	public final Stream getStream() {
-		return stream;
-	}
-	
-	public Player(Stream stream) {
-		id = getNewID();
-		this.stream = stream;
 	}
 	
 }
