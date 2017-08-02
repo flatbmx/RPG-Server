@@ -25,7 +25,7 @@ public final class GameEngine {
 	}
 	
 	public Future<?> submit(Runnable task) {
-		return executor.submit(task);
+		return executor.submit(new SafeRunnable(task));
 	}
 	
 	public <T> Future<T> submit(Runnable task, T result) {
@@ -54,6 +54,21 @@ public final class GameEngine {
 	
 	private GameEngine(int poolSize) {
 		executor = new ScheduledThreadPoolExecutor(poolSize);
+	}
+	
+	private final class SafeRunnable implements Runnable {
+		Runnable r;
+		@Override
+		public void run() {
+			try {
+				r.run();
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		SafeRunnable(Runnable r) {
+			this.r = r;
+		}
 	}
 	
 }

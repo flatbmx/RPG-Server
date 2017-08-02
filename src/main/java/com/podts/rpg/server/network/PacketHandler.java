@@ -40,38 +40,37 @@ public final class PacketHandler {
 				LoginPacket p = (LoginPacket) packet;
 				System.out.println("Recieved login | username: "+ p.getUsername() + " | password: " + p.getPassword());
 				
-				GameEngine.get().submit(new Runnable() {
-					@Override
-					public void run() {
+				Player player = null;
+				String response;
+				LoginResponseType responseType = null;
 
-						Player player = null;
-						String response;
-						LoginResponseType responseType;
+				try {
+					player = Server.get().getAccountLoader().loadAccount(p.getUsername(), p.getPassword());
+					stream.setPlayer(player);
+					responseType = LoginResponseType.ACCEPT;
+					response = "Successfully logged in.";
+				} catch (AccountDoesNotExistException e) {
+					response = "Account not found!";
+				} catch (IncorrectPasswordException e) {
+					response = "Incorrect password!";
+				}
+				
+				if(responseType == null) responseType = LoginResponseType.DECLINE;
+				
+				stream.sendPacket(new LoginResponsePacket(responseType, response));
 
-						try {
-							player = Server.get().getAccountLoader().loadAccount(p.getUsername(), p.getPassword());
-							stream.setPlayer(player);
-							responseType = LoginResponseType.ACCEPT;
-							response = "Successfully logged in.";
-						} catch (AccountDoesNotExistException e) {
-							response = "Account not found!";
-							responseType = LoginResponseType.DECLINE;
-						} catch (IncorrectPasswordException e) {
-							response = "Incorrect password!";
-							responseType = LoginResponseType.DECLINE;
-						}
+				if(responseType.equals(LoginResponseType.DECLINE)) {
+					stream.closeStream();
+					return;
+				}
 
-						stream.sendPacket(new LoginResponsePacket(responseType, response));
-
-						if(responseType.equals(LoginResponseType.DECLINE)) {
-							stream.closeStream();
-						}
-
-						World world = Universe.get().getDefaultWorld();
-						PlayerEntity pE = new PlayerEntity(player, world.createLocation(0, 0, 0));
-						world.register(pE);
-					}
-				});
+				World world = Universe.get().getDefaultWorld();
+				PlayerEntity pE = new PlayerEntity(player, world.createLocation(0, 0, 0));
+				pE.getPlayer().setStream(stream);
+				world.register(pE);
+				
+				
+				
 			}
 		});
 		
@@ -82,11 +81,26 @@ public final class PacketHandler {
 		BiConsumer<Stream,Packet> handler = handlers.get(packet.getClass());
 		
 		if(handler != null) {
-			handler.accept(stream, packet);
+			GameEngine.get().submit(new PacketRunner(handler, packet, stream));
 		} else {
 			System.out.println("Recieved unhandled packet " + packet.getClass().getSimpleName());
 		}
 		
+	}
+	
+	private static final class PacketRunner implements Runnable {
+		private final Packet packet;
+		private final Stream stream;
+		private final BiConsumer<Stream,Packet> handler;
+		@Override
+		public void run() {
+			handler.accept(stream, packet);
+		}
+		PacketRunner(BiConsumer<Stream,Packet> handler, Packet packet, Stream stream) {
+			this.handler = handler;
+			this.packet = packet;
+			this.stream = stream;
+		}
 	}
 	
 }

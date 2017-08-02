@@ -15,11 +15,19 @@ public class Player {
 		return stream;
 	}
 	
+	public final void setStream(Stream s) {
+		stream = s;
+	}
+	
 	public Player(Stream stream) {
 		id = getNewID();
 		this.stream = stream;
 	}
 	
+	public Player() {
+		id = getNewID();
+	}
+
 	private static int currentID = 0;
 	
 	private static int getNewID() {

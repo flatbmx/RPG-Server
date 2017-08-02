@@ -29,7 +29,7 @@ public final class JSONAccountLoader extends AccountLoader {
 		
 		
 		
-		return null;
+		return new Player();
 		
 	}
 

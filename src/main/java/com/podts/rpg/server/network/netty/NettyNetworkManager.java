@@ -74,6 +74,7 @@ public final class NettyNetworkManager extends NetworkManager {
 	    	}
 	    	ctx.close();
 	    }
+		
 	}
 
 	@Override

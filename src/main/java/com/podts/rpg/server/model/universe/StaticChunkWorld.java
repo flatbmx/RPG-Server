@@ -1,6 +1,5 @@
 package com.podts.rpg.server.model.universe;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,6 +14,7 @@ import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
+import com.podts.rpg.server.network.packet.TilePacket;
 
 public final class StaticChunkWorld extends World {
 	
@@ -131,8 +131,8 @@ public final class StaticChunkWorld extends World {
 	private Chunk[][] getSurroundingChunks(SLocation point) {
 		Chunk[][] result = new Chunk[3][3];
 		ChunkCoordinate center = getCoordinateFromLocation(point);
-		for(int i=-1; i<2; ++i) {
-			for(int j=-1; j<2; ++j) {
+		for(int i=0; i<3; ++i) {
+			for(int j=0; j<3; ++j) {
 				result[i][j] = getOrGenerateChunk(new ChunkCoordinate(center.x + i, center.y + j, point.getZ()));
 			}
 		}
@@ -141,6 +141,10 @@ public final class StaticChunkWorld extends World {
 	
 	private Chunk getOrGenerateChunk(ChunkCoordinate coord) {
 		Map<ChunkCoordinate,Chunk> ch = chunks.get(coord.z);
+		if(ch == null) {
+			ch = new HashMap<ChunkCoordinate,Chunk>();
+			chunks.put(coord.z, ch);
+		}
 		Chunk chunk = ch.get(coord);
 		if(chunk == null) {
 			chunk = new Chunk(coord);
@@ -238,7 +242,22 @@ public final class StaticChunkWorld extends World {
 				chunk.players.put(pE.getPlayer().getID(), pE.getPlayer());
 			}
 		}
+		if(e.isPlayer()) {
+			PlayerEntity pE = (PlayerEntity) e;
+			initPlayer(pE);
+		}
 		return true;
+	}
+	
+	private void initPlayer(PlayerEntity pE) {
+		Player player = pE.getPlayer();
+		Chunk[][] chunks = getSurroundingChunks((SLocation)pE.getLocation());
+		for(int i=0; i<3; ++i) {
+			for(int j=0; j<3; ++j) {
+				TilePacket packet = new TilePacket(chunks[i][j].tiles);
+				player.getStream().sendPacket(packet);
+			}
+		}
 	}
 	
 	@Override
