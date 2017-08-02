@@ -136,7 +136,7 @@ public final class StaticChunkWorld extends World {
 		Chunk chunk = ch.get(coord);
 		if(chunk == null) {
 			chunk = new Chunk(coord);
-			getWorldGenerator().generateRectTiles(chunk.tiles, chunk.topLeft.getX(), chunk.topLeft.getY(), chunk.topLeft.getZ());
+			getWorldGenerator().generateRectTiles(chunk.tiles, chunk.topLeft);
 		}
 		return chunk;
 	}
@@ -162,8 +162,9 @@ public final class StaticChunkWorld extends World {
 		}
 	}
 	
-	public StaticChunkWorld setTile(Tile newTile, Location point) {
+	public StaticChunkWorld setTile(Tile newTile) {
 		if(newTile == null) throw new IllegalArgumentException("Cannot set a Tile as null.");
+		Location point = newTile.getLocation();
 		if(point == null) throw new IllegalArgumentException("Cannot set a Tile at a null location.");
 		if(!equals(point.getWorld())) throw new IllegalArgumentException("Cannot set a Tile that exists in another World.");
 		

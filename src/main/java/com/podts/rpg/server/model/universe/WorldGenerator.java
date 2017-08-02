@@ -6,11 +6,11 @@ package com.podts.rpg.server.model.universe;
  */
 public abstract class WorldGenerator {
 	
-	public abstract Tile generateTile(int x, int y, int z);
+	public abstract Tile generateTile(Location point);
 	
-	public Tile[][] generateRectTiles(int x, int y, int z, int width, int height) {
+	public Tile[][] generateRectTiles(Location point, int width, int height) {
 		Tile[][] result = new Tile[width][height];
-		generateRectTiles(result,x,y,z);
+		generateRectTiles(result,point);
 		return result;
 	}
 	
@@ -23,11 +23,11 @@ public abstract class WorldGenerator {
 	 * @param z - The z position of the tiles.
 	 * @return The WorldGenerator for chaining.
 	 */
-	public WorldGenerator generateRectTiles(Tile[][] tiles, int x, int y, int z) {
+	public WorldGenerator generateRectTiles(Tile[][] tiles, Location point) {
 		
 		for(int dy=0; dy < tiles[0].length; ++dy) {
 			for(int dx=0; dx < tiles.length; ++dx) {
-				tiles[dx][dy] = generateTile(x + dx, y + dy, z);
+				tiles[dx][dy] = generateTile(point.move(dx, dy, 0));
 			}
 		}
 		

@@ -1,5 +1,6 @@
 package com.podts.rpg.server.model.universe.generators;
 
+import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Tile;
 import com.podts.rpg.server.model.universe.WorldGenerator;
 import com.podts.rpg.server.model.universe.Tile.TileType;
@@ -17,8 +18,8 @@ public final class FillGenerator extends WorldGenerator {
 	}
 	
 	@Override
-	public Tile generateTile(int x, int y, int z) {
-		return new Tile(type);
+	public Tile generateTile(Location point) {
+		return new Tile(type, point);
 	}
 	
 	public FillGenerator(TileType type) {

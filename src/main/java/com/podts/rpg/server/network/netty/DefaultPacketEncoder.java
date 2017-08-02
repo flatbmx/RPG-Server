@@ -12,6 +12,8 @@ import javax.crypto.SecretKey;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Tile;
+import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
@@ -19,6 +21,8 @@ import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.MessagePacket;
+import com.podts.rpg.server.network.packet.TilePacket;
+import com.podts.rpg.server.network.packet.TilePacket.TileSendType;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -36,8 +40,9 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	
 	private static final int PID_AESREPLY = 0;
 	private static final int PID_LOGINRESPONSE = 1;
-	private static final int PID_ENTITY = 2;
-	private static final int PID_MESSAGE = 3;
+	private static final int PID_TILE = 2;
+	private static final int PID_ENTITY = 3;
+	private static final int PID_MESSAGE = 4;
 	
 	static {
 		addEncoder(AESReplyPacket.class, new PacketEncoder(PID_AESREPLY) {
@@ -65,6 +70,40 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			void init() {
 				responseTypeMap.put(LoginResponseType.ACCEPT, 0);
 				responseTypeMap.put(LoginResponseType.DECLINE, 1);
+			}
+		});
+		
+		addEncoder(TilePacket.class, new PacketEncoder(PID_TILE) {
+			private final Map<TileType,Integer> tileTypes = new EnumMap<>(TileType.class);
+			private final Map<TileSendType,Integer> sendTypes = new EnumMap<>(TileSendType.class);
+			@Override
+			public void encode(NettyStream s, Packet op, ByteBuf buf) {
+				TilePacket p = (TilePacket) op;
+				buf.writeByte(sendTypes.get(p.getType()));
+				if(p.getType().equals(TileSendType.SINGLE)) {
+					Tile tile = p.getTile();
+					buf.writeByte(tileTypes.get(tile.getType()));
+					writeLocation(tile.getLocation(), buf);
+				} else if(p.getType().equals(TileSendType.GROUP)) {
+					Tile[][] tiles = p.getTiles();
+					writeLocation(tiles[0][0].getLocation(), buf);
+					buf.writeInt(tiles.length)
+					.writeInt(tiles[0].length);
+					for(int y=0; y<tiles[0].length; ++y) {
+						for(int x=0; x<tiles.length; ++x) {
+							buf.writeByte(tileTypes.get(tiles[x][y].getType()));
+						}
+					}
+				}
+			}
+			void init() {
+				sendTypes.put(TileSendType.GROUP, 0);
+				sendTypes.put(TileSendType.SINGLE, 1);
+				
+				tileTypes.put(TileType.VOID, 0);
+				tileTypes.put(TileType.DIRT, 1);
+				tileTypes.put(TileType.GRASS, 2);
+				tileTypes.put(TileType.WATER, 3);
 			}
 		});
 		
@@ -125,8 +164,9 @@ public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	}
 	
 	private static void writeLocation(Location loc, ByteBuf buf) {
-		buf.writeDouble(loc.getX());
-		buf.writeDouble(loc.getY());
+		buf.writeInt(loc.getX());
+		buf.writeInt(loc.getY());
+		buf.writeInt(loc.getZ());
 	}
 	
 	private static void writeEncryptedLocation(Location loc, Stream stream, ByteBuf buf) {

@@ -25,17 +25,23 @@ public final class Tile {
 	}
 	
 	private final TileType type;
+	private final Location location;
 	
 	public TileType getType() {
 		return type;
+	}
+	
+	public Location getLocation() {
+		return location;
 	}
 	
 	public boolean isTraversable() {
 		return type.isTraversable();
 	}
 	
-	public Tile(TileType type) {
+	public Tile(TileType type, Location location) {
 		this.type = type;
+		this.location = location;
 	}
 	
 }

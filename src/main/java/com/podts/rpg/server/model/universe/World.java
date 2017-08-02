@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.podts.rpg.server.model.universe.Location.MoveType;
+import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
@@ -53,7 +54,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 * @param point - The location of the new Tile.
 	 * @return The World for chaining.
 	 */
-	public abstract World setTile(Tile newTile, Location point);
+	public abstract World setTile(Tile newTile);
 	
 	/**
 	 * Returns all registered entities that are within a given distance around a given point in this World.

@@ -11,6 +11,7 @@ import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
+import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 
@@ -58,7 +59,7 @@ public class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 					responseType = LoginResponseType.DECLINE;
 				}
 				
-				//stream.sendPacket(new LoginResponsePacket(responseType, response));
+				stream.sendPacket(new LoginResponsePacket(responseType, response));
 				
 				if(responseType.equals(LoginResponseType.DECLINE)) {
 					stream.close();
