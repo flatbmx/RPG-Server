@@ -29,7 +29,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-public class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
+class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	
 	private static final Map<Class<? extends Packet>,PacketEncoder> encoders = new HashMap<Class<? extends Packet>, PacketEncoder>();
 	

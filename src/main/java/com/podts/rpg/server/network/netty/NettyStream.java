@@ -15,7 +15,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-public class NettyStream extends NioSocketChannel implements Stream {
+class NettyStream extends NioSocketChannel implements Stream {
 	
 	private static KeyGenerator keyGenerator;
 	

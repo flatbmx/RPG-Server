@@ -5,7 +5,7 @@ import com.podts.rpg.server.network.PacketHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-public class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
+class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 	
 	@Override
 	protected void channelRead0(ChannelHandlerContext context, Packet packet) throws Exception {

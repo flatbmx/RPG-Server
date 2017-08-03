@@ -21,15 +21,20 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
-public class DefaultPacketDecoder extends ByteToMessageDecoder {
+class DefaultPacketDecoder extends ByteToMessageDecoder {
 
 	private static final PacketConstructor[] packetConstructors;
-
+	
+	private static final int PID_RSAHANDSHAKE = 0;
+	private static final int PID_LOGINREQUST = 1;
+	private static final int PID_MOVE = 2;
+	private static final int PID_MESSAGE = 3;
+	
 	static {
 		packetConstructors = new PacketConstructor[128];
 
 		// RSAHandShake Constructor
-		packetConstructors[0] = new PacketConstructor() {
+		packetConstructors[PID_RSAHANDSHAKE] = new PacketConstructor() {
 			@Override
 			public Packet construct(Stream s, int size, byte opCode, ByteBuf buf) {
 				byte[] keyBytes = new byte[size];
@@ -47,7 +52,7 @@ public class DefaultPacketDecoder extends ByteToMessageDecoder {
 		};
 		
 		// LoginPacket Constructor
-		packetConstructors[1] = new PacketConstructor() {
+		packetConstructors[PID_LOGINREQUST] = new PacketConstructor() {
 			@Override
 			public Packet construct(Stream s, int size, byte opCode, ByteBuf buf) {
 				String username = readEncryptedString(s, buf);

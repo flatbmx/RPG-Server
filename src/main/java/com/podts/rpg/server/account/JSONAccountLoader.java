@@ -23,7 +23,9 @@ public final class JSONAccountLoader extends AccountLoader {
 	
 	@Override
 	public Player loadAccount(String username, String password)
-			throws AccountDoesNotExistException, IncorrectPasswordException {
+			throws InvalidUsernameException, AccountDoesNotExistException, IncorrectPasswordException {
+		
+		checkValidUsername(username);
 		
 		File accountFile = getValidAccountFile(username);
 		

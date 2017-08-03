@@ -8,6 +8,7 @@ import com.podts.rpg.server.GameEngine;
 import com.podts.rpg.server.Server;
 import com.podts.rpg.server.account.AccountLoader.AccountDoesNotExistException;
 import com.podts.rpg.server.account.AccountLoader.IncorrectPasswordException;
+import com.podts.rpg.server.account.AccountLoader.InvalidUsernameException;
 import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Universe;
@@ -53,6 +54,8 @@ public final class PacketHandler {
 					response = "Account not found!";
 				} catch (IncorrectPasswordException e) {
 					response = "Incorrect password!";
+				} catch (InvalidUsernameException e) {
+					response = e.getMessage();
 				}
 				
 				if(responseType == null) responseType = LoginResponseType.DECLINE;
