@@ -6,6 +6,8 @@ import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.GameEngine;
 import com.podts.rpg.server.Server;
+import com.podts.rpg.server.account.AccountLoader;
+import com.podts.rpg.server.account.AccountLoader.AccountAlreadyExistsException;
 import com.podts.rpg.server.account.AccountLoader.AccountDoesNotExistException;
 import com.podts.rpg.server.account.AccountLoader.IncorrectPasswordException;
 import com.podts.rpg.server.account.AccountLoader.InvalidUsernameException;
@@ -46,7 +48,19 @@ public final class PacketHandler {
 				LoginResponseType responseType = null;
 
 				try {
-					player = Server.get().getAccountLoader().loadAccount(p.getUsername(), p.getPassword());
+					
+					AccountLoader loader = Server.get().getAccountLoader();
+					
+					if(loader.accountExists(p.getUsername())) {
+						player = loader.loadAccount(p.getUsername(), p.getPassword());
+					} else {
+						try {
+							player = loader.createAccount(p.getUsername(), p.getPassword());
+						} catch (AccountAlreadyExistsException e) {
+							e.printStackTrace();
+						}
+					}
+					
 					stream.setPlayer(player);
 					responseType = LoginResponseType.ACCEPT;
 					response = "Successfully logged in.";

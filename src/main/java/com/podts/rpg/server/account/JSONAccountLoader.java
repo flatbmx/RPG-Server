@@ -61,9 +61,9 @@ public final class JSONAccountLoader extends AccountLoader {
 	}
 
 	@Override
-	public boolean createAccount(String username, String password) throws AccountAlreadyExistsException {
-		// TODO Auto-generated method stub
-		return false;
+	public Player createAccount(String username, String password) throws AccountAlreadyExistsException {
+		//TODO implement me actually.
+		return new Player(username, password);
 	}
 
 	@Override

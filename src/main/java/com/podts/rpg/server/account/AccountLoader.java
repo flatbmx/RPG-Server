@@ -36,7 +36,7 @@ public abstract class AccountLoader {
 	public abstract Player loadAccount(String username, String password)
 			throws InvalidUsernameException, AccountDoesNotExistException, IncorrectPasswordException;
 	
-	public abstract boolean createAccount(String username, String password) throws InvalidUsernameException, AccountAlreadyExistsException;
+	public abstract Player createAccount(String username, String password) throws InvalidUsernameException, AccountAlreadyExistsException;
 	
 	public abstract boolean saveAccount(Player player);
 	

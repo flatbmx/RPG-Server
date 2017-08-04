@@ -8,7 +8,7 @@ public class AcceptingAccountLoader extends AccountLoader {
 
 	@Override
 	public boolean doAccountExists(String username) {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -24,14 +24,14 @@ public class AcceptingAccountLoader extends AccountLoader {
 	}
 
 	@Override
-	public boolean createAccount(String username, String password)
+	public Player createAccount(String username, String password)
 			throws InvalidUsernameException, AccountAlreadyExistsException {
-		return false;
+		return new Player(username, password);
 	}
 
 	@Override
 	public boolean saveAccount(Player player) {
-		return false;
+		return true;
 	}
 
 }
