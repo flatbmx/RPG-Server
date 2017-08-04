@@ -1,4 +1,6 @@
-package com.podts.rpg.server.model;
+package com.podts.rpg.server.account;
+
+import com.podts.rpg.server.model.Player;
 
 public abstract class AccountLoader {
 	

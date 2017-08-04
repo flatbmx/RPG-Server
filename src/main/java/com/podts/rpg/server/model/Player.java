@@ -5,6 +5,7 @@ import com.podts.rpg.server.network.Stream;
 public class Player {
 	
 	private final int id;
+	private String username, password;
 	private PlayerEntity entity;
 	private Stream stream;
 	
@@ -28,7 +29,13 @@ public class Player {
 	public Player() {
 		id = getNewID();
 	}
-
+	
+	public Player(String username, String hashPassword) {
+		id = getNewID();
+		this.username = username;
+		this.password = hashPassword;
+	}
+	
 	private static int currentID = 0;
 	
 	private static int getNewID() {
@@ -45,6 +52,14 @@ public class Player {
 	public static final Player getPlayer(int id) {
 		if(id >= 0 && id < MAX_PLAYERS) return players[id];
 		return null;
+	}
+	
+	public final String getUsername() {
+		return username;
+	}
+	
+	public final String getPassword() {
+		return password;
 	}
 	
 	public PlayerEntity getEntity() {
