@@ -2,7 +2,10 @@ package com.podts.rpg.server.account;
 
 import java.io.File;
 
+import com.podts.rpg.server.model.AccountLoader;
 import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.model.PlayerEntity;
+import com.podts.rpg.server.model.universe.Universe;
 
 public final class JSONAccountLoader extends AccountLoader {
 	
@@ -29,9 +32,10 @@ public final class JSONAccountLoader extends AccountLoader {
 		
 		File accountFile = getValidAccountFile(username);
 		
+		Player player = new Player();
+		player.setEntity(new PlayerEntity(player, Universe.get().getDefaultWorld().createLocation(0, 0, 0)));
 		
-		
-		return new Player();
+		return player;
 		
 	}
 

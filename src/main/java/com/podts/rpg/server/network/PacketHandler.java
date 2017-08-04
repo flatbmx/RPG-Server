@@ -6,17 +6,17 @@ import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.GameEngine;
 import com.podts.rpg.server.Server;
-import com.podts.rpg.server.account.AccountLoader.AccountDoesNotExistException;
-import com.podts.rpg.server.account.AccountLoader.IncorrectPasswordException;
-import com.podts.rpg.server.account.AccountLoader.InvalidUsernameException;
 import com.podts.rpg.server.model.Player;
-import com.podts.rpg.server.model.entity.PlayerEntity;
+import com.podts.rpg.server.model.AccountLoader.AccountDoesNotExistException;
+import com.podts.rpg.server.model.AccountLoader.IncorrectPasswordException;
+import com.podts.rpg.server.model.AccountLoader.InvalidUsernameException;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.model.universe.World;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
+import com.podts.rpg.server.network.packet.PlayerInitPacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 
 public final class PacketHandler {
@@ -68,9 +68,9 @@ public final class PacketHandler {
 				}
 
 				World world = Universe.get().getDefaultWorld();
-				PlayerEntity pE = new PlayerEntity(player, world.createLocation(0, 0, 0));
-				pE.getPlayer().setStream(stream);
-				world.register(pE);
+				player.setStream(stream);
+				player.getStream().sendPacket(new PlayerInitPacket(player));
+				world.register(player.getEntity());
 				
 				
 				

@@ -21,6 +21,7 @@ import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.MessagePacket;
+import com.podts.rpg.server.network.packet.PlayerInitPacket;
 import com.podts.rpg.server.network.packet.TilePacket;
 import com.podts.rpg.server.network.packet.TilePacket.TileSendType;
 
@@ -34,6 +35,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	private static final Map<Class<? extends Packet>,PacketEncoder> encoders = new HashMap<Class<? extends Packet>, PacketEncoder>();
 	
 	private static final void addEncoder(Class<? extends Packet> c, PacketEncoder encoder) {
+		if(encoders.containsKey(c)) throw new IllegalArgumentException(c.getSimpleName() + " already has an encoder.");
 		encoders.put(c, encoder);
 		encoder.init();
 	}
@@ -41,8 +43,9 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	private static final int PID_AESREPLY = 0;
 	private static final int PID_LOGINRESPONSE = 1;
 	private static final int PID_TILE = 2;
-	private static final int PID_ENTITY = 3;
-	private static final int PID_MESSAGE = 4;
+	private static final int PID_INIT = 3;
+	private static final int PID_ENTITY = 4;
+	private static final int PID_MESSAGE = 5;
 	
 	static {
 		addEncoder(AESReplyPacket.class, new PacketEncoder(PID_AESREPLY) {
@@ -56,6 +59,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 				byte[] encryptedSecret = encrypt(encodedSecret, p.getPublicKey());
 				//Write encrypted secret into buffer.
 				buf.writeBytes(encryptedSecret);
+				System.out.println("sent");
 			}
 		});
 		
@@ -70,6 +74,15 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			void init() {
 				responseTypeMap.put(LoginResponseType.ACCEPT, 0);
 				responseTypeMap.put(LoginResponseType.DECLINE, 1);
+			}
+		});
+		
+		addEncoder(PlayerInitPacket.class, new PacketEncoder(PID_INIT) {
+			@Override
+			public void encode(NettyStream s, Packet op, ByteBuf buf) {
+				PlayerInitPacket p = (PlayerInitPacket) op;
+				buf.writeInt(p.getPlayer().getID());
+				writeLocation(p.getPlayer().getEntity().getLocation(), buf);
 			}
 		});
 		

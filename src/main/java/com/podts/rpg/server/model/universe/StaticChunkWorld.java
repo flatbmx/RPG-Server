@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.podts.rpg.server.model.Player;
-import com.podts.rpg.server.model.entity.PlayerEntity;
+import com.podts.rpg.server.model.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;

@@ -1,6 +1,4 @@
-package com.podts.rpg.server.account;
-
-import com.podts.rpg.server.model.Player;
+package com.podts.rpg.server.model;
 
 public abstract class AccountLoader {
 	
@@ -36,7 +34,7 @@ public abstract class AccountLoader {
 	public abstract Player loadAccount(String username, String password)
 			throws InvalidUsernameException, AccountDoesNotExistException, IncorrectPasswordException;
 	
-	public abstract boolean createAccount(String username, String password) throws AccountAlreadyExistsException;
+	public abstract boolean createAccount(String username, String password) throws InvalidUsernameException, AccountAlreadyExistsException;
 	
 	public abstract boolean saveAccount(Player player);
 	
