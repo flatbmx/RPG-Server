@@ -57,7 +57,7 @@ public final class GameEngine {
 	}
 	
 	private final class SafeRunnable implements Runnable {
-		Runnable r;
+		private final Runnable r;
 		@Override
 		public void run() {
 			try {
