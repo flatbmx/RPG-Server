@@ -16,6 +16,7 @@ public class AcceptingAccountLoader extends AccountLoader {
 			throws InvalidUsernameException, AccountDoesNotExistException, IncorrectPasswordException {
 		
 		checkValidUsername(username);
+		checkValidPassword(password);
 		
 		Player player = new Player();
 		player.setEntity(new PlayerEntity(player, Universe.get().getDefaultWorld().createLocation(0, 0, 0)));
@@ -25,8 +26,12 @@ public class AcceptingAccountLoader extends AccountLoader {
 
 	@Override
 	public Player createAccount(String username, String password)
-			throws InvalidUsernameException, AccountAlreadyExistsException {
-		return new Player(username, password);
+			throws InvalidUsernameException, AccountAlreadyExistsException, IncorrectPasswordException {
+		checkValidUsername(username);
+		checkValidPassword(password);
+		Player player = new Player();
+		player.setEntity(new PlayerEntity(player, Universe.get().getDefaultWorld().createLocation(0, 0, 0)));
+		return player;
 	}
 
 	@Override

@@ -11,6 +11,7 @@ import com.podts.rpg.server.account.AccountLoader.AccountAlreadyExistsException;
 import com.podts.rpg.server.account.AccountLoader.AccountDoesNotExistException;
 import com.podts.rpg.server.account.AccountLoader.IncorrectPasswordException;
 import com.podts.rpg.server.account.AccountLoader.InvalidUsernameException;
+import com.podts.rpg.server.model.GameState;
 import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.model.universe.World;
@@ -20,6 +21,7 @@ import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.PlayerInitPacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
+import com.podts.rpg.server.network.packet.StatePacket;
 
 public final class PacketHandler {
 	
@@ -67,7 +69,7 @@ public final class PacketHandler {
 				} catch (AccountDoesNotExistException e) {
 					response = "Account not found!";
 				} catch (IncorrectPasswordException e) {
-					response = "Incorrect password!";
+					response = e.getMessage();
 				} catch (InvalidUsernameException e) {
 					response = e.getMessage();
 				}
@@ -86,7 +88,7 @@ public final class PacketHandler {
 				player.getStream().sendPacket(new PlayerInitPacket(player));
 				world.register(player.getEntity());
 				
-				
+				stream.sendPacket(new StatePacket(GameState.PLAYING));
 				
 			}
 		});

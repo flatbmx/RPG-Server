@@ -22,6 +22,7 @@ import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.MessagePacket;
 import com.podts.rpg.server.network.packet.PlayerInitPacket;
+import com.podts.rpg.server.network.packet.StatePacket;
 import com.podts.rpg.server.network.packet.TilePacket;
 import com.podts.rpg.server.network.packet.TilePacket.TileSendType;
 
@@ -44,8 +45,9 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	private static final int PID_LOGINRESPONSE = 1;
 	private static final int PID_TILE = 2;
 	private static final int PID_INIT = 3;
-	private static final int PID_ENTITY = 4;
-	private static final int PID_MESSAGE = 5;
+	private static final int PID_STATE = 4;
+	private static final int PID_ENTITY = 5;
+	private static final int PID_MESSAGE = 6;
 	
 	static {
 		addEncoder(AESReplyPacket.class, new PacketEncoder(PID_AESREPLY) {
@@ -74,6 +76,14 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			void init() {
 				responseTypeMap.put(LoginResponseType.ACCEPT, 0);
 				responseTypeMap.put(LoginResponseType.DECLINE, 1);
+			}
+		});
+		
+		addEncoder(StatePacket.class, new PacketEncoder(PID_STATE) {
+			@Override
+			public void encode(NettyStream s, Packet op, ByteBuf buf) {
+				StatePacket p = (StatePacket) op;
+				buf.writeByte(p.getState().getID());
 			}
 		});
 		

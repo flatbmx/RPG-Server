@@ -7,6 +7,9 @@ public abstract class AccountLoader {
 	public static final int MIN_USERNAME_LENGTH = 4;
 	public static final int MAX_USERNAME_LENGTH = 16;
 	
+	public static final int MIN_PASSWORD_LENGTH = 4;
+	public static final int MAX_PASSWORD_LENGTH = 24;
+	
 	public final boolean isValidUsername(String username) {
 		try {
 			checkValidUsername(username);
@@ -25,6 +28,12 @@ public abstract class AccountLoader {
 		}
 	}
 	
+	protected final void checkValidPassword(String password) throws IncorrectPasswordException {
+		if(password == null) throw new IncorrectPasswordException("Password cannot be null.");
+		if(password.length() < MIN_PASSWORD_LENGTH) throw new IncorrectPasswordException("Password has to be at least " + MIN_PASSWORD_LENGTH + " characters long.");
+		if(password.length() > MAX_PASSWORD_LENGTH) throw new IncorrectPasswordException("Password cannot be longer than " + MAX_PASSWORD_LENGTH + " characters long.");
+	}
+	
 	public boolean accountExists(String username) {
 		if(username == null) throw new NullPointerException("Cannot determine if account exists with null name.");
 		if(!isValidUsername(username)) return false;
@@ -36,16 +45,14 @@ public abstract class AccountLoader {
 	public abstract Player loadAccount(String username, String password)
 			throws InvalidUsernameException, AccountDoesNotExistException, IncorrectPasswordException;
 	
-	public abstract Player createAccount(String username, String password) throws InvalidUsernameException, AccountAlreadyExistsException;
+	public abstract Player createAccount(String username, String password) throws InvalidUsernameException, AccountAlreadyExistsException, IncorrectPasswordException;
 	
 	public abstract boolean saveAccount(Player player);
 	
 	public final class InvalidUsernameException extends Exception {
 		private static final long serialVersionUID = 3860240642463628337L;
 		protected InvalidUsernameException() {super("Invalid username");}
-		protected InvalidUsernameException(String message) {
-			super(message);
-		}
+		protected InvalidUsernameException(String message) {super(message);}
 	}
 	
 	public final class AccountAlreadyExistsException extends Exception {
@@ -58,6 +65,7 @@ public abstract class AccountLoader {
 	
 	public final class IncorrectPasswordException extends Exception {
 		private static final long serialVersionUID = 7210933251204330894L;
+		public IncorrectPasswordException(String string) {super(string);}
 	}
 	
 }
