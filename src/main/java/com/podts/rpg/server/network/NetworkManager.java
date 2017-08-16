@@ -113,6 +113,10 @@ public abstract class NetworkManager {
 	
 	public abstract Collection<? extends Stream> getStreams();
 	
+	protected final void onPlayerDisconnect(Stream stream) {
+		System.out.println("Client forcible closed connection from " + stream.getAddress());
+	}
+	
 	public NetworkManager() {
 		status = NetworkStatus.OFFLINE;
 		statusHooks = new HashSet<BiConsumer<NetworkStatus,NetworkStatus>>();

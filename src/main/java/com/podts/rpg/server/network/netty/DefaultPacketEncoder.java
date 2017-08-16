@@ -61,7 +61,6 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 				byte[] encryptedSecret = encrypt(encodedSecret, p.getPublicKey());
 				//Write encrypted secret into buffer.
 				buf.writeBytes(encryptedSecret);
-				System.out.println("sent");
 			}
 		});
 		

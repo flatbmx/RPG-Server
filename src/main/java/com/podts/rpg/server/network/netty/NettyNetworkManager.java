@@ -62,14 +62,12 @@ public final class NettyNetworkManager extends NetworkManager {
 		@Override
 	    public void close(ChannelHandlerContext ctx, ChannelPromise promise) {
 	        streams.remove((NettyStream) ctx.channel());
+	        NettyNetworkManager.this.onPlayerDisconnect((NettyStream)ctx.channel());
 	    }
 		
 		@Override
 	    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-	    	if(cause.getMessage().equals("An existing connection was forcibly closed by the remote host")) {
-	    		System.out.println("Client forcible closed connection from " + ctx.channel().remoteAddress());
-	    	}
-	    	else {
+	    	if(!cause.getMessage().equals("An existing connection was forcibly closed by the remote host")) {
 	    		cause.printStackTrace();
 	    	}
 	    	ctx.close();
