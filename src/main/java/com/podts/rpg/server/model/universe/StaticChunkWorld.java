@@ -131,9 +131,9 @@ public final class StaticChunkWorld extends World {
 	private Chunk[][] getSurroundingChunks(SLocation point) {
 		Chunk[][] result = new Chunk[3][3];
 		ChunkCoordinate center = getCoordinateFromLocation(point);
-		for(int i=0; i<3; ++i) {
-			for(int j=0; j<3; ++j) {
-				result[i][j] = getOrGenerateChunk(new ChunkCoordinate(center.x + i - 2, center.y + j - 2, point.getZ()));
+		for(int i=-1; i<2; ++i) {
+			for(int j=-1; j<2; ++j) {
+				result[i+1][j+1] = getOrGenerateChunk(new ChunkCoordinate(center.x + i, center.y + j, point.getZ()));
 			}
 		}
 		return result;
@@ -154,8 +154,8 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private ChunkCoordinate getCoordinateFromLocation(Location point) {
-		int cx = (point.getX()-CHUNK_SIZE/2)/CHUNK_SIZE;
-		int cy = (point.getY()-CHUNK_SIZE/2)/CHUNK_SIZE;
+		int cx = (point.getX()+CHUNK_SIZE/2)/CHUNK_SIZE - 1;
+		int cy = (point.getY()+CHUNK_SIZE/2)/CHUNK_SIZE - 1;
 		return new ChunkCoordinate(cx,cy,point.getZ());
 	}
 	
