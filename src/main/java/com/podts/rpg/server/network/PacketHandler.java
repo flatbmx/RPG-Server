@@ -46,8 +46,8 @@ public final class PacketHandler {
 				LoginPacket packet = (LoginPacket) oldPacket;
 				
 				if(!NetworkStatus.ONLINE.equals(NetworkManager.networkManager.getStatus())) {
-					stream.sendPacket(new LoginResponsePacket(LoginResponseType.WAIT, "Server is loading, please wait."));
 					NetworkManager.networkManager.addLoginRequest(packet);
+					stream.sendPacket(new LoginResponsePacket(LoginResponseType.WAIT, "Server is loading, please wait."));
 					return;
 				}
 				

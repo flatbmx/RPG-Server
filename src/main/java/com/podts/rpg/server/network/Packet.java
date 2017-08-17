@@ -16,10 +16,6 @@ public abstract class Packet {
 		return getOrigin() != null;
 	}
 	
-	public void handle() {
-		
-	}
-	
 	public Packet() {
 		origin = null;
 	}
