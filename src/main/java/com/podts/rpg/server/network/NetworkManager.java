@@ -2,11 +2,14 @@ package com.podts.rpg.server.network;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.Server;
 import com.podts.rpg.server.Server.ServerStatus;
+import com.podts.rpg.server.network.packet.LoginPacket;
 
 public abstract class NetworkManager {
 	
@@ -36,21 +39,45 @@ public abstract class NetworkManager {
 		
 	}
 	
+	protected static NetworkManager networkManager;
+	
 	private NetworkStatus status;
 	private int port;
 	private final Set<BiConsumer<NetworkStatus,NetworkStatus>> statusHooks;
 	
+	private final List<LoginPacket> loginRequests = new LinkedList<>();
+	
+	protected final void addLoginRequest(LoginPacket p) {
+		loginRequests.add(p);
+		System.out.println("Added a login request.");
+	}
+	
+	protected final void handleLoginRequests() {
+		for(LoginPacket p : loginRequests) {
+			PacketHandler.handlePacket(p);
+		}
+		loginRequests.clear();
+	}
+	
+	protected final void setPacketStream(Packet packet, Stream stream) {
+		packet.setStream(stream);
+	}
+	
 	private final BiConsumer<ServerStatus,ServerStatus> serverOnlineHook = new BiConsumer<ServerStatus,ServerStatus>() {
 		@Override
 		public void accept(ServerStatus oldStatus, ServerStatus newStatus) {
+			Server.get().removeStatusHook(this);
 			if(newStatus != ServerStatus.ONLINE) {
-				Server.get().removeStatusHook(this);
 				return;
 			}
-			//TODO Process all current connections credentials.
 			changeStatus(NetworkStatus.ONLINE);
+			handleLoginRequests();
 		}
 	};
+	
+	public final NetworkStatus getStatus() {
+		return status;
+	}
 	
 	protected void changeStatus(final NetworkStatus newStatus) {
 		if(status == newStatus) return;
@@ -86,6 +113,7 @@ public abstract class NetworkManager {
 		if(boundSuccessful) {
 			this.port = port;
 			Server.get().addStatusHook(serverOnlineHook);
+			networkManager = this;
 			changeStatus(NetworkStatus.BOUND);
 		} else {
 			changeStatus(NetworkStatus.OFFLINE);

@@ -10,7 +10,7 @@ class DefaultPacketHandler extends SimpleChannelInboundHandler<Packet> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext context, Packet packet) throws Exception {
 		
-		PacketHandler.handlePacket(packet, (NettyStream)context.channel());
+		PacketHandler.handlePacket(packet);
 		
 	}
 	

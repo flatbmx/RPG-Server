@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.podts.rpg.server.network.NetworkManager;
+import com.podts.rpg.server.network.Packet;
+import com.podts.rpg.server.network.Stream;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -26,6 +28,12 @@ public final class NettyNetworkManager extends NetworkManager {
 	private ServerBootstrap bootstrap;
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
+	
+	private static NettyNetworkManager manager;
+	
+	protected static final NettyNetworkManager get() {
+		return manager;
+	}
 	
 	private final Set<NettyStream> streams, safeStreams;
 	
@@ -74,7 +82,11 @@ public final class NettyNetworkManager extends NetworkManager {
 	    }
 		
 	}
-
+	
+	protected final void doSetPacketStream(Packet packet, Stream stream) {
+		setPacketStream(packet, stream);
+	}
+	
 	@Override
 	protected boolean doBind(String address, int port) {
 		bossGroup = new NioEventLoopGroup();
@@ -89,6 +101,10 @@ public final class NettyNetworkManager extends NetworkManager {
 
 			// Bind and start to accept incoming connections.
 			ChannelFuture f = bootstrap.bind(address, port).sync();
+			
+			if(f.isSuccess()) {
+				manager = this;
+			}
 			
 			return f.isSuccess();
 

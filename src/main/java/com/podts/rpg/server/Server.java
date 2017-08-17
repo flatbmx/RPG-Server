@@ -2,6 +2,7 @@ package com.podts.rpg.server;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.account.AcceptingAccountLoader;
@@ -113,6 +114,7 @@ public final class Server {
 		}
 		
 		changeStatus(ServerStatus.ONLINE);
+		System.out.println("Server is now online and can handle login requests.");
 		
 	}
 	

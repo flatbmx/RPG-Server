@@ -73,8 +73,9 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 				writeString(p.getResponse(), buf);
 			}
 			void init() {
-				responseTypeMap.put(LoginResponseType.ACCEPT, 0);
-				responseTypeMap.put(LoginResponseType.DECLINE, 1);
+				responseTypeMap.put(LoginResponseType.WAIT, 0);
+				responseTypeMap.put(LoginResponseType.ACCEPT, 1);
+				responseTypeMap.put(LoginResponseType.DECLINE, 2);
 			}
 		});
 		

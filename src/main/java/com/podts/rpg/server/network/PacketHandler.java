@@ -15,6 +15,7 @@ import com.podts.rpg.server.model.GameState;
 import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.model.universe.World;
+import com.podts.rpg.server.network.NetworkManager.NetworkStatus;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
@@ -41,9 +42,16 @@ public final class PacketHandler {
 		
 		handlers.put(LoginPacket.class, new BiConsumer<Stream,Packet>() {
 			@Override
-			public void accept(Stream stream, Packet packet) {
-				LoginPacket p = (LoginPacket) packet;
-				System.out.println("Recieved login | username: "+ p.getUsername() + " | password: " + p.getPassword());
+			public void accept(Stream stream, Packet oldPacket) {
+				LoginPacket packet = (LoginPacket) oldPacket;
+				
+				if(!NetworkStatus.ONLINE.equals(NetworkManager.networkManager.getStatus())) {
+					stream.sendPacket(new LoginResponsePacket(LoginResponseType.WAIT, "Server is loading, please wait."));
+					NetworkManager.networkManager.addLoginRequest(packet);
+					return;
+				}
+				
+				System.out.println("Recieved login | username: "+ packet.getUsername() + " | password: " + packet.getPassword());
 				
 				Player player = null;
 				String response;
@@ -53,11 +61,11 @@ public final class PacketHandler {
 					
 					AccountLoader loader = Server.get().getAccountLoader();
 					
-					if(loader.accountExists(p.getUsername())) {
-						player = loader.loadAccount(p.getUsername(), p.getPassword());
+					if(loader.accountExists(packet.getUsername())) {
+						player = loader.loadAccount(packet.getUsername(), packet.getPassword());
 					} else {
 						try {
-							player = loader.createAccount(p.getUsername(), p.getPassword());
+							player = loader.createAccount(packet.getUsername(), packet.getPassword());
 						} catch (AccountAlreadyExistsException e) {
 							e.printStackTrace();
 						}
@@ -95,9 +103,11 @@ public final class PacketHandler {
 		
 	}
 	
-	public static void handlePacket(Packet packet, Stream stream) {
+	public static void handlePacket(Packet packet) {
 		
 		BiConsumer<Stream,Packet> handler = handlers.get(packet.getClass());
+		
+		final Stream stream = packet.getOrigin();
 		
 		if(handler != null) {
 			GameEngine.get().submit(new PacketRunner(handler, packet, stream));

@@ -22,7 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
 class DefaultPacketDecoder extends ByteToMessageDecoder {
-
+	
 	private static final PacketConstructor[] packetConstructors;
 	
 	private static final int PID_RSAHANDSHAKE = 0;
@@ -72,10 +72,11 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 
 		if(opCode > -1 && opCode < packetConstructors.length) {
 			if(packetConstructors[opCode] != null) {
-				Packet p = packetConstructors[opCode].construct(stream, size - 1, opCode, buf);
-				if(p != null) {
-					System.out.println("Recieved " + p.getClass().getSimpleName());
-					out.add(p);
+				Packet packet = packetConstructors[opCode].construct(stream, size - 1, opCode, buf);
+				if(packet != null) {
+					System.out.println("Recieved " + packet.getClass().getSimpleName());
+					NettyNetworkManager.get().doSetPacketStream(packet, stream);
+					out.add(packet);
 				}
 					
 			}
