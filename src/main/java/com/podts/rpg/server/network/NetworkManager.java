@@ -125,7 +125,7 @@ public abstract class NetworkManager {
 	protected abstract boolean doBind(String address, int port);
 	
 	public final boolean unbind() {
-		if(status.canUnBind()) return false;
+		if(!status.canUnBind()) return false;
 		
 		changeStatus(NetworkStatus.UNINITIALIZING);
 		//TODO close all connections
