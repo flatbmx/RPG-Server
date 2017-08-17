@@ -133,7 +133,7 @@ public final class StaticChunkWorld extends World {
 		ChunkCoordinate center = getCoordinateFromLocation(point);
 		for(int i=0; i<3; ++i) {
 			for(int j=0; j<3; ++j) {
-				result[i][j] = getOrGenerateChunk(new ChunkCoordinate(center.x + i, center.y + j, point.getZ()));
+				result[i][j] = getOrGenerateChunk(new ChunkCoordinate(center.x + i - 2, center.y + j - 2, point.getZ()));
 			}
 		}
 		return result;
