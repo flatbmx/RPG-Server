@@ -25,8 +25,20 @@ public final class StaticChunkWorld extends World {
 	private final Map<Integer,Entity> entities = new HashMap<>();
 	private final Map<Integer,Map<ChunkCoordinate,Chunk>> chunks = new HashMap<>();
 	
-	private static class ChunkCoordinate {
+	private final static class ChunkCoordinate {
 		private int x,y,z;
+		@Override
+		public int hashCode() {
+			return 79254 * 37 + x*25 + y*78 + z*112;
+		}
+		public boolean equals(Object o) {
+			if(o == null) return false;
+			if(o instanceof ChunkCoordinate) {
+				ChunkCoordinate other = (ChunkCoordinate) o;
+				return x == other.x && y == other.y && z == other.z;
+			}
+			return false;
+		}
 		protected ChunkCoordinate(int x, int y, int z) {
 			this.x = x;
 			this.y = y;
@@ -149,6 +161,7 @@ public final class StaticChunkWorld extends World {
 		if(chunk == null) {
 			chunk = new Chunk(coord);
 			getWorldGenerator().generateRectTiles(chunk.tiles, chunk.topLeft);
+			ch.put(coord, chunk);
 		}
 		return chunk;
 	}
@@ -218,12 +231,13 @@ public final class StaticChunkWorld extends World {
 				size += chunks[i][j].players.size();
 			}
 		}
-		result = Arrays.asList(new Player[size]);
+		Player[] pArr = new Player[size];
+		result = Arrays.asList(pArr);
 		size = 0;
 		for(int i=0; i<2; ++i) {
 			for(int j=0; j<2; ++j) {
 				for(Player player : chunks[i][j].players.values()) {
-					result.add(size++, player);
+					pArr[size++] = player;
 				}
 			}
 		}
