@@ -10,6 +10,7 @@ import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.model.universe.Universe.WorldAlreadyExistsException;
 import com.podts.rpg.server.model.universe.generators.FillGenerator;
+import com.podts.rpg.server.model.universe.generators.PerlinNoiseGenerator;
 import com.podts.rpg.server.model.universe.generators.PseudoRandomGenerator;
 import com.podts.rpg.server.network.NetworkManager;
 import com.podts.rpg.server.network.netty.NettyNetworkManager;
@@ -108,7 +109,7 @@ public final class Server {
 		GameEngine.create(4);
 		
 		try {
-			Universe.get().createWorld("Earth", new PseudoRandomGenerator(new int[] {200,30,4}, new TileType[] {TileType.GRASS, TileType.DIRT, TileType.WATER}));
+			Universe.get().createWorld("Earth", new PerlinNoiseGenerator());
 		} catch (WorldAlreadyExistsException e) {
 			e.printStackTrace();
 		}

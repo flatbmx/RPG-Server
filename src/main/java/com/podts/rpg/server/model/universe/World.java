@@ -69,12 +69,14 @@ public abstract class World extends SimpleRegionHandler implements Region {
 		doSetTile(newTile);
 		
 		TilePacket updatePacket = new TilePacket(newTile);
-		for(Player player : getNearbyPlayers(point)) {
-			player.getStream().sendPacket(updatePacket);
-		}
+		sendToNearbyPlayers(newTile, updatePacket);
 		return this;
 	}
 	
+	/**
+	 * This method saves this new Tile and nothing else.
+	 * @param newTile - The new tile that should be in the world.
+	 */
 	protected abstract void doSetTile(Tile newTile);
 	
 	/**

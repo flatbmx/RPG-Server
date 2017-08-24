@@ -1,6 +1,6 @@
 package com.podts.rpg.server.model.universe;
 
-public final class Tile {
+public final class Tile implements Locatable {
 	
 	public enum TileType {
 		VOID(false),

@@ -17,7 +17,8 @@ public abstract class Location implements Locatable {
 		return Math.sqrt(Math.pow(getX() - otherPoint.getX(), 2) + Math.pow(getY() - otherPoint.getY(), 2));
 	}
 	
-	public Location getLocation() {
+	@Override
+	public final Location getLocation() {
 		return this;
 	}
 	
