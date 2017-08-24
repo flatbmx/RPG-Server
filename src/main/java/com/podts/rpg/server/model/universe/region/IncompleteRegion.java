@@ -5,17 +5,17 @@ import java.util.Collection;
 public abstract class IncompleteRegion implements Region {
 
 	@Override
-	public Collection<RegionListener> getRegionListeners() {
+	public final Collection<RegionListener> getRegionListeners() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Region addRegionListener(RegionListener newRegionListener) {
+	public final Region addRegionListener(RegionListener newRegionListener) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Region removeRegionListener(RegionListener regionListener) {
+	public final Region removeRegionListener(RegionListener regionListener) {
 		throw new UnsupportedOperationException();
 	}
 

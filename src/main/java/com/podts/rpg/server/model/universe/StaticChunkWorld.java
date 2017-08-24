@@ -31,6 +31,7 @@ public final class StaticChunkWorld extends World {
 		public int hashCode() {
 			return 79254 * 37 + x*25 + y*78 + z*112;
 		}
+		@Override
 		public boolean equals(Object o) {
 			if(o == null) return false;
 			if(o instanceof ChunkCoordinate) {
