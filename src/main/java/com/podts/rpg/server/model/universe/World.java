@@ -120,7 +120,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	public boolean register(Entity e) {
 		boolean result = doRegister(e);
 		if(result)
-			sendToNearbyPlayers(e, new EntityPacket(e, UpdateType.CREATE));
+			sendToNearbyPlayers(e, EntityPacket.constructCreate(e));
 		return result;
 	}
 	
@@ -134,7 +134,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 */
 	public World deRegister(Entity e) {
 		if(doDeRegister(e)) {
-			sendToNearbyPlayers(e, new EntityPacket(e, UpdateType.DESTROY));
+			sendToNearbyPlayers(e, EntityPacket.constructDestroy(e));
 		}
 		return this;
 	}
@@ -197,7 +197,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 		
 		doMoveEntity(entity, newLoc, type);
 		
-		sendToNearbyPlayers(entity, new EntityPacket(entity,UpdateType.UPDATE));
+		sendToNearbyPlayers(entity, EntityPacket.constructUpdate(entity));
 		
 		return this;
 	}

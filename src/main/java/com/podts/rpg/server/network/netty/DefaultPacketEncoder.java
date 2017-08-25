@@ -12,8 +12,11 @@ import javax.crypto.SecretKey;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.SquareTileSelction;
 import com.podts.rpg.server.model.universe.Tile;
 import com.podts.rpg.server.model.universe.Tile.TileType;
+import com.podts.rpg.server.model.universe.TileSelection;
+import com.podts.rpg.server.model.universe.TileSelection.SelectionType;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
@@ -25,6 +28,7 @@ import com.podts.rpg.server.network.packet.PlayerInitPacket;
 import com.podts.rpg.server.network.packet.StatePacket;
 import com.podts.rpg.server.network.packet.TilePacket;
 import com.podts.rpg.server.network.packet.TilePacket.TileSendType;
+import com.podts.rpg.server.network.packet.TileSelectionPacket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -48,6 +52,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	private static final int PID_STATE = 4;
 	private static final int PID_ENTITY = 5;
 	private static final int PID_MESSAGE = 6;
+	private static final int PID_TILESELECTION = 7;
 	
 	static {
 		addEncoder(AESReplyPacket.class, new PacketEncoder(PID_AESREPLY) {
@@ -163,6 +168,38 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			public void encode(NettyStream stream, Packet op, ByteBuf buf) {
 				MessagePacket p = (MessagePacket) op;
 				writeEncryptedString(p.getMessage(), stream, buf);
+			}
+		});
+		
+		addEncoder(StatePacket.class, new PacketEncoder(PID_TILESELECTION) {
+			private final Map<SelectionType,Integer> typeMap = new HashMap<SelectionType, Integer>();
+			void init() {
+				typeMap.put(SelectionType.SET, 0);
+				typeMap.put(SelectionType.SQUARE, 1);
+			}
+			@Override
+			public void encode(NettyStream s, Packet op, ByteBuf buf) {
+				TileSelectionPacket p = (TileSelectionPacket) op;
+				for(TileSelection sel : p.getSelections()) {
+					buf.writeByte(typeMap.get(sel.getSelectionType()));
+					
+					if(sel instanceof SquareTileSelction) {
+						
+						SquareTileSelction rectSel = (SquareTileSelction) sel;
+						
+						buf.writeInt(rectSel.getWidth()).writeInt(rectSel.getHeight());
+						writeLocation(rectSel.getTopLeft(), buf);
+						
+					} else {
+						
+						buf.writeInt(sel.size());
+						for(Tile tile : sel) {
+							writeLocation(tile.getLocation(), buf);
+						}
+						
+					}
+				}
+				
 			}
 		});
 		
