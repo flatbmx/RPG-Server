@@ -24,7 +24,6 @@ public final class PerlinNoiseGenerator extends WorldGenerator {
 		} else {
 			type = TileType.WATER;
 		}
-		System.out.println(val);
 		return new Tile(type, point);
 	}
 	
