@@ -12,7 +12,7 @@ import javax.crypto.SecretKey;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.SquareTileSelction;
+import com.podts.rpg.server.model.universe.RectangleTileSelction;
 import com.podts.rpg.server.model.universe.Tile;
 import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.model.universe.TileSelection;
@@ -183,9 +183,9 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 				for(TileSelection sel : p.getSelections()) {
 					buf.writeByte(typeMap.get(sel.getSelectionType()));
 					
-					if(sel instanceof SquareTileSelction) {
+					if(sel instanceof RectangleTileSelction) {
 						
-						SquareTileSelction rectSel = (SquareTileSelction) sel;
+						RectangleTileSelction rectSel = (RectangleTileSelction) sel;
 						
 						buf.writeInt(rectSel.getWidth()).writeInt(rectSel.getHeight());
 						writeLocation(rectSel.getTopLeft(), buf);

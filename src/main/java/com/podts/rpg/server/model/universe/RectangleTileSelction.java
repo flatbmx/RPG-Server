@@ -3,7 +3,7 @@ package com.podts.rpg.server.model.universe;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public final class SquareTileSelction extends TileSelection {
+public final class RectangleTileSelction extends TileSelection {
 	
 	private final Tile[][] tiles;
 	
@@ -34,7 +34,7 @@ public final class SquareTileSelction extends TileSelection {
 		return tiles[0][0].getLocation();
 	}
 	
-	public SquareTileSelction(Tile[][] tiles) {
+	public RectangleTileSelction(Tile[][] tiles) {
 		this.tiles = tiles;
 	}
 	
