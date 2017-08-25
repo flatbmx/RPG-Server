@@ -163,7 +163,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			}
 		});
 		
-		encoders.put(MessagePacket.class, new PacketEncoder(PID_MESSAGE) {
+		addEncoder(MessagePacket.class, new PacketEncoder(PID_MESSAGE) {
 			@Override
 			public void encode(NettyStream stream, Packet op, ByteBuf buf) {
 				MessagePacket p = (MessagePacket) op;
