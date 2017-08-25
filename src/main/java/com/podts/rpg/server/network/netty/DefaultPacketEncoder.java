@@ -171,7 +171,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			}
 		});
 		
-		addEncoder(StatePacket.class, new PacketEncoder(PID_TILESELECTION) {
+		addEncoder(TileSelectionPacket.class, new PacketEncoder(PID_TILESELECTION) {
 			private final Map<SelectionType,Integer> typeMap = new HashMap<SelectionType, Integer>();
 			void init() {
 				typeMap.put(SelectionType.SET, 0);
