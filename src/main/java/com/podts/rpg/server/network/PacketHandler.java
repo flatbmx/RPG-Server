@@ -13,10 +13,15 @@ import com.podts.rpg.server.account.AccountLoader.IncorrectPasswordException;
 import com.podts.rpg.server.account.AccountLoader.InvalidUsernameException;
 import com.podts.rpg.server.model.GameState;
 import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.model.PlayerEntity;
+import com.podts.rpg.server.model.universe.Entity;
+import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.model.universe.World;
+import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.network.NetworkManager.NetworkStatus;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
+import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
@@ -37,6 +42,32 @@ public final class PacketHandler {
 				RSAHandShakePacket rsaPacket = (RSAHandShakePacket) packet;				
 				AESReplyPacket reply = new AESReplyPacket(rsaPacket.getPublicKey(), stream.getSecretKey());
 				stream.sendPacket(reply);
+			}
+		});
+		
+		handlers.put(EntityPacket.class, new BiConsumer<Stream,Packet>() {
+			@Override
+			public void accept(Stream s, Packet packet) {
+				EntityPacket p = (EntityPacket) packet;
+				PlayerEntity pE = s.getPlayer().getEntity();
+				Entity e = p.getEntity();
+				if(!pE.equals(e)) {
+					System.out.println("Player sent wront move ID packet!");
+					return;
+				}
+				Location newLocation = p.getNewLocation();
+				if(pE.distance(newLocation) > 1) {
+					//TODO TOO FAR
+					System.out.print("Far");
+					return;
+				}
+				Direction dir = Direction.getFromLocations(pE.getLocation(), newLocation);
+				if(dir == null) {
+					System.out.print("Diag");
+					//TODO Diagonal, not valid.
+					return;
+				}
+				pE.move(dir);
 			}
 		});
 		
@@ -110,6 +141,7 @@ public final class PacketHandler {
 		final Stream stream = packet.getOrigin();
 		
 		if(handler != null) {
+			System.out.println("Recieved " + packet.getClass().getSimpleName());
 			GameEngine.get().submit(new PacketRunner(handler, packet, stream));
 		} else {
 			System.out.println("Recieved unhandled packet " + packet.getClass().getSimpleName());

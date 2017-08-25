@@ -18,6 +18,10 @@ public class EntityPacket extends Packet {
 		return new EntityPacket(entity, UpdateType.DESTROY);
 	}
 	
+	public static final EntityPacket constructMove(Entity entity, Location newLocation) {
+		return new EntityPacket(entity, UpdateType.UPDATE, newLocation);
+	}
+	
 	public enum UpdateType {
 		CREATE(),
 		UPDATE(),

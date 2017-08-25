@@ -12,9 +12,12 @@ import java.util.List;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
+import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
 import com.podts.rpg.server.network.packet.*;
+import com.podts.rpg.server.network.packet.EntityPacket.UpdateType;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -60,6 +63,15 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 				return new LoginPacket(username, password);
 			}
 		};
+		
+		packetConstructors[PID_MOVE] = new PacketConstructor() {
+			@Override
+			public Packet construct(Stream s, int size, byte opCode, ByteBuf buf) {
+				Location newLocation = readLocation(buf);
+				return EntityPacket.constructMove(s.getPlayer().getEntity(), newLocation);
+			}
+		};
+		
 	}
 
 	@Override
@@ -74,14 +86,23 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 			if(packetConstructors[opCode] != null) {
 				Packet packet = packetConstructors[opCode].construct(stream, size - 1, opCode, buf);
 				if(packet != null) {
-					System.out.println("Recieved " + packet.getClass().getSimpleName());
 					NettyNetworkManager.get().doSetPacketStream(packet, stream);
 					out.add(packet);
 				}
 					
+			} else {
+				System.out.println("WARNING ==== Recieved unknown Packet OPCODE = " + opCode + " with size " + (size-1) + " from " + stream.getAddress());
+				buf.skipBytes(size-1);
 			}
 		}
 
+	}
+	
+	private static final Location readLocation(ByteBuf buf) {
+		int x = buf.readInt();
+		int y = buf.readInt();
+		int z = buf.readInt();
+		return Universe.get().getDefaultWorld().createLocation(x, y, z);
 	}
 	
 	private static String readEncryptedString(Stream stream, ByteBuf buf) {

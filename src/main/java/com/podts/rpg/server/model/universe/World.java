@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
@@ -207,6 +208,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	protected final Location moveEntity(Entity entity, MoveType type, int dx, int dy, int dz) {
 		Location result = entity.getLocation().move(dx, dy, dz);
 		doMoveEntity(entity, result, type);
+		sendToNearbyPlayers(entity, EntityPacket.constructUpdate(entity));
 		return result;
 	}
 	
@@ -250,6 +252,10 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	protected World(String name, WorldGenerator generator) {
 		this.name = name;
 		this.generator = generator;
+	}
+
+	public Location moveEntity(Entity entity, Direction dir) {
+		return moveEntity(entity, MoveType.UPDATE, dir.getX(), dir.getY(), 0);
 	}
 	
 }

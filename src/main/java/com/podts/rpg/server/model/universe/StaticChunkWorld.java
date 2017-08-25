@@ -91,7 +91,11 @@ public final class StaticChunkWorld extends World {
 		public int getZ() {
 			return z;
 		}
-
+		
+		public final String toString() {
+			return "" + x + ", " + y + ", " + z;
+		}
+		
 		@Override
 		public SLocation move(int dx, int dy, int dz) {
 			SLocation sl = chunk.topLeft;
@@ -351,6 +355,13 @@ public final class StaticChunkWorld extends World {
 			currentLoc.chunk.entities.remove(entity.getID());
 			newLoc.chunk.entities.put(entity.getID(), entity);
 			entity.setLocation(newLoc);
+			if(entity instanceof PlayerEntity) {
+				PlayerEntity pE = (PlayerEntity) entity;
+				currentLoc.chunk.players.remove(pE.getPlayer().getID());
+				newLoc.chunk.players.put(pE.getPlayer().getID(), pE.getPlayer());
+				//TODO Figure out which new chunks to send instead of re-sending already known chunks.
+				initPlayer(pE);
+			}
 		}
 		return this;
 	}
