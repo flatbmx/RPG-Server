@@ -370,7 +370,6 @@ public final class StaticChunkWorld extends World {
 		if(newLoc.chunk == currentLoc.chunk) {
 			entity.setLocation(newLocation);
 		} else {
-			System.out.println("Moved from " + currentLoc.chunk + " to " + newLoc.chunk);
 			currentLoc.chunk.entities.remove(entity.getID());
 			newLoc.chunk.entities.put(entity.getID(), entity);
 			if(entity instanceof PlayerEntity) {

@@ -208,8 +208,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	
 	protected final Location moveEntity(Entity entity, MoveType type, int dx, int dy, int dz) {
 		Location result = entity.getLocation().move(dx, dy, dz);
-		doMoveEntity(entity, result, type);
-		sendToNearbyPlayers(entity, EntityPacket.constructUpdate(entity));
+		moveEntity(entity, result, type);
 		return result;
 	}
 	
