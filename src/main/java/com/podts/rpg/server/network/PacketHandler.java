@@ -142,7 +142,7 @@ public final class PacketHandler {
 		final Stream stream = packet.getOrigin();
 		
 		if(handler != null) {
-			System.out.println("Recieved " + packet.getClass().getSimpleName());
+			//System.out.println("Recieved " + packet.getClass().getSimpleName());
 			GameEngine.get().submit(new PacketRunner(handler, packet, stream));
 		} else {
 			System.out.println("Recieved unhandled packet " + packet.getClass().getSimpleName());

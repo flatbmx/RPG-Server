@@ -28,10 +28,17 @@ public final class StaticChunkWorld extends World {
 	
 	private final static class ChunkCoordinate {
 		private int x,y,z;
+		
+		@Override
+		public String toString() {
+			return "ChunkCoord - " + x + ", " + y + ", " + z;
+		}
+		
 		@Override
 		public int hashCode() {
 			return 79254 * 37 + x*25 + y*78 + z*112;
 		}
+		
 		@Override
 		public boolean equals(Object o) {
 			if(o == null) return false;
@@ -41,10 +48,7 @@ public final class StaticChunkWorld extends World {
 			}
 			return false;
 		}
-		@Override
-		public String toString() {
-			return x + ", " + y + ", " + z;
-		}
+
 		protected ChunkCoordinate(int x, int y, int z) {
 			this.x = x;
 			this.y = y;
@@ -52,7 +56,7 @@ public final class StaticChunkWorld extends World {
 		}
 	}
 	
-	private class Chunk {
+	private final class Chunk {
 		
 		private final ChunkCoordinate coord;
 		private final SLocation topLeft;
@@ -103,7 +107,7 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		public final String toString() {
-			return "" + x + ", " + y + ", " + z;
+			return x + ", " + y + ", " + z;
 		}
 		
 		@Override
