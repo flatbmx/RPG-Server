@@ -5,17 +5,27 @@ import com.podts.rpg.server.network.Packet;
 
 public final class TilePacket extends Packet {
 	
+	public enum TileUpdateType {
+		CREATE(),
+		DESTROY();
+	}
+	
 	public enum TileSendType {
 		GROUP(),
 		SINGLE();
 	}
 	
-	private final TileSendType type;
+	private final TileUpdateType updateType;
+	private final TileSendType sendType;
 	private final Tile tile;
 	private final Tile[][] tiles;
 	
-	public TileSendType getType() {
-		return type;
+	public TileUpdateType getUpdateType() {
+		return updateType;
+	}
+	
+	public TileSendType getSendType() {
+		return sendType;
 	}
 	
 	public Tile getTile() {
@@ -26,14 +36,16 @@ public final class TilePacket extends Packet {
 		return tiles;
 	}
 	
-	public TilePacket(Tile tile) {
-		type = TileSendType.SINGLE;
+	public TilePacket(Tile tile, TileUpdateType updateType) {
+		sendType = TileSendType.SINGLE;
+		this.updateType = updateType;
 		this.tile = tile;
 		tiles = null;
 	}
 	
-	public TilePacket(Tile[][] tiles) {
-		type = TileSendType.GROUP;
+	public TilePacket(Tile[][] tiles, TileUpdateType updateType) {
+		sendType = TileSendType.GROUP;
+		this.updateType = updateType;
 		this.tiles = tiles;
 		tile = null;
 	}

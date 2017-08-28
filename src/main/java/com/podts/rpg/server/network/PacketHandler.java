@@ -56,14 +56,15 @@ public final class PacketHandler {
 					return;
 				}
 				Location newLocation = p.getNewLocation();
+				
 				if(pE.distance(newLocation) > 1) {
 					//TODO TOO FAR
-					System.out.print("Far");
+					System.out.println("Far");
 					return;
 				}
 				Direction dir = Direction.getFromLocations(pE.getLocation(), newLocation);
 				if(dir == null) {
-					System.out.print("Diag");
+					System.out.println("Diag");
 					//TODO Diagonal, not valid.
 					return;
 				}

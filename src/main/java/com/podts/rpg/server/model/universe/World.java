@@ -14,6 +14,7 @@ import com.podts.rpg.server.model.universe.region.SimpleRegionHandler;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.EntityPacket.UpdateType;
+import com.podts.rpg.server.network.packet.TilePacket.TileUpdateType;
 import com.podts.rpg.server.network.packet.TilePacket;
 
 /**
@@ -69,7 +70,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 		
 		doSetTile(newTile);
 		
-		TilePacket updatePacket = new TilePacket(newTile);
+		TilePacket updatePacket = new TilePacket(newTile, TileUpdateType.CREATE);
 		sendToNearbyPlayers(newTile, updatePacket);
 		return this;
 	}
@@ -133,7 +134,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 * @param e - The {@link Entity} that will be un-registered.
 	 * @return The World for chaining.
 	 */
-	public World deRegister(Entity e) {
+	public final World deRegister(Entity e) {
 		if(doDeRegister(e)) {
 			sendToNearbyPlayers(e, EntityPacket.constructDestroy(e));
 		}
@@ -243,7 +244,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 		}
 	}
 	
-	private void sendToNearbyPlayers(Locatable l, Packet packet) {
+	protected final void sendToNearbyPlayers(Locatable l, Packet packet) {
 		for(Player player : getNearbyPlayers(l)) {
 			player.getStream().sendPacket(packet);
 		}
@@ -254,7 +255,7 @@ public abstract class World extends SimpleRegionHandler implements Region {
 		this.generator = generator;
 	}
 
-	public Location moveEntity(Entity entity, Direction dir) {
+	public final Location moveEntity(Entity entity, Direction dir) {
 		return moveEntity(entity, MoveType.UPDATE, dir.getX(), dir.getY(), 0);
 	}
 	

@@ -15,10 +15,11 @@ import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.network.packet.TilePacket;
+import com.podts.rpg.server.network.packet.TilePacket.TileUpdateType;
 
 public final class StaticChunkWorld extends World {
 	
-	private static final int CHUNK_SIZE = 17;
+	private static final int CHUNK_SIZE = 25;
 	
 	private final Map<Integer,Player> players = new HashMap<>();
 	private final Collection<Player> safePlayers = Collections.unmodifiableCollection(players.values());
@@ -40,6 +41,10 @@ public final class StaticChunkWorld extends World {
 			}
 			return false;
 		}
+		@Override
+		public String toString() {
+			return x + ", " + y + ", " + z;
+		}
 		protected ChunkCoordinate(int x, int y, int z) {
 			this.x = x;
 			this.y = y;
@@ -58,10 +63,15 @@ public final class StaticChunkWorld extends World {
 		private final Set<Region> regions = new HashSet<>(),
 				safeRegions = Collections.unmodifiableSet(regions);
 		
+		@Override
+		public String toString() {
+			return "Chunk " + coord;
+		}
+		
 		protected Chunk(ChunkCoordinate coord) {
 			this.coord = coord;
-			int x = coord.x * CHUNK_SIZE + CHUNK_SIZE/2;
-			int y = coord.y * CHUNK_SIZE + CHUNK_SIZE/2;
+			int x = coord.x * CHUNK_SIZE - (CHUNK_SIZE-1)/2;
+			int y = coord.y * CHUNK_SIZE - (CHUNK_SIZE-1)/2;
 			topLeft = new SLocation(this, x, y, coord.z);
 		}
 		
@@ -147,7 +157,7 @@ public final class StaticChunkWorld extends World {
 	
 	private Chunk[][] getSurroundingChunks(SLocation point) {
 		Chunk[][] result = new Chunk[3][3];
-		ChunkCoordinate center = getCoordinateFromLocation(point);
+		ChunkCoordinate center = point.chunk.coord;
 		for(int i=-1; i<2; ++i) {
 			for(int j=-1; j<2; ++j) {
 				result[i+1][j+1] = getOrGenerateChunk(new ChunkCoordinate(center.x + i, center.y + j, point.getZ()));
@@ -165,16 +175,20 @@ public final class StaticChunkWorld extends World {
 		Chunk chunk = ch.get(coord);
 		if(chunk == null) {
 			chunk = new Chunk(coord);
-			getWorldGenerator().generateRectTiles(chunk.tiles, chunk.topLeft);
 			ch.put(coord, chunk);
+			getWorldGenerator().generateRectTiles(chunk.tiles, chunk.topLeft);
 		}
 		return chunk;
 	}
 	
 	private ChunkCoordinate getCoordinateFromLocation(Location point) {
-		int cx = (point.getX()+CHUNK_SIZE/2)/CHUNK_SIZE - 1;
-		int cy = (point.getY()+CHUNK_SIZE/2)/CHUNK_SIZE - 1;
-		return new ChunkCoordinate(cx,cy,point.getZ());
+		return getCoordinateFromLocation(point.getX(), point.getY(), point.getZ());
+	}
+	
+	private ChunkCoordinate getCoordinateFromLocation(int x, int y, int z) {
+		int cx = (int) Math.floor((x+(CHUNK_SIZE-1)/2d)/CHUNK_SIZE);
+		int cy = (int) Math.floor((y+(CHUNK_SIZE-1)/2d)/CHUNK_SIZE);
+		return new ChunkCoordinate(cx,cy,z);
 	}
 	
 	@Override
@@ -231,16 +245,16 @@ public final class StaticChunkWorld extends World {
 		List<Player> result;
 		Chunk[][] chunks = getSurroundingChunks((SLocation) l.getLocation());
 		int size = 0;
-		for(int i=0; i<2; ++i) {
-			for(int j=0; j<2; ++j) {
+		for(int i=0; i<3; ++i) {
+			for(int j=0; j<3; ++j) {
 				size += chunks[i][j].players.size();
 			}
 		}
 		Player[] pArr = new Player[size];
 		result = Arrays.asList(pArr);
 		size = 0;
-		for(int i=0; i<2; ++i) {
-			for(int j=0; j<2; ++j) {
+		for(int i=0; i<3; ++i) {
+			for(int j=0; j<3; ++j) {
 				for(Player player : chunks[i][j].players.values()) {
 					pArr[size++] = player;
 				}
@@ -273,7 +287,7 @@ public final class StaticChunkWorld extends World {
 		Chunk[][] chunks = getSurroundingChunks((SLocation)pE.getLocation());
 		for(int i=0; i<3; ++i) {
 			for(int j=0; j<3; ++j) {
-				TilePacket packet = new TilePacket(chunks[i][j].tiles);
+				TilePacket packet = new TilePacket(chunks[i][j].tiles, TileUpdateType.CREATE);
 				player.getStream().sendPacket(packet);
 			}
 		}
@@ -352,16 +366,33 @@ public final class StaticChunkWorld extends World {
 		if(newLoc.chunk == currentLoc.chunk) {
 			entity.setLocation(newLocation);
 		} else {
+			System.out.println("Moved from " + currentLoc.chunk + " to " + newLoc.chunk);
 			currentLoc.chunk.entities.remove(entity.getID());
 			newLoc.chunk.entities.put(entity.getID(), entity);
-			entity.setLocation(newLoc);
 			if(entity instanceof PlayerEntity) {
 				PlayerEntity pE = (PlayerEntity) entity;
 				currentLoc.chunk.players.remove(pE.getPlayer().getID());
 				newLoc.chunk.players.put(pE.getPlayer().getID(), pE.getPlayer());
-				//TODO Figure out which new chunks to send instead of re-sending already known chunks.
-				initPlayer(pE);
+				int dx = newLoc.chunk.coord.x - currentLoc.chunk.coord.x;
+				int dy = newLoc.chunk.coord.y - currentLoc.chunk.coord.y;
+				if(dx != 0) {
+					for(int y=-1; y<2; ++y) {
+						Chunk oldChunk = getOrGenerateChunk(new ChunkCoordinate(currentLoc.chunk.coord.x + dx*-1, currentLoc.chunk.coord.y + y, currentLoc.z));
+						Chunk newChunk = getOrGenerateChunk(new ChunkCoordinate(newLoc.chunk.coord.x + dx, newLoc.chunk.coord.y + y, currentLoc.z));
+						pE.getPlayer().getStream().sendPacket(new TilePacket(oldChunk.tiles, TileUpdateType.DESTROY));
+						pE.getPlayer().getStream().sendPacket(new TilePacket(newChunk.tiles, TileUpdateType.CREATE));
+					}
+				}
+				if(dy != 0) {
+					for(int x=-1; x<2; ++x) {
+						Chunk oldChunk = getOrGenerateChunk(new ChunkCoordinate(currentLoc.chunk.coord.x + x, currentLoc.chunk.coord.y + dy*-1, currentLoc.z));
+						Chunk newChunk = getOrGenerateChunk(new ChunkCoordinate(newLoc.chunk.coord.x + x, newLoc.chunk.coord.y + dy, currentLoc.z));
+						pE.getPlayer().getStream().sendPacket(new TilePacket(oldChunk.tiles, TileUpdateType.DESTROY));
+						pE.getPlayer().getStream().sendPacket(new TilePacket(newChunk.tiles, TileUpdateType.CREATE));
+					}
+				}
 			}
+			entity.setLocation(newLoc);
 		}
 		return this;
 	}

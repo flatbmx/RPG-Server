@@ -28,6 +28,7 @@ import com.podts.rpg.server.network.packet.PlayerInitPacket;
 import com.podts.rpg.server.network.packet.StatePacket;
 import com.podts.rpg.server.network.packet.TilePacket;
 import com.podts.rpg.server.network.packet.TilePacket.TileSendType;
+import com.podts.rpg.server.network.packet.TilePacket.TileUpdateType;
 import com.podts.rpg.server.network.packet.TileSelectionPacket;
 
 import io.netty.buffer.ByteBuf;
@@ -103,28 +104,45 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		
 		addEncoder(TilePacket.class, new PacketEncoder(PID_TILE) {
 			private final Map<TileType,Integer> tileTypes = new EnumMap<>(TileType.class);
+			private final Map<TileUpdateType,Integer> updateTypes = new EnumMap<>(TileUpdateType.class);
 			private final Map<TileSendType,Integer> sendTypes = new EnumMap<>(TileSendType.class);
 			@Override
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {
 				TilePacket p = (TilePacket) op;
-				buf.writeByte(sendTypes.get(p.getType()));
-				if(p.getType().equals(TileSendType.SINGLE)) {
-					Tile tile = p.getTile();
-					buf.writeByte(tileTypes.get(tile.getType()));
-					writeLocation(tile.getLocation(), buf);
-				} else if(p.getType().equals(TileSendType.GROUP)) {
-					Tile[][] tiles = p.getTiles();
-					writeLocation(tiles[0][0].getLocation(), buf);
-					buf.writeInt(tiles.length)
-					.writeInt(tiles[0].length);
-					for(int y=0; y<tiles[0].length; ++y) {
-						for(int x=0; x<tiles.length; ++x) {
-							buf.writeByte(tileTypes.get(tiles[x][y].getType()));
+				buf.writeByte(updateTypes.get(p.getUpdateType()))
+				.writeByte(sendTypes.get(p.getSendType()));
+				if(TileUpdateType.CREATE.equals(p.getUpdateType())) {
+					if(p.getSendType().equals(TileSendType.SINGLE)) {
+						Tile tile = p.getTile();
+						buf.writeByte(tileTypes.get(tile.getType()));
+						writeLocation(tile.getLocation(), buf);
+					} else if(p.getSendType().equals(TileSendType.GROUP)) {
+						Tile[][] tiles = p.getTiles();
+						writeLocation(tiles[0][0].getLocation(), buf);
+						buf.writeInt(tiles.length)
+						.writeInt(tiles[0].length);
+						for(int y=0; y<tiles[0].length; ++y) {
+							for(int x=0; x<tiles.length; ++x) {
+								buf.writeByte(tileTypes.get(tiles[x][y].getType()));
+							}
 						}
+					}
+				} else if(TileUpdateType.DESTROY.equals(p.getUpdateType())) {
+					if(p.getSendType().equals(TileSendType.SINGLE)) {
+						Tile tile = p.getTile();
+						writeLocation(tile.getLocation(), buf);
+					} else if(p.getSendType().equals(TileSendType.GROUP)) {
+						Tile[][] tiles = p.getTiles();
+						writeLocation(tiles[0][0].getLocation(), buf);
+						buf.writeInt(tiles.length)
+						.writeInt(tiles[0].length);
 					}
 				}
 			}
 			void init() {
+				updateTypes.put(TileUpdateType.CREATE, 0);
+				updateTypes.put(TileUpdateType.DESTROY, 1);
+				
 				sendTypes.put(TileSendType.GROUP, 0);
 				sendTypes.put(TileSendType.SINGLE, 1);
 				
