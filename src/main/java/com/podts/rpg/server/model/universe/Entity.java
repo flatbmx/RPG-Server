@@ -9,6 +9,7 @@ public class Entity implements Locatable {
 	private static int nextID;
 	
 	private final int id;
+	private String name;
 	private final EntityType type;
 	private Location location;
 	
@@ -22,6 +23,10 @@ public class Entity implements Locatable {
 	
 	public final boolean isPlayer() {
 		return EntityType.PLAYER.equals(type);
+	}
+	
+	public final String getName() {
+		return name;
 	}
 	
 	public Location getLocation() {
@@ -47,6 +52,13 @@ public class Entity implements Locatable {
 		id = nextID++;
 		this.type = type;
 		location = loc;
+	}
+
+	public Entity(EntityType type, String name, Location loc) {
+		id = nextID++;
+		this.type = type;
+		this.name = name;
+		this.location = loc;
 	}
 	
 }

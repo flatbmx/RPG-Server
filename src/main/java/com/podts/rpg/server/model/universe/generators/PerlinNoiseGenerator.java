@@ -20,7 +20,7 @@ public final class PerlinNoiseGenerator extends WorldGenerator {
 		if(val >= 88) {
 			type = TileType.GRASS;
 		} else if(val >= 85) {
-			type = TileType.DIRT;
+			type = TileType.SAND;
 		} else {
 			type = TileType.WATER;
 		}

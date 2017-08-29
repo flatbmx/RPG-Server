@@ -7,13 +7,13 @@ import java.util.Set;
 import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
+import com.podts.rpg.server.model.universe.region.MonitoringRegion;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
 import com.podts.rpg.server.model.universe.region.SimpleRegionHandler;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.EntityPacket;
-import com.podts.rpg.server.network.packet.EntityPacket.UpdateType;
 import com.podts.rpg.server.network.packet.TilePacket.TileUpdateType;
 import com.podts.rpg.server.network.packet.TilePacket;
 
@@ -22,7 +22,7 @@ import com.podts.rpg.server.network.packet.TilePacket;
  * each other and the world it self.
  *
  */
-public abstract class World extends SimpleRegionHandler implements Region {
+public abstract class World extends SimpleRegionHandler {
 	
 	private final WorldGenerator generator;
 	private String name;
@@ -54,7 +54,13 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 * @param point - The location of the Tile.
 	 * @return The Tile that is located at the given point.
 	 */
-	public abstract Tile getTile(Locatable point);
+	public final Tile getTile(Locatable loc) {
+		if(loc == null) throw new IllegalArgumentException("Cannot get Tile for null location.");
+		if(!equals(loc.getLocation().getWorld())) throw new IllegalArgumentException("Cannot get Tile that exists in a different World.");
+		return doGetTile(loc.getLocation());
+	}
+	
+	protected abstract Tile doGetTile(Location point);
 	
 	/**
 	 * Set the the given Tile at the given point in this World.
@@ -148,10 +154,20 @@ public abstract class World extends SimpleRegionHandler implements Region {
 	 * {@link Region Regions} that are not registered will not have their
 	 * {@link RegionListener#onEnter(Region, Entity, MoveType) onEnter} nor {@link RegionListener#onLeave(Region, Entity, MoveType) onLeave} methods called.
 	 * If the {@link Region region} is already registered then it will follow any changes made to the Region.
-	 * @param r - The given {@link PollableRegion region} to register.
+	 * @param region - The given {@link PollableRegion region} to register.
 	 * @return The {@link World world} for chaining.
 	 */
-	public abstract World registerRegion(PollableRegion r);
+	public final World registerRegion(PollableRegion region) {
+		if(region == null) throw new NullPointerException("Cannot register a null region!");
+		doRegisterRegion(region);
+		if(region instanceof MonitoringRegion) {
+			MonitoringRegion mR = (MonitoringRegion) region;
+			mR.addEntities(getEntitiesInRegion(region));
+		}
+		return this;
+	}
+	
+	protected abstract void doRegisterRegion(PollableRegion r);
 	
 	/**
 	 * Un-registers the given {@link PollableRegion region} from this World.

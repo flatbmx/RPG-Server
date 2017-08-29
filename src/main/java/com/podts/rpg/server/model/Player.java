@@ -1,5 +1,6 @@
 package com.podts.rpg.server.model;
 
+import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.network.Stream;
 
 public class Player {

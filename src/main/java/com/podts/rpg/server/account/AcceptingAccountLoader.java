@@ -1,7 +1,8 @@
 package com.podts.rpg.server.account;
 
 import com.podts.rpg.server.model.Player;
-import com.podts.rpg.server.model.PlayerEntity;
+import com.podts.rpg.server.model.entity.EntityFactory;
+import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Universe;
 
 public class AcceptingAccountLoader extends AccountLoader {
@@ -19,7 +20,7 @@ public class AcceptingAccountLoader extends AccountLoader {
 		//checkValidPassword(password);
 		
 		Player player = new Player();
-		player.setEntity(new PlayerEntity(player, Universe.get().getDefaultWorld().createLocation(0, 0, 0)));
+		player.setEntity(EntityFactory.constructPlayerEntity(player, Universe.get().getDefaultWorld().createLocation(0, 0, 0)));
 		
 		return player;
 	}
@@ -30,7 +31,7 @@ public class AcceptingAccountLoader extends AccountLoader {
 		//checkValidUsername(username);
 		//checkValidPassword(password);
 		Player player = new Player();
-		player.setEntity(new PlayerEntity(player, Universe.get().getDefaultWorld().createLocation(0, 0, 0)));
+		player.setEntity(EntityFactory.constructPlayerEntity(player, Universe.get().getDefaultWorld().createLocation(0, 0, 0)));
 		return player;
 	}
 

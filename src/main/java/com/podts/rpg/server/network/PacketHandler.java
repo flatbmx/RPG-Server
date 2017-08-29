@@ -13,7 +13,7 @@ import com.podts.rpg.server.account.AccountLoader.IncorrectPasswordException;
 import com.podts.rpg.server.account.AccountLoader.InvalidUsernameException;
 import com.podts.rpg.server.model.GameState;
 import com.podts.rpg.server.model.Player;
-import com.podts.rpg.server.model.PlayerEntity;
+import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Universe;

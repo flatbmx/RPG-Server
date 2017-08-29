@@ -6,6 +6,7 @@ public final class Tile implements Locatable {
 		VOID(false),
 		GRASS(),
 		DIRT(),
+		SAND(),
 		WATER(false);
 		
 		private final boolean traversable;

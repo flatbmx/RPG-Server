@@ -10,7 +10,8 @@ import java.io.Writer;
 
 import com.google.gson.Gson;
 import com.podts.rpg.server.model.Player;
-import com.podts.rpg.server.model.PlayerEntity;
+import com.podts.rpg.server.model.entity.EntityFactory;
+import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Universe;
 
@@ -48,7 +49,7 @@ public final class JSONAccountLoader extends AccountLoader {
 		GPlayer gp = gson.fromJson(reader, GPlayer.class);
 		
 		Player player = new Player(gp.username, gp.password);
-		player.setEntity(new PlayerEntity(player, Universe.get().getDefaultWorld().createLocation(gp.x, gp.y, gp.z)));
+		player.setEntity(EntityFactory.constructPlayerEntity(player, Universe.get().getDefaultWorld().createLocation(gp.x, gp.y, gp.z)));
 		
 		try {
 			reader.close();

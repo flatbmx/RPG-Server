@@ -149,7 +149,8 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 				tileTypes.put(TileType.VOID, 0);
 				tileTypes.put(TileType.DIRT, 1);
 				tileTypes.put(TileType.GRASS, 2);
-				tileTypes.put(TileType.WATER, 3);
+				tileTypes.put(TileType.SAND, 3);
+				tileTypes.put(TileType.WATER, 4);
 			}
 		});
 		

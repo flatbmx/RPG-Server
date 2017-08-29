@@ -10,10 +10,11 @@ import java.util.Map;
 import java.util.Set;
 
 import com.podts.rpg.server.model.Player;
-import com.podts.rpg.server.model.PlayerEntity;
+import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
+import com.podts.rpg.server.network.Stream;
 import com.podts.rpg.server.network.packet.TilePacket;
 import com.podts.rpg.server.network.packet.TilePacket.TileUpdateType;
 
@@ -201,13 +202,9 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Tile getTile(Locatable loc) {
-		if(loc == null) throw new IllegalArgumentException("Cannot get Tile for null location.");
-		final Location point = loc.getLocation();
-		if(!equals(point.getWorld())) throw new IllegalArgumentException("Cannot get Tile that exists in a different World.");
-		
-		Chunk chunk = getOrGenerateChunk(getCoordinateFromLocation(point));
-		Location topLeft = chunk.topLeft;
+	public Tile doGetTile(final Location point) {
+		final Chunk chunk = getOrGenerateChunk(getCoordinateFromLocation(point));
+		final Location topLeft = chunk.topLeft;
 		int x = point.getX() - topLeft.getX();
 		int y = point.getY() - topLeft.getY();
 		synchronized(chunk) {
@@ -322,12 +319,11 @@ public final class StaticChunkWorld extends World {
 	}
 
 	@Override
-	public StaticChunkWorld registerRegion(PollableRegion r) {
+	public void doRegisterRegion(PollableRegion r) {
 		Set<Chunk> chunks = getChunksFromCoordinates(getCoordinatesFromLocations(r.getPoints()));
 		for(Chunk c : chunks) {
 			c.regions.add(r);
 		}
-		return this;
 	}
 
 	@Override
@@ -378,24 +374,25 @@ public final class StaticChunkWorld extends World {
 				newLoc.chunk.players.put(pE.getPlayer().getID(), pE.getPlayer());
 				int dx = newLoc.chunk.coord.x - currentLoc.chunk.coord.x;
 				int dy = newLoc.chunk.coord.y - currentLoc.chunk.coord.y;
+				Stream stream = pE.getPlayer().getStream();
 				if(dx != 0) {
 					for(int y=-1; y<2; ++y) {
 						Chunk oldChunk = getOrGenerateChunk(new ChunkCoordinate(currentLoc.chunk.coord.x + dx*-1, currentLoc.chunk.coord.y + y, currentLoc.z));
 						Chunk newChunk = getOrGenerateChunk(new ChunkCoordinate(newLoc.chunk.coord.x + dx, newLoc.chunk.coord.y + y, currentLoc.z));
-						pE.getPlayer().getStream().sendPacket(new TilePacket(oldChunk.tiles, TileUpdateType.DESTROY));
-						pE.getPlayer().getStream().sendPacket(new TilePacket(newChunk.tiles, TileUpdateType.CREATE));
+						stream.sendPacket(new TilePacket(oldChunk.tiles, TileUpdateType.DESTROY));
+						stream.sendPacket(new TilePacket(newChunk.tiles, TileUpdateType.CREATE));
 					}
 				}
 				if(dy != 0) {
 					for(int x=-1; x<2; ++x) {
 						Chunk oldChunk = getOrGenerateChunk(new ChunkCoordinate(currentLoc.chunk.coord.x + x, currentLoc.chunk.coord.y + dy*-1, currentLoc.z));
 						Chunk newChunk = getOrGenerateChunk(new ChunkCoordinate(newLoc.chunk.coord.x + x, newLoc.chunk.coord.y + dy, currentLoc.z));
-						pE.getPlayer().getStream().sendPacket(new TilePacket(oldChunk.tiles, TileUpdateType.DESTROY));
-						pE.getPlayer().getStream().sendPacket(new TilePacket(newChunk.tiles, TileUpdateType.CREATE));
+						stream.sendPacket(new TilePacket(oldChunk.tiles, TileUpdateType.DESTROY));
+						stream.sendPacket(new TilePacket(newChunk.tiles, TileUpdateType.CREATE));
 					}
 				}
 			}
-			entity.setLocation(newLoc);
+			entity.setLocation(newLocation);
 		}
 		return this;
 	}
