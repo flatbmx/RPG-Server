@@ -6,11 +6,18 @@ package com.podts.rpg.server.model.universe;
  */
 public abstract class WorldGenerator {
 	
-	public abstract Tile generateTile(Location point);
+	public final Tile generateTile(Location point) {
+		if(point == null) throw new IllegalArgumentException("Cannot generate Tile with null location.");
+		return doGenerateTile(point);
+	}
 	
-	public Tile[][] generateRectTiles(Location point, int width, int height) {
+	protected abstract Tile doGenerateTile(Location point);
+	
+	public final Tile[][] generateRectTiles(Location point, int width, int height) {
+		if(point == null) throw new IllegalArgumentException("Cannot generate Tiles with null starting point.");
+		if(width <= 0 || height <= 0) throw new IllegalArgumentException("Cannot generate Tiles with negative or 0 width/height.");
 		Tile[][] result = new Tile[width][height];
-		generateRectTiles(result,point);
+		doGenerateRectTiles(result, point);
 		return result;
 	}
 	
@@ -23,7 +30,15 @@ public abstract class WorldGenerator {
 	 * @param z - The z position of the tiles.
 	 * @return The WorldGenerator for chaining.
 	 */
-	public WorldGenerator generateRectTiles(Tile[][] tiles, Location point) {
+	public final WorldGenerator generateRectTiles(Tile[][] tiles, Location point) {
+		if(tiles == null) throw new IllegalArgumentException("Cannot generate Tiles with a null array.");
+		if(point == null) throw new IllegalArgumentException("Cannot generate Tiles with a null starting location.");
+		if(tiles.length == 0 || tiles[0].length == 0) throw new IllegalArgumentException("Cannot generate Tiles with an array of size 0.");
+		
+		return doGenerateRectTiles(tiles, point);
+	}
+	
+	protected WorldGenerator doGenerateRectTiles(Tile[][] tiles, Location point) {
 		
 		for(int dy=0; dy < tiles[0].length; ++dy) {
 			for(int dx=0; dx < tiles.length; ++dx) {
@@ -32,6 +47,10 @@ public abstract class WorldGenerator {
 		}
 		
 		return this;
+	}
+	
+	public WorldGenerator() {
+		
 	}
 	
 }

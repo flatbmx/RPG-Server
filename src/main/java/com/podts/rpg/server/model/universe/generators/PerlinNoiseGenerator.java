@@ -2,8 +2,8 @@ package com.podts.rpg.server.model.universe.generators;
 
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Tile;
-import com.podts.rpg.server.model.universe.WorldGenerator;
 import com.podts.rpg.server.model.universe.Tile.TileType;
+import com.podts.rpg.server.model.universe.WorldGenerator;
 
 public final class PerlinNoiseGenerator extends WorldGenerator {
 	
@@ -14,7 +14,7 @@ public final class PerlinNoiseGenerator extends WorldGenerator {
 	}
 	
 	@Override
-	public Tile generateTile(Location point) {
+	public Tile doGenerateTile(Location point) {
 		TileType type = TileType.VOID;
 		int val = noise(point.getX()/150d, point.getY()/150d, 5, seed);
 		if(val >= 88) {
@@ -24,7 +24,7 @@ public final class PerlinNoiseGenerator extends WorldGenerator {
 		} else {
 			type = TileType.WATER;
 		}
-		return new Tile(type, point);
+		return point.getWorld().createTile(type, point);
 	}
 	
 	public static int noise(double x,double y,int nbOctave, int seed)

@@ -7,6 +7,7 @@ import java.util.Set;
 import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
+import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.model.universe.region.MonitoringRegion;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
@@ -62,6 +63,16 @@ public abstract class World extends SimpleRegionHandler {
 	
 	protected abstract Tile doGetTile(Location point);
 	
+	public final World getTiles(Tile[][] tiles, Location topLeft) {
+		if(tiles == null) throw new IllegalArgumentException("Cannot get Tiles with null array.");
+		if(topLeft == null) throw new IllegalArgumentException("Cannot get Tiles with null starting point.");
+		if(tiles.length == 0 || tiles[0].length == 0) throw new IllegalArgumentException("Cannot get Tiles with array length of 0.");
+		if(!doContains(topLeft)) throw new IllegalArgumentException("Cannot get Tiles with starting point from a different world.");
+		return doGetTiles(tiles, topLeft);
+	}
+	
+	protected abstract World doGetTiles(Tile[][] tiles, Location topLeft);
+	
 	/**
 	 * Set the the given Tile at the given point in this World.
 	 * @param newTile - The new Tile.
@@ -78,6 +89,20 @@ public abstract class World extends SimpleRegionHandler {
 		
 		TilePacket updatePacket = new TilePacket(newTile, TileUpdateType.CREATE);
 		sendToNearbyPlayers(newTile, updatePacket);
+		return this;
+	}
+	
+	public final World setTiles(Collection<Tile> tiles) {
+		if(tiles == null) throw new IllegalArgumentException("Cannot set Tiles as null.");
+		if(tiles.isEmpty()) return this;
+		
+		for(Tile t : tiles) {
+			if(t == null) continue;
+			if(!doContains(t)) continue;
+			doSetTile(t);
+			sendToNearbyPlayers(t, new TilePacket(t, TileUpdateType.CREATE));
+		}
+		
 		return this;
 	}
 	
@@ -230,9 +255,20 @@ public abstract class World extends SimpleRegionHandler {
 	
 	public abstract Location createLocation(int x, int y, int z);
 	
+	public final Tile createTile(TileType type, Location location) {
+		if(type == null) throw new IllegalArgumentException("Cannot create Tile with null type!");
+		if(location == null) throw new IllegalArgumentException("Cannot create Tile with null location!");
+		if(!this.equals(location.getWorld())) throw new IllegalArgumentException("Cannot create Tile with location in a different world.");
+		return new Tile(type, location);
+	}
+	
 	@Override
 	public final boolean contains(Locatable loc) {
 		if(loc == null) throw new IllegalArgumentException("Cannot determine if null Locatable is in World.");
+		return doContains(loc);
+	}
+	
+	protected final boolean doContains(Locatable loc) {
 		return equals(loc.getWorld());
 	}
 	

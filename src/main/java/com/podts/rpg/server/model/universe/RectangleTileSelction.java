@@ -52,7 +52,7 @@ public final class RectangleTileSelction extends TileSelection {
 		@Override
 		public Tile next() {
 			if(!hasNext()) throw new NoSuchElementException();
-			if(i == tiles.length - 1) {
+			if(i == tiles.length) {
 				i = 0;
 				++j;
 			}

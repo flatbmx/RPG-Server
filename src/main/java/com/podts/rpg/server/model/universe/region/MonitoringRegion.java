@@ -1,5 +1,7 @@
 package com.podts.rpg.server.model.universe.region;
 
+import java.util.Collection;
+
 import com.podts.rpg.server.model.universe.Entity;
 
 public interface MonitoringRegion extends Region {
@@ -12,5 +14,6 @@ public interface MonitoringRegion extends Region {
 	}
 	
 	public MonitoringRegion addEntity(Entity entity);
+	public Collection<Entity> getEntities();
 	
 }

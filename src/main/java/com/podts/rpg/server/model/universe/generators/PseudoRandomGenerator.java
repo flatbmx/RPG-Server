@@ -15,7 +15,7 @@ public final class PseudoRandomGenerator extends WorldGenerator {
 	private final int totalWeight;
 	
 	@Override
-	public Tile generateTile(Location point) {
+	public Tile doGenerateTile(Location point) {
 		int choice = r.nextInt(totalWeight);
 		TileType t = null;
 		for(int i=0; i<weights.length; ++i) {
@@ -25,7 +25,7 @@ public final class PseudoRandomGenerator extends WorldGenerator {
 				break;
 			}
 		}
-		return new Tile(t, point);
+		return point.getWorld().createTile(t, point);
 	}
 	
 	public PseudoRandomGenerator(Random r, int[] weights, TileType[] types) {

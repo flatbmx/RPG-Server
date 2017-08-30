@@ -40,7 +40,7 @@ public final class Tile implements Locatable {
 		return type.isTraversable();
 	}
 	
-	public Tile(TileType type, Location location) {
+	protected Tile(TileType type, Location location) {
 		this.type = type;
 		this.location = location;
 	}

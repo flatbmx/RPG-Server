@@ -55,6 +55,10 @@ public final class StaticChunkWorld extends World {
 			this.y = y;
 			this.z = z;
 		}
+
+		public ChunkCoordinate move(int dx, int dy, int dz) {
+			return new ChunkCoordinate(x + dx, y + dy, z + dz);
+		}
 	}
 	
 	private final class Chunk {
@@ -73,11 +77,52 @@ public final class StaticChunkWorld extends World {
 			return "Chunk " + coord;
 		}
 		
+		synchronized Tile getTile(SLocation point) {
+			return tiles[point.x - topLeft.x][point.y - topLeft.y];
+		}
+		
 		protected Chunk(ChunkCoordinate coord) {
 			this.coord = coord;
 			int x = coord.x * CHUNK_SIZE - (CHUNK_SIZE-1)/2;
 			int y = coord.y * CHUNK_SIZE - (CHUNK_SIZE-1)/2;
 			topLeft = new SLocation(this, x, y, coord.z);
+		}
+		
+	}
+	
+	private final class MLocation extends Location {
+		
+		private int x, y, z;
+
+		@Override
+		public World getWorld() {
+			return StaticChunkWorld.this;
+		}
+
+		@Override
+		public int getX() {
+			return x;
+		}
+
+		@Override
+		public int getY() {
+			return y;
+		}
+
+		@Override
+		public int getZ() {
+			return z;
+		}
+
+		@Override
+		public Location move(int dx, int dy, int dz) {
+			return new MLocation(x + dx, y + dy, z + dz);
+		}
+		
+		MLocation(int nx, int ny, int nz) {
+			x = nx;
+			y = ny;
+			z = nz;
 		}
 		
 	}
@@ -141,9 +186,12 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private Set<Chunk> getChunksFromCoordinates(Collection<ChunkCoordinate> coords) {
+		final Set<ChunkCoordinate> seenCoords = new HashSet<>();
 		final Set<Chunk> result = new HashSet<>();
 		for(ChunkCoordinate coord : coords) {
+			if(seenCoords.contains(coord)) continue;
 			result.add(getOrGenerateChunk(coord));
+			seenCoords.add(coord);
 		}
 		return result;
 	}
@@ -181,7 +229,7 @@ public final class StaticChunkWorld extends World {
 		if(chunk == null) {
 			chunk = new Chunk(coord);
 			ch.put(coord, chunk);
-			getWorldGenerator().generateRectTiles(chunk.tiles, chunk.topLeft);
+			getWorldGenerator().doGenerateRectTiles(chunk.tiles, chunk.topLeft);
 		}
 		return chunk;
 	}
@@ -212,6 +260,29 @@ public final class StaticChunkWorld extends World {
 		}
 	}
 	
+	@Override
+	protected World doGetTiles(Tile[][] tiles, Location topLeft) {
+		SLocation tL = (SLocation) topLeft;
+		Chunk topLeftChunk = tL.chunk;
+		Chunk topRightChunk = tL.move(tiles.length, 0, 0).chunk;
+		int chunkWidth = topRightChunk.coord.x - topLeftChunk.coord.x;
+		Chunk bottomLeftChunk = tL.move(0, tiles[0].length, 0).chunk;
+		int chunkHeight = bottomLeftChunk.coord.y - topLeftChunk.coord.y;
+		final int width = tiles.length, height = tiles[0].length;
+		MLocation loc = new MLocation(tL.x,tL.y, topLeft.getZ());
+		for(int i=0; i<=chunkWidth; ++i) {
+			for(int j=0; j<chunkHeight; ++j) {
+				Chunk chunk = getOrGenerateChunk(topLeftChunk.coord.move(i,j,0));
+				for(int dy=loc.getY() - chunk.topLeft.getY(); dy<CHUNK_SIZE; ++dy) {
+					for(int dx=loc.getX() - chunk.topLeft.getX(); dx<CHUNK_SIZE; ++dx) {
+						//TODO Implement this, holy shit!
+					}
+				}
+			}
+		}
+		return this;
+	}
+	
 	public void doSetTile(Tile newTile) {
 		Location point = newTile.getLocation();
 		Chunk chunk = getOrGenerateChunk(getCoordinateFromLocation(point));
@@ -226,7 +297,7 @@ public final class StaticChunkWorld extends World {
 	@Override
 	public Collection<Entity> getNearbyEntities(Locatable l, double distance) {
 		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Not implmented yet.");
 	}
 	
 	@Override
