@@ -327,4 +327,20 @@ public abstract class World extends SimpleRegionHandler {
 		return moveEntity(entity, MoveType.UPDATE, dir.getX(), dir.getY(), 0);
 	}
 	
+	protected final void sendCreateEntity(Player player, Entity entity) {
+		player.sendPacket(EntityPacket.constructCreate(entity));
+	}
+	
+	protected final void sendUpdateEntity(Player player, Entity entity, Location newLocation) {
+		player.sendPacket(EntityPacket.constructMove(entity, newLocation));
+	}
+	
+	protected final void sendUpdateEntity(Player player, Entity entity) {
+		sendUpdateEntity(player, entity, entity.getLocation());
+	}
+	
+	protected final void sendDestroyEntity(Player player, Entity entity) {
+		player.sendPacket(EntityPacket.constructDestroy(entity));
+	}
+	
 }

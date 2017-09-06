@@ -377,7 +377,8 @@ public final class StaticChunkWorld extends World {
 
 	private void initPlayer(PlayerEntity pE) {
 		Player player = pE.getPlayer();
-		player.sendPacket(EntityPacket.constructCreate(pE));
+		//sendCreateEntity(player, pE);
+		player.getStream().sendPacket(EntityPacket.constructCreate(pE));
 		Chunk[][] chunks = getSurroundingChunks((SLocation)pE.getLocation());
 		for(int i=0; i<3; ++i) {
 			for(int j=0; j<3; ++j) {
@@ -389,7 +390,7 @@ public final class StaticChunkWorld extends World {
 	private void sendNewChunk(Chunk chunk, Player player) {
 		player.sendPacket(new TilePacket(chunk.tiles, TileUpdateType.CREATE));
 		for(Entity entity : chunk.getEntities()) {
-			player.sendPacket(EntityPacket.constructCreate(entity));
+			sendCreateEntity(player, entity);
 		}
 	}
 	
@@ -468,11 +469,11 @@ public final class StaticChunkWorld extends World {
 		if(oldChunk != newChunk) {
 			oldChunk.removeEntity(entity);
 			newChunk.addEntity(entity);
-			Collection<Player> oldPlayers = getNearbyPlayers(currentLoc);
-			Collection<Player> newPlayers = getNearbyPlayers(newLoc);
+			final Collection<Player> oldPlayers = getNearbyPlayers(currentLoc);
+			final Collection<Player> newPlayers = getNearbyPlayers(newLoc);
 			
-			EntityPacket destroyPacket = EntityPacket.constructDestroy(entity);
-			EntityPacket createPacket = EntityPacket.constructCreate(entity);
+			final EntityPacket destroyPacket = EntityPacket.constructDestroy(entity);
+			final EntityPacket createPacket = EntityPacket.constructCreate(entity);
 			
 			if(entity instanceof PlayerEntity) {
 				PlayerEntity pE = (PlayerEntity) entity;

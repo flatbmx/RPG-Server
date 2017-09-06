@@ -78,7 +78,7 @@ public final class NettyNetworkManager extends NetworkManager {
 	    	if(!cause.getMessage().equals("An existing connection was forcibly closed by the remote host")) {
 	    		cause.printStackTrace();
 	    	}
-	    	ctx.close();
+	    	ctx.channel().close();
 	    }
 		
 	}

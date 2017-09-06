@@ -14,7 +14,7 @@ public class PlayerEntity extends Entity {
 	}
 	
 	protected PlayerEntity(Player player, Location loc) {
-		super(EntityType.PLAYER, player.getUsername(), loc);
+		super(player.getUsername(), EntityType.PLAYER, loc);
 		this.player = player;
 	}
 	

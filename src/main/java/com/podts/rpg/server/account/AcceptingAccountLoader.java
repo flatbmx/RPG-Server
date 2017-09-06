@@ -19,7 +19,7 @@ public class AcceptingAccountLoader extends AccountLoader {
 		//checkValidUsername(username);
 		//checkValidPassword(password);
 		
-		Player player = new Player();
+		Player player = new Player(username, password);
 		player.setEntity(EntityFactory.constructPlayerEntity(player, Universe.get().getDefaultWorld().createLocation(0, 0, 0)));
 		
 		return player;
@@ -30,7 +30,7 @@ public class AcceptingAccountLoader extends AccountLoader {
 			throws InvalidUsernameException, AccountAlreadyExistsException, IncorrectPasswordException {
 		//checkValidUsername(username);
 		//checkValidPassword(password);
-		Player player = new Player();
+		Player player = new Player(username, password);
 		player.setEntity(EntityFactory.constructPlayerEntity(player, Universe.get().getDefaultWorld().createLocation(0, 0, 0)));
 		return player;
 	}

@@ -125,7 +125,7 @@ public final class PacketHandler {
 
 				World world = Universe.get().getDefaultWorld();
 				player.setStream(stream);
-				player.getStream().sendPacket(new PlayerInitPacket(player));
+				player.sendPacket(new PlayerInitPacket(player));
 				world.register(player.getEntity());
 				
 				stream.sendPacket(new StatePacket(GameState.PLAYING));

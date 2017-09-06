@@ -9,6 +9,8 @@ import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.Server;
 import com.podts.rpg.server.Server.ServerStatus;
+import com.podts.rpg.server.model.universe.Entity;
+import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.network.packet.LoginPacket;
 
 public abstract class NetworkManager {
@@ -143,6 +145,7 @@ public abstract class NetworkManager {
 	
 	protected final void onPlayerDisconnect(Stream stream) {
 		System.out.println("Client forcible closed connection from " + stream.getAddress());
+		stream.getPlayer().getEntity().deRegister();
 	}
 	
 	public NetworkManager() {

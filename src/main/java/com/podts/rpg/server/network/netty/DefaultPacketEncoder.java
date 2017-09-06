@@ -174,6 +174,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 				case DESTROY:
 					break;
 				case CREATE:
+					writeString(e.getName(), buf);
 					buf.writeByte(entityTypeMap.get(e.getType()));
 				case UPDATE:
 					writeLocation(e.getLocation(), buf);
@@ -270,9 +271,9 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		byte[] plain;
 		try {
 			plain = string.getBytes("UTF-8");
-			buf.writeInt(plain.length).writeBytes(plain);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+			buf.writeInt(plain.length);
+			buf.writeBytes(plain);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

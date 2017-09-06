@@ -33,6 +33,12 @@ public final class JSONWorldLoader extends WorldLoader {
 		// TODO Auto-generated method stub
 
 	}
+
+	@Override
+	protected boolean init() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 	
 	public JSONWorldLoader(File root) {
 		this.root = root;

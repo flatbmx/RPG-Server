@@ -48,16 +48,25 @@ public class Entity implements Locatable {
 		return this;
 	}
 	
+	public final boolean register() {
+		return location.getWorld().register(this);
+	}
+	
+	public final void deRegister() {
+		location.getWorld().deRegister(this);
+	}
+	
 	public Entity(EntityType type, Location loc) {
 		id = nextID++;
+		name = type.name();
 		this.type = type;
 		location = loc;
 	}
-
-	public Entity(EntityType type, String name, Location loc) {
+	
+	public Entity(String name, EntityType type, Location loc) {
 		id = nextID++;
-		this.type = type;
 		this.name = name;
+		this.type = type;
 		this.location = loc;
 	}
 	

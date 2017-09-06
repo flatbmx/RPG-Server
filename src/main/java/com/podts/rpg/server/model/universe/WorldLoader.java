@@ -20,4 +20,6 @@ public abstract class WorldLoader {
 	
 	protected abstract void doSaveTile(Tile tile);
 	
+	protected abstract boolean init();
+	
 }
