@@ -1,6 +1,7 @@
 package com.podts.rpg.server.model;
 
 import com.podts.rpg.server.model.entity.PlayerEntity;
+import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
 
 public class Player {
@@ -70,6 +71,20 @@ public class Player {
 	//TODO Really need to change this scope.
 	public void setEntity(PlayerEntity e) {
 		entity = e;
+	}
+
+	public final void sendPacket(Packet... packets) {
+		for(Packet p : packets)
+			getStream().sendPacket(p);
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof Player) {
+			Player other = (Player) o;
+			return id == other.id;
+		}
+		return false;
 	}
 	
 }

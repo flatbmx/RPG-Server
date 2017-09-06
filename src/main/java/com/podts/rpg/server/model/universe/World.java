@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.Tile.TileType;
@@ -157,6 +158,13 @@ public abstract class World extends SimpleRegionHandler {
 		return result;
 	}
 	
+	public boolean register(PlayerEntity e) {
+		boolean result = doRegister(e);
+		if(result)
+			sendToNearbyPlayers(e, e.getPlayer(), EntityPacket.constructCreate(e));
+		return result;
+	}
+	
 	protected abstract boolean doRegister(Entity e);
 	
 	/**
@@ -295,9 +303,18 @@ public abstract class World extends SimpleRegionHandler {
 		}
 	}
 	
-	protected final void sendToNearbyPlayers(Locatable l, Packet packet) {
+	protected final void sendToNearbyPlayers(Locatable l, Packet... packets) {
 		for(Player player : getNearbyPlayers(l)) {
-			player.getStream().sendPacket(packet);
+			for(Packet p : packets)
+				player.getStream().sendPacket(p);
+		}
+	}
+	
+	protected final void sendToNearbyPlayers(Locatable l, Player except, Packet... packets) {
+		for(Player player : getNearbyPlayers(l)) {
+			if(player.equals(except)) continue;
+			for(Packet p : packets)
+				player.getStream().sendPacket(p);
 		}
 	}
 	
