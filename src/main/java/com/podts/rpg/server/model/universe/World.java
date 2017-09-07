@@ -58,7 +58,7 @@ public abstract class World extends SimpleRegionHandler {
 	 */
 	public final Tile getTile(Locatable loc) {
 		Utils.assertNullArg(loc, "Cannot get Tile for null location.");
-		if(!equals(loc.getLocation().getWorld())) throw new IllegalArgumentException("Cannot get Tile that exists in a different World.");
+		Utils.assertArg(!doContains(loc), "Cannot get Tile that exists in a different World.");
 		return doGetTile(loc.getLocation());
 	}
 	
@@ -69,10 +69,12 @@ public abstract class World extends SimpleRegionHandler {
 		Utils.assertNullArg(topLeft, "Cannot get Tiles with null starting point.");
 		Utils.assertArg(tiles.length == 0 || tiles[0].length == 0, "Cannot get Tiles with array length of 0.");
 		Utils.assertArg(!doContains(topLeft), "Cannot get Tiles with starting point from a different world.");
-		return doGetTiles(tiles, topLeft);
+		
+		doGetTiles(tiles, topLeft);
+		return this;
 	}
 	
-	protected abstract World doGetTiles(Tile[][] tiles, Location topLeft);
+	protected abstract void doGetTiles(Tile[][] tiles, Location topLeft);
 	
 	/**
 	 * Set the the given Tile at the given point in this World.
@@ -82,7 +84,7 @@ public abstract class World extends SimpleRegionHandler {
 	 */
 	public final World setTile(Tile newTile) {
 		Utils.assertNullArg(newTile, "Cannot set a Tile as null.");
-		Utils.assertArg(!equals(newTile.getWorld()), "Cannot set a Tile that exists in another World.");
+		Utils.assertArg(!doContains(newTile), "Cannot set a Tile that exists in another World.");
 		
 		doSetTile(newTile);
 		
@@ -148,14 +150,14 @@ public abstract class World extends SimpleRegionHandler {
 	 * @return True if the {@link Entity} was sucessfully registered, false if there already exists an 
 	 * {@link Entity} that has the same ID in this {@link Word}.
 	 */
-	public boolean register(Entity e) {
+	public final boolean register(Entity e) {
 		boolean result = doRegister(e);
 		if(result)
 			sendToNearbyPlayers(e, EntityPacket.constructCreate(e));
 		return result;
 	}
 	
-	public boolean register(PlayerEntity e) {
+	public final boolean register(PlayerEntity e) {
 		boolean result = doRegister(e);
 		if(result)
 			sendToNearbyPlayers(e, e.getPlayer(), EntityPacket.constructCreate(e));

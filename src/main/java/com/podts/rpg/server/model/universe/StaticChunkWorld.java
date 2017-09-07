@@ -282,7 +282,7 @@ public final class StaticChunkWorld extends World {
 	}
 
 	@Override
-	protected World doGetTiles(Tile[][] tiles, Location topLeft) {
+	protected void doGetTiles(Tile[][] tiles, Location topLeft) {
 		SLocation tL = (SLocation) topLeft;
 		Chunk topLeftChunk = tL.chunk;
 		Chunk topRightChunk = tL.move(tiles.length, 0, 0).chunk;
@@ -301,7 +301,6 @@ public final class StaticChunkWorld extends World {
 				}
 			}
 		}
-		return this;
 	}
 
 	public void doSetTile(Tile newTile) {
