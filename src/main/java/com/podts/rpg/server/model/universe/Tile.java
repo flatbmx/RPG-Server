@@ -1,6 +1,6 @@
 package com.podts.rpg.server.model.universe;
 
-public final class Tile implements Locatable {
+public class Tile implements Locatable {
 	
 	public enum TileType {
 		VOID(false),
@@ -28,15 +28,15 @@ public final class Tile implements Locatable {
 	private final TileType type;
 	private final Location location;
 	
-	public TileType getType() {
+	public final TileType getType() {
 		return type;
 	}
 	
-	public Location getLocation() {
+	public final Location getLocation() {
 		return location;
 	}
 	
-	public boolean isTraversable() {
+	public final boolean isTraversable() {
 		return type.isTraversable();
 	}
 	

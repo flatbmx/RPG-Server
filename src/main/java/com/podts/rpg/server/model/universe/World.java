@@ -57,7 +57,7 @@ public abstract class World extends SimpleRegionHandler {
 	 * @return The Tile that is located at the given point.
 	 */
 	public final Tile getTile(Locatable loc) {
-		if(loc == null) throw new IllegalArgumentException("Cannot get Tile for null location.");
+		Utils.assertNullArg(loc, "Cannot get Tile for null location.");
 		if(!equals(loc.getLocation().getWorld())) throw new IllegalArgumentException("Cannot get Tile that exists in a different World.");
 		return doGetTile(loc.getLocation());
 	}
@@ -65,10 +65,10 @@ public abstract class World extends SimpleRegionHandler {
 	protected abstract Tile doGetTile(Location point);
 	
 	public final World getTiles(Tile[][] tiles, Location topLeft) {
-		if(tiles == null) throw new IllegalArgumentException("Cannot get Tiles with null array.");
-		if(topLeft == null) throw new IllegalArgumentException("Cannot get Tiles with null starting point.");
-		if(tiles.length == 0 || tiles[0].length == 0) throw new IllegalArgumentException("Cannot get Tiles with array length of 0.");
-		if(!doContains(topLeft)) throw new IllegalArgumentException("Cannot get Tiles with starting point from a different world.");
+		Utils.assertNullArg(tiles, "Cannot get Tiles with null array.");
+		Utils.assertNullArg(topLeft, "Cannot get Tiles with null starting point.");
+		Utils.assertArg(tiles.length == 0 || tiles[0].length == 0, "Cannot get Tiles with array length of 0.");
+		Utils.assertArg(!doContains(topLeft), "Cannot get Tiles with starting point from a different world.");
 		return doGetTiles(tiles, topLeft);
 	}
 	
@@ -81,24 +81,17 @@ public abstract class World extends SimpleRegionHandler {
 	 * @return The World for chaining.
 	 */
 	public final World setTile(Tile newTile) {
-		if(newTile == null) throw new IllegalArgumentException("Cannot set a Tile as null.");
-		Location point = newTile.getLocation();
-		if(point == null) throw new IllegalArgumentException("Cannot set a Tile at a null location.");
-		if(!equals(point.getWorld())) throw new IllegalArgumentException("Cannot set a Tile that exists in another World.");
-		
-		final Tile oldTile = doGetTile(point);
-		
-		
+		Utils.assertNullArg(newTile, "Cannot set a Tile as null.");
+		Utils.assertArg(!equals(newTile.getWorld()), "Cannot set a Tile that exists in another World.");
 		
 		doSetTile(newTile);
 		
-		TilePacket updatePacket = new TilePacket(newTile, TileUpdateType.CREATE);
-		sendToNearbyPlayers(newTile, updatePacket);
+		sendToNearbyPlayers(newTile, new TilePacket(newTile, TileUpdateType.CREATE));
 		return this;
 	}
 	
 	public final World setTiles(Collection<Tile> tiles) {
-		if(tiles == null) throw new IllegalArgumentException("Cannot set Tiles as null.");
+		Utils.assertNullArg(tiles, "Cannot set Tiles as null.");
 		if(tiles.isEmpty()) return this;
 		
 		for(Tile t : tiles) {
@@ -195,7 +188,8 @@ public abstract class World extends SimpleRegionHandler {
 	 * @return The {@link World world} for chaining.
 	 */
 	public final World registerRegion(PollableRegion region) {
-		if(region == null) throw new NullPointerException("Cannot register a null region!");
+		Utils.assertNull(region, "Cannot register a null region!");
+		
 		doRegisterRegion(region);
 		if(region instanceof MonitoringRegion) {
 			MonitoringRegion mR = (MonitoringRegion) region;
@@ -268,15 +262,16 @@ public abstract class World extends SimpleRegionHandler {
 	public abstract Location createLocation(int x, int y, int z);
 	
 	public final Tile createTile(TileType type, Location location) {
-		if(type == null) throw new IllegalArgumentException("Cannot create Tile with null type!");
-		if(location == null) throw new IllegalArgumentException("Cannot create Tile with null location!");
-		if(!this.equals(location.getWorld())) throw new IllegalArgumentException("Cannot create Tile with location in a different world.");
+		Utils.assertNullArg(type, "Cannot create Tile with null type!");
+		Utils.assertNullArg(location, "Cannot create Tile with null location!");
+		Utils.assertArg(!doContains(location), "Cannot create Tile with location in a different world.");
+		
 		return new Tile(type, location);
 	}
 	
 	@Override
 	public final boolean contains(Locatable loc) {
-		if(loc == null) throw new IllegalArgumentException("Cannot determine if null Locatable is in World.");
+		Utils.assertNullArg(loc, "Cannot determine if null Locatable is in World.");
 		return doContains(loc);
 	}
 	
@@ -289,23 +284,9 @@ public abstract class World extends SimpleRegionHandler {
 		return "World - " + name;
 	}
 	
-	private final void fireRegionEnter(Entity e, Location newLocation, MoveType type) {
-		Set<Region> regions = new HashSet<>(getRegionsAtLocation(e.getLocation()));
-		for(Region r : regions) {
-			fireRegionEnter(r, e, newLocation, type);
-		}
-	}
-	
 	private static final void fireRegionEnter(Region r, Entity e, Location newLocation, MoveType type) {
 		for(RegionListener l : r.getRegionListeners()) {
 			l.onEntityEnter(r, e, type);
-		}
-	}
-	
-	private final void fireRegionMove(Entity e, Location newLocation, MoveType type) {
-		Set<Region> regions = new HashSet<>(getRegionsAtLocation(e.getLocation()));
-		for(Region r : regions) {
-			fireRegionMove(r, e, newLocation, type);
 		}
 	}
 	
@@ -315,29 +296,9 @@ public abstract class World extends SimpleRegionHandler {
 		}
 	}
 	
-	private final void fireRegionLeave(Entity e, Location newLocation, MoveType type) {
-		Set<Region> regions = new HashSet<>(getRegionsAtLocation(e.getLocation()));
-		for(Region r : regions) {
-			fireRegionLeave(r, e, newLocation, type);
-		}
-	}
-	
 	private static final void fireRegionLeave(Region r, Entity e, Location newLocation, MoveType type) {
 		for(RegionListener l : r.getRegionListeners()) {
 			l.onEntityLeave(r, e, type);
-		}
-	}
-	
-	private final void fireRegionTileChange(Tile oldTile, Tile newTile) {
-		Set<Region> regions = new HashSet<>(getRegionsAtLocation(oldTile));
-		for(Region r : regions) {
-			fireRegionTileChange(r, oldTile, newTile);
-		}
-	}
-	
-	private static final void fireRegionTileChange(Region r, Tile oldTile, Tile newTile) {
-		for(RegionListener l : r.getRegionListeners()) {
-			l.onTileChange(r, oldTile, newTile);
 		}
 	}
 	
