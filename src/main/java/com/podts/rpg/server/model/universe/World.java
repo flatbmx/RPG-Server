@@ -86,6 +86,10 @@ public abstract class World extends SimpleRegionHandler {
 		if(point == null) throw new IllegalArgumentException("Cannot set a Tile at a null location.");
 		if(!equals(point.getWorld())) throw new IllegalArgumentException("Cannot set a Tile that exists in another World.");
 		
+		final Tile oldTile = doGetTile(point);
+		
+		
+		
 		doSetTile(newTile);
 		
 		TilePacket updatePacket = new TilePacket(newTile, TileUpdateType.CREATE);
@@ -185,7 +189,7 @@ public abstract class World extends SimpleRegionHandler {
 	/**
 	 * Registers the given {@link PollableRegion region} with this {@link World world}.
 	 * {@link Region Regions} that are not registered will not have their
-	 * {@link RegionListener#onEnter(Region, Entity, MoveType) onEnter} nor {@link RegionListener#onLeave(Region, Entity, MoveType) onLeave} methods called.
+	 * {@link RegionListener#onEntityEnter(Region, Entity, MoveType) onEnter} nor {@link RegionListener#onEntityLeave(Region, Entity, MoveType) onLeave} methods called.
 	 * If the {@link Region region} is already registered then it will follow any changes made to the Region.
 	 * @param region - The given {@link PollableRegion region} to register.
 	 * @return The {@link World world} for chaining.
@@ -285,21 +289,55 @@ public abstract class World extends SimpleRegionHandler {
 		return "World - " + name;
 	}
 	
+	private final void fireRegionEnter(Entity e, Location newLocation, MoveType type) {
+		Set<Region> regions = new HashSet<>(getRegionsAtLocation(e.getLocation()));
+		for(Region r : regions) {
+			fireRegionEnter(r, e, newLocation, type);
+		}
+	}
+	
 	private static final void fireRegionEnter(Region r, Entity e, Location newLocation, MoveType type) {
 		for(RegionListener l : r.getRegionListeners()) {
-			l.onEnter(r, e, type);
+			l.onEntityEnter(r, e, type);
+		}
+	}
+	
+	private final void fireRegionMove(Entity e, Location newLocation, MoveType type) {
+		Set<Region> regions = new HashSet<>(getRegionsAtLocation(e.getLocation()));
+		for(Region r : regions) {
+			fireRegionMove(r, e, newLocation, type);
 		}
 	}
 	
 	private static final void fireRegionMove(Region r, Entity e, Location newLocation, MoveType type) {
 		for(RegionListener l : r.getRegionListeners()) {
-			l.onMove(r, e, type);
+			l.onEntityMove(r, e, type);
+		}
+	}
+	
+	private final void fireRegionLeave(Entity e, Location newLocation, MoveType type) {
+		Set<Region> regions = new HashSet<>(getRegionsAtLocation(e.getLocation()));
+		for(Region r : regions) {
+			fireRegionLeave(r, e, newLocation, type);
 		}
 	}
 	
 	private static final void fireRegionLeave(Region r, Entity e, Location newLocation, MoveType type) {
 		for(RegionListener l : r.getRegionListeners()) {
-			l.onLeave(r, e, type);
+			l.onEntityLeave(r, e, type);
+		}
+	}
+	
+	private final void fireRegionTileChange(Tile oldTile, Tile newTile) {
+		Set<Region> regions = new HashSet<>(getRegionsAtLocation(oldTile));
+		for(Region r : regions) {
+			fireRegionTileChange(r, oldTile, newTile);
+		}
+	}
+	
+	private static final void fireRegionTileChange(Region r, Tile oldTile, Tile newTile) {
+		for(RegionListener l : r.getRegionListeners()) {
+			l.onTileChange(r, oldTile, newTile);
 		}
 	}
 	
