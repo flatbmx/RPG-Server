@@ -1,6 +1,4 @@
-package com.podts.rpg.server.account;
-
-import com.podts.rpg.server.model.Player;
+package com.podts.rpg.server;
 
 public abstract class AccountLoader {
 	
@@ -42,12 +40,27 @@ public abstract class AccountLoader {
 	
 	public abstract boolean doAccountExists(String username);
 	
-	public abstract Player loadAccount(String username, String password)
+	public final Player loadAccount(String username, String password)
+			throws InvalidUsernameException, AccountDoesNotExistException, IncorrectPasswordException {
+		return doLoadAccount(username, password);
+	}
+	
+	public abstract Player doLoadAccount(String username, String password)
 			throws InvalidUsernameException, AccountDoesNotExistException, IncorrectPasswordException;
 	
-	public abstract Player createAccount(String username, String password) throws InvalidUsernameException, AccountAlreadyExistsException, IncorrectPasswordException;
-	
+	public final Player createAccount(String username, String password)
+			throws InvalidUsernameException, AccountAlreadyExistsException, IncorrectPasswordException {
+		return doCreateAccount(username, password);
+	}
+
+	public abstract Player doCreateAccount(String username, String password) throws InvalidUsernameException, AccountAlreadyExistsException, IncorrectPasswordException;
+
+
 	public abstract boolean saveAccount(Player player);
+	
+	protected final Player createPlayer(String username, String password) {
+		return Server.get().createPlayer(username, password);
+	}
 	
 	public final class InvalidUsernameException extends Exception {
 		private static final long serialVersionUID = 3860240642463628337L;

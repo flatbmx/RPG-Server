@@ -1,4 +1,4 @@
-package com.podts.rpg.server.model;
+package com.podts.rpg.server;
 
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.network.Packet;
@@ -23,37 +23,15 @@ public class Player {
 		stream = s;
 	}
 	
-	public Player(Stream stream) {
-		id = getNewID();
+	Player(int id, Stream stream) {
+		this.id = id;
 		this.stream = stream;
 	}
 	
-	public Player() {
-		id = getNewID();
-	}
-	
-	public Player(String username, String hashPassword) {
-		id = getNewID();
+	Player(int id, String username, String hashPassword) {
+		this.id = id;
 		this.username = username;
 		this.password = hashPassword;
-	}
-	
-	private static int currentID = 0;
-	
-	private static int getNewID() {
-		return currentID++;
-	}
-	
-	private static final Player[] players;
-	private static final int MAX_PLAYERS = 100;
-	
-	static {
-		players = new Player[MAX_PLAYERS];
-	}
-	
-	public static final Player getPlayer(int id) {
-		if(id >= 0 && id < MAX_PLAYERS) return players[id];
-		return null;
 	}
 	
 	public final String getUsername() {
@@ -85,6 +63,11 @@ public class Player {
 			return id == other.id;
 		}
 		return false;
+	}
+	
+	public static enum LogoutReason {
+		DISCONNECT(),
+		LOGOUT();
 	}
 	
 }

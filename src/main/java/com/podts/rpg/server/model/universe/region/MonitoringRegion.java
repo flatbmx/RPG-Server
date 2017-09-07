@@ -14,6 +14,15 @@ public interface MonitoringRegion extends Region {
 	}
 	
 	public MonitoringRegion addEntity(Entity entity);
+	public MonitoringRegion removeEntity(Entity entity);
+	
+	public default MonitoringRegion removeEntities(Iterable<Entity> entities) {
+		for(Entity entity : entities) {
+			removeEntity(entity);
+		}
+		return this;
+	}
+	
 	public Collection<Entity> getEntities();
 	
 }

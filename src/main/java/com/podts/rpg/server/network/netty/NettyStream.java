@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
-import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.Player;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
 

@@ -9,9 +9,9 @@ import java.io.Reader;
 import java.io.Writer;
 
 import com.google.gson.Gson;
-import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.AccountLoader;
+import com.podts.rpg.server.Player;
 import com.podts.rpg.server.model.entity.EntityFactory;
-import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Universe;
 
@@ -31,7 +31,7 @@ public final class JSONAccountLoader extends AccountLoader {
 	}
 	
 	@Override
-	public Player loadAccount(String username, String password)
+	public Player doLoadAccount(String username, String password)
 			throws InvalidUsernameException, AccountDoesNotExistException, IncorrectPasswordException {
 		
 		checkValidUsername(username);
@@ -48,7 +48,7 @@ public final class JSONAccountLoader extends AccountLoader {
 		
 		GPlayer gp = gson.fromJson(reader, GPlayer.class);
 		
-		Player player = new Player(gp.username, gp.password);
+		Player player = createPlayer(gp.username, gp.password);
 		player.setEntity(EntityFactory.constructPlayerEntity(player, Universe.get().getDefaultWorld().createLocation(gp.x, gp.y, gp.z)));
 		
 		try {
@@ -62,9 +62,9 @@ public final class JSONAccountLoader extends AccountLoader {
 	}
 
 	@Override
-	public Player createAccount(String username, String password) throws AccountAlreadyExistsException {
+	public Player doCreateAccount(String username, String password) throws AccountAlreadyExistsException {
 		//TODO implement me actually.
-		return new Player(username, password);
+		return createPlayer(username, password);
 	}
 
 	@Override

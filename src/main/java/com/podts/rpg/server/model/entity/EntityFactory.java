@@ -1,6 +1,6 @@
 package com.podts.rpg.server.model.entity;
 
-import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.Player;
 import com.podts.rpg.server.model.universe.Location;
 
 public class EntityFactory {

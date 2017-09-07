@@ -4,15 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import com.podts.rpg.server.AccountLoader;
 import com.podts.rpg.server.GameEngine;
+import com.podts.rpg.server.Player;
 import com.podts.rpg.server.Server;
-import com.podts.rpg.server.account.AccountLoader;
-import com.podts.rpg.server.account.AccountLoader.AccountAlreadyExistsException;
-import com.podts.rpg.server.account.AccountLoader.AccountDoesNotExistException;
-import com.podts.rpg.server.account.AccountLoader.IncorrectPasswordException;
-import com.podts.rpg.server.account.AccountLoader.InvalidUsernameException;
+import com.podts.rpg.server.AccountLoader.AccountAlreadyExistsException;
+import com.podts.rpg.server.AccountLoader.AccountDoesNotExistException;
+import com.podts.rpg.server.AccountLoader.IncorrectPasswordException;
+import com.podts.rpg.server.AccountLoader.InvalidUsernameException;
 import com.podts.rpg.server.model.GameState;
-import com.podts.rpg.server.model.Player;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
@@ -88,7 +88,9 @@ public final class PacketHandler {
 				Player player = null;
 				String response;
 				LoginResponseType responseType = null;
-
+				
+				
+				
 				try {
 					
 					AccountLoader loader = Server.get().getAccountLoader();

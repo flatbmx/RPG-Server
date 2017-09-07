@@ -9,8 +9,6 @@ import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.Server;
 import com.podts.rpg.server.Server.ServerStatus;
-import com.podts.rpg.server.model.universe.Entity;
-import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.network.packet.LoginPacket;
 
 public abstract class NetworkManager {
@@ -46,8 +44,26 @@ public abstract class NetworkManager {
 	private NetworkStatus status;
 	private int port;
 	private final Set<BiConsumer<NetworkStatus,NetworkStatus>> statusHooks;
+	private final LinkedList<StreamListener> streamListeners = new LinkedList<>();
+	private final StreamListener veryLastStreamListener;
 	
 	private final List<LoginPacket> loginRequests = new LinkedList<>();
+	
+	public final boolean addStreamListenerLast(StreamListener listener) {
+		if(streamListeners.contains(listener)) return false;
+		streamListeners.addLast(listener);
+		return true;
+	}
+	
+	public final boolean addStreamListenerFirst(StreamListener listener) {
+		if(streamListeners.contains(listener)) return false;
+		streamListeners.addFirst(listener);
+		return true;
+	}
+	
+	public final boolean removeStreamListener(StreamListener listener) {
+		return streamListeners.remove(listener);
+	}
 	
 	protected final void addLoginRequest(LoginPacket p) {
 		loginRequests.add(p);
@@ -144,13 +160,22 @@ public abstract class NetworkManager {
 	public abstract Collection<? extends Stream> getStreams();
 	
 	protected final void onPlayerDisconnect(Stream stream) {
-		System.out.println("Client forcible closed connection from " + stream.getAddress());
-		stream.getPlayer().getEntity().deRegister();
+		for(StreamListener listener : streamListeners) {
+			listener.onDisconnect(stream);
+		}
+		if(veryLastStreamListener != null) veryLastStreamListener.onDisconnect(stream);
 	}
 	
 	public NetworkManager() {
 		status = NetworkStatus.OFFLINE;
 		statusHooks = new HashSet<BiConsumer<NetworkStatus,NetworkStatus>>();
+		veryLastStreamListener = null;
+	}
+	
+	public NetworkManager(StreamListener last) {
+		status = NetworkStatus.OFFLINE;
+		statusHooks = new HashSet<BiConsumer<NetworkStatus,NetworkStatus>>();
+		veryLastStreamListener = last;
 	}
 	
 }

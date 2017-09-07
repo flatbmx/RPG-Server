@@ -8,6 +8,7 @@ import java.util.Set;
 import com.podts.rpg.server.network.NetworkManager;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
+import com.podts.rpg.server.network.StreamListener;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -146,6 +147,12 @@ public final class NettyNetworkManager extends NetworkManager {
 	}
 	
 	public NettyNetworkManager() {
+		streams = new HashSet<>();
+		safeStreams = Collections.unmodifiableSet(streams);
+	}
+
+	public NettyNetworkManager(StreamListener listener) {
+		super(listener);
 		streams = new HashSet<>();
 		safeStreams = Collections.unmodifiableSet(streams);
 	}

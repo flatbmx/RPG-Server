@@ -1,6 +1,6 @@
 package com.podts.rpg.server.network.packet;
 
-import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.Player;
 import com.podts.rpg.server.network.Packet;
 
 public final class PlayerInitPacket extends Packet {

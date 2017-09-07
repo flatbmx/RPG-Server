@@ -4,7 +4,7 @@ import java.net.InetAddress;
 
 import javax.crypto.SecretKey;
 
-import com.podts.rpg.server.model.Player;
+import com.podts.rpg.server.Player;
 
 public interface Stream {
 	
