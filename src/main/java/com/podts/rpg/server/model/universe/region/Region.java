@@ -13,6 +13,12 @@ import com.podts.rpg.server.model.universe.Locatable;
  */
 public interface Region {
 	
+	public @interface Dynamic {
+		public boolean changesShape();
+		public boolean changesVolume();
+		public boolean changesLocation();
+	}
+	
 	/**
 	 * Returns an un-Modifiable view of all the current {@link RegionListener}s that is listening to this Region.
 	 * @return Collection of all the listeners.
