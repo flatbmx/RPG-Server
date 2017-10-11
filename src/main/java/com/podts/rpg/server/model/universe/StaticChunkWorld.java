@@ -14,7 +14,7 @@ import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
-import com.podts.rpg.server.network.Stream;
+import com.podts.rpg.server.model.universe.region.SimpleRegion;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.TilePacket;
 import com.podts.rpg.server.network.packet.TilePacket.TileUpdateType;
@@ -66,13 +66,15 @@ public final class StaticChunkWorld extends World {
 
 		private final ChunkCoordinate coord;
 		private final SLocation topLeft;
+		
+		boolean generated = false;
 
 		private final Tile[][] tiles = new Tile[CHUNK_SIZE][CHUNK_SIZE];
 		private final Map<Integer,Player> players = new HashMap<>();
 		private final Map<Integer,Entity> entities = new HashMap<>();
 		private final Set<Region> regions = new HashSet<>(),
 				safeRegions = Collections.unmodifiableSet(regions);
-
+		
 		@Override
 		public String toString() {
 			return "Chunk " + coord;
@@ -80,6 +82,10 @@ public final class StaticChunkWorld extends World {
 		
 		Collection<Entity> getEntities() {
 			return entities.values();
+		}
+		
+		StaticChunkWorld getWorld() {
+			return StaticChunkWorld.this;
 		}
 		
 		synchronized Tile getTile(SLocation point) {
@@ -113,6 +119,10 @@ public final class StaticChunkWorld extends World {
 		
 		void removePlayer(Player player) {
 			players.remove(player.getID());
+		}
+		
+		final boolean isGenerated() {
+			return generated;
 		}
 		
 		protected Chunk(ChunkCoordinate coord) {
@@ -163,7 +173,7 @@ public final class StaticChunkWorld extends World {
 
 	private final class SLocation extends Location {
 
-		private final Chunk chunk;
+		private Chunk chunk;
 		private final int x, y, z;
 
 		@Override
@@ -185,11 +195,12 @@ public final class StaticChunkWorld extends World {
 		public int getZ() {
 			return z;
 		}
-
+		
+		@Override
 		public final String toString() {
 			return x + ", " + y + ", " + z;
 		}
-
+		
 		@Override
 		public SLocation move(int dx, int dy, int dz) {
 			SLocation sl = chunk.topLeft;
@@ -198,7 +209,14 @@ public final class StaticChunkWorld extends World {
 				return new SLocation(nX, nY, z + dz);
 			return new SLocation(chunk, nX, nY, z + dz);
 		}
-
+		
+		Chunk getChunk() {
+			if(chunk == null) {
+				chunk = StaticChunkWorld.this.getChunk(this);
+			}
+			return chunk;
+		}
+		
 		protected SLocation(Chunk chunk, int x, int y, int z) {
 			this.chunk = chunk;
 			this.x = x;
@@ -210,7 +228,7 @@ public final class StaticChunkWorld extends World {
 			this.x = x;
 			this.y = y;
 			this.z = z;
-			chunk = getOrGenerateChunkFromLocation(this);
+			chunk = StaticChunkWorld.this.getChunk(this);
 		}
 
 	}
@@ -244,7 +262,7 @@ public final class StaticChunkWorld extends World {
 
 	private Chunk[][] getSurroundingChunks(SLocation point) {
 		Chunk[][] result = new Chunk[3][3];
-		ChunkCoordinate center = point.chunk.coord;
+		ChunkCoordinate center = point.getChunk().coord;
 		for(int i=-1; i<2; ++i) {
 			for(int j=-1; j<2; ++j) {
 				result[i+1][j+1] = getOrGenerateChunk(new ChunkCoordinate(center.x + i, center.y + j, point.getZ()));
@@ -252,7 +270,25 @@ public final class StaticChunkWorld extends World {
 		}
 		return result;
 	}
-
+	
+	private Chunk getChunk(SLocation point) {
+		return getChunk(getCoordinateFromLocation(point));
+	}
+	
+	private Chunk getChunk(ChunkCoordinate coord) {
+		Map<ChunkCoordinate,Chunk> ch = chunks.get(coord.z);
+		if(ch == null) {
+			ch = new HashMap<ChunkCoordinate,Chunk>();
+			chunks.put(coord.z, ch);
+		}
+		Chunk chunk = ch.get(coord);
+		if(chunk == null) {
+			chunk = new Chunk(coord);
+			ch.put(coord, chunk);
+		}
+		return chunk;
+	}
+	
 	private Chunk getOrGenerateChunk(ChunkCoordinate coord) {
 		Map<ChunkCoordinate,Chunk> ch = chunks.get(coord.z);
 		if(ch == null) {
@@ -263,8 +299,8 @@ public final class StaticChunkWorld extends World {
 		if(chunk == null) {
 			chunk = new Chunk(coord);
 			ch.put(coord, chunk);
-			getWorldGenerator().doGenerateRectTiles(chunk.tiles, chunk.topLeft);
 		}
+		if(!chunk.isGenerated()) generateChunk(chunk);
 		return chunk;
 	}
 
@@ -277,7 +313,12 @@ public final class StaticChunkWorld extends World {
 		int cy = (int) Math.floor((y+(CHUNK_SIZE-1)/2d)/CHUNK_SIZE);
 		return new ChunkCoordinate(cx,cy,z);
 	}
-
+	
+	private void generateChunk(Chunk chunk) {
+		getWorldGenerator().doGenerateRectTiles(chunk.tiles, chunk.topLeft);
+		chunk.generated = true;
+	}
+	
 	@Override
 	public Collection<Player> getPlayers() {
 		return safePlayers;
@@ -295,10 +336,10 @@ public final class StaticChunkWorld extends World {
 	@Override
 	protected void doGetTiles(Tile[][] tiles, Location topLeft) {
 		SLocation tL = (SLocation) topLeft;
-		Chunk topLeftChunk = tL.chunk;
-		Chunk topRightChunk = tL.move(tiles.length, 0, 0).chunk;
+		Chunk topLeftChunk = tL.getChunk();
+		Chunk topRightChunk = tL.move(tiles.length, 0, 0).getChunk();
 		int chunkWidth = topRightChunk.coord.x - topLeftChunk.coord.x;
-		Chunk bottomLeftChunk = tL.move(0, tiles[0].length, 0).chunk;
+		Chunk bottomLeftChunk = tL.move(0, tiles[0].length, 0).getChunk();
 		int chunkHeight = bottomLeftChunk.coord.y - topLeftChunk.coord.y;
 		final int width = tiles.length, height = tiles[0].length;
 		MLocation loc = new MLocation(tL.x,tL.y, topLeft.getZ());
@@ -367,7 +408,10 @@ public final class StaticChunkWorld extends World {
 	@Override
 	public boolean doRegister(Entity e) {
 		if(entities.containsKey(e.getID())) return false;
-		final Chunk chunk = ((SLocation)e.getLocation()).chunk;
+		final Chunk chunk = ((SLocation)e.getLocation()).getChunk();
+		if(!chunk.isGenerated()) {
+			generateChunk(chunk);
+		}
 		if(e.isPlayer()) {
 			PlayerEntity pE = (PlayerEntity) e;
 			chunk.addEntity(pE);
@@ -402,6 +446,7 @@ public final class StaticChunkWorld extends World {
 	private void sendNewChunk(Chunk chunk, Player player) {
 		player.sendPacket(new TilePacket(chunk.tiles, TileUpdateType.CREATE));
 		for(Entity entity : chunk.getEntities()) {
+			if(entity.equals(player.getEntity())) continue;
 			sendCreateEntity(player, entity);
 		}
 	}
@@ -409,7 +454,7 @@ public final class StaticChunkWorld extends World {
 	@Override
 	public boolean doDeRegister(Entity e) {
 		if(entities.remove(e.getID()) == null) return false;
-		final Chunk chunk = ((SLocation)e.getLocation()).chunk;
+		final Chunk chunk = ((SLocation)e.getLocation()).getChunk();
 		synchronized(chunk) {
 			chunk.removeEntity(e);
 			if(e.isPlayer()) {
@@ -476,10 +521,12 @@ public final class StaticChunkWorld extends World {
 		SLocation newLoc = (SLocation) newLocation;
 		SLocation currentLoc = (SLocation) entity.getLocation();
 
-		final Chunk oldChunk = currentLoc.chunk;
-		final Chunk newChunk = newLoc.chunk;
+		final Chunk oldChunk = currentLoc.getChunk();
+		final Chunk newChunk = newLoc.getChunk();
 
 		if(oldChunk != newChunk) {
+			if(!newChunk.isGenerated()) generateChunk(newChunk);
+			
 			oldChunk.removeEntity(entity);
 			newChunk.addEntity(entity);
 			final Collection<Player> oldPlayers = getNearbyPlayers(currentLoc);
@@ -495,7 +542,6 @@ public final class StaticChunkWorld extends World {
 				newChunk.addPlayer(pE.getPlayer());
 				int dx = newChunk.coord.x - oldChunk.coord.x;
 				int dy = newChunk.coord.y - oldChunk.coord.y;
-				Stream stream = pE.getPlayer().getStream();
 				
 				for(Player oP : oldPlayers) {
 					if(player.equals(oP) || newPlayers.contains(oP)) continue;
@@ -511,18 +557,14 @@ public final class StaticChunkWorld extends World {
 				
 				if(dx != 0) {
 					for(int y=-1; y<2; ++y) {
-						Chunk tempOldChunk = getOrGenerateChunk(currentLoc.chunk.coord.move(dx*-1, y, 0));
-						Chunk tempNewChunk = getOrGenerateChunk(newLoc.chunk.coord.move(dx, y, 0));
-						stream.sendPacket(new TilePacket(tempOldChunk.tiles, TileUpdateType.DESTROY));
-						stream.sendPacket(new TilePacket(tempNewChunk.tiles, TileUpdateType.CREATE));
+						sendDeleteChunk(player, getOrGenerateChunk(currentLoc.getChunk().coord.move(dx*-1, y, 0)));
+						sendCreateChunk(player, getOrGenerateChunk(newLoc.getChunk().coord.move(dx, y, 0)));
 					}
 				}
 				if(dy != 0) {
 					for(int x=-1; x<2; ++x) {
-						Chunk tempOldChunk = getOrGenerateChunk(currentLoc.chunk.coord.move(x, dy*-1, 0));
-						Chunk tempNewChunk = getOrGenerateChunk(newLoc.chunk.coord.move(x, dy, 0));
-						stream.sendPacket(new TilePacket(tempOldChunk.tiles, TileUpdateType.DESTROY));
-						stream.sendPacket(new TilePacket(tempNewChunk.tiles, TileUpdateType.CREATE));
+						sendDeleteChunk(player, getOrGenerateChunk(currentLoc.getChunk().coord.move(x, dy*-1, 0)));
+						sendCreateChunk(player, getOrGenerateChunk(newLoc.getChunk().coord.move(x, dy, 0)));
 					}
 				}
 			} else {
@@ -540,7 +582,15 @@ public final class StaticChunkWorld extends World {
 		entity.setLocation(newLocation);
 		return this;
 	}
-
+	
+	private void sendCreateChunk(Player player, Chunk chunk) {
+		player.sendPacket(new TilePacket(chunk.tiles, TileUpdateType.CREATE));
+	}
+	
+	private void sendDeleteChunk(Player player, Chunk chunk) {
+		player.sendPacket(new TilePacket(chunk.tiles, TileUpdateType.DESTROY));
+	}
+	
 	protected StaticChunkWorld(String name, WorldGenerator generator) {
 		super(name, generator);
 	}

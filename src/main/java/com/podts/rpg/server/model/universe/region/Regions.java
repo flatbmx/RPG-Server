@@ -2,6 +2,7 @@ package com.podts.rpg.server.model.universe.region;
 
 
 import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,7 +20,6 @@ import java.util.stream.Stream;
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.World;
-import com.podts.rpg.server.model.universe.region.Region.Dynamic;
 
 public final class Regions {
 	
@@ -53,68 +53,131 @@ public final class Regions {
 	};
 	
 	private final static Set<Location> emptyPointSet = Collections.unmodifiableSet(new HashSet<Location>());
+	private static final StaticSetRegion emptySetRegion = new StaticSetRegion(emptyPointSet);
+	
+	public static final SetRegion getEmptySetRegion() {
+		return emptySetRegion;
+	}
+	
+	//TODO create new empty for a specific world.
+	private static final RectangularRegion emptyRectangularRegion = new RectangularRegion() {
+
+		@Override
+		public Location getCenter() {
+			return null;
+		}
+
+		@Override
+		public Collection<RegionListener> getRegionListeners() {
+			return null;
+		}
+
+		@Override
+		public Region addRegionListener(RegionListener newRegionListener) {
+			return null;
+		}
+
+		@Override
+		public Region removeRegionListener(RegionListener regionListener) {
+			return null;
+		}
+
+		@Override
+		public List<Location> getCorners() {
+			return null;
+		}
+
+		@Override
+		public int getXWidth() {
+			return 0;
+		}
+
+		@Override
+		public int getYWidth() {
+			return 0;
+		}
+		
+	};
 	
 	public static final RectangularRegion getEmptyRectangularRegion() {
 		return emptyRectangularRegion;
 	}
 	
-	private static final RectangularRegion emptyRectangularRegion = new StaticRectangularRegion(Location.create(0, 0), 0, 0) {
+	//TODO create new empty for a specific world.
+	private static final CircularRegion emptyCircularRegion = new CircularRegion() {
+
 		@Override
-		public boolean contains(final Locatable loc) {
-			return false;
+		public Location getCenter() {
+			return null;
 		}
+
 		@Override
-		public Set<Location> getPoints() {
-			return emptyPointSet;
+		public final Collection<RegionListener> getRegionListeners() {
+			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public final Region addRegionListener(RegionListener newRegionListener) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public final Region removeRegionListener(RegionListener regionListener) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int getRadius() {
+			return 0;
+		}
+		
 	};
-	
-	public static final EllipticalRegion getEmptyEllipticalRegion() {
-		return emptyCircularRegion;
-	}
 	
 	public static final CircularRegion getEmptyCircularRegion() {
 		return emptyCircularRegion;
 	}
 	
-	private static final CircularRegion emptyCircularRegion = new StaticCircularRegion(Location.create(0, 0), 0) {
+	//TODO create new empty for a specific world.
+	private static final TorusRegion emptyTorusRegion = new TorusRegion() {
+
 		@Override
-		public boolean contains(final Locatable loc) {
-			return false;
+		public Location getCenter() {
+			return null;
 		}
+
 		@Override
-		public Set<Location> getPoints() {
-			return emptyPointSet;
+		public final Collection<RegionListener> getRegionListeners() {
+			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public final Region addRegionListener(RegionListener newRegionListener) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public final Region removeRegionListener(RegionListener regionListener) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int getOuterRadius() {
+			return 0;
+		}
+
+		@Override
+		public int getInnerRadius() {
+			return 0;
+		}
+		
 	};
 	
 	public static final TorusRegion getEmptyTorusRegion() {
 		return emptyTorusRegion;
 	}
 	
-	private static final TorusRegion emptyTorusRegion = new StaticTorusRegion(Location.create(0, 0), 0, 0) {
-		@Override
-		public boolean contains(final Locatable loc) {
-			return false;
-		}
-		@Override
-		public Set<Location> getPoints() {
-			return emptyPointSet;
-		}
-	};
-	
-	public static final SetRegion getEmptySetRegion() {
-		return emptySetRegion;
-	}
-	
-	private static final SetRegion emptySetRegion = new StaticSetRegion() {
-		@Override
-		public boolean contains(final Locatable loc) {
-			return false;
-		}
-	};
-	
-	private static final <E> boolean containsNonNullElements(E[] objects) {
+	@SafeVarargs
+	private static final <E> boolean containsNonNullElements(E... objects) {
 		if(objects == null || objects.length == 0) return false;
 		for(E o : objects) {
 			if(o != null) return true;
@@ -142,10 +205,10 @@ public final class Regions {
 		return !empty;
 	}
 	
-	private static final <E> boolean checkNonEmptyWithCondition(final Predicate<E> condition, final Iterable<? extends E> objects) {
+	private static final <U, V extends U> boolean checkNonEmptyWithCondition(final Predicate<U> condition, final Iterable<V> objects) {
 		if(objects == null) return false;
 		boolean empty = true;
-		for(final E o : objects) {
+		for(final V o : objects) {
 			if(o == null) continue;
 			empty = false;
 			if(!condition.test(o)) return false;
@@ -155,11 +218,11 @@ public final class Regions {
 	
 	@SafeVarargs
 	public static final <R extends Region> boolean isStaticRegion(final R... regions) {
-		return checkNonEmptyWithCondition((final R r) -> !(r instanceof Dynamic), regions);
+		return checkNonEmptyWithCondition((final R r) -> !(r instanceof DynamicRegion), regions);
 	}
 	
 	public static final <R extends Region> boolean isStaticRegion(final Iterable<R> regions) {
-		return checkNonEmptyWithCondition((final R r) -> !(r instanceof Dynamic), regions);
+		return checkNonEmptyWithCondition((final R r) -> !(r instanceof DynamicRegion), regions);
 	}
 	
 	@SafeVarargs
@@ -319,18 +382,18 @@ public final class Regions {
 	public static final <R extends Region> Region union(final R... regions) {
 		if(!containsNonNullElements(regions)) return getEmptyRegion();
 		if(arePollable(regions))
-			return new PollableUnionRegion(regions);
+			return new PollableUnionRegion<PollableRegion>((PollableRegion[]) regions);
 		else
-			return new UnionRegion(regions);
+			return new UnionRegion<R>(regions);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static final Region union(final Iterable<? extends Region> regions) {
+	public static final <R extends Region> Region union(final Iterable<R> regions) {
 		if(!containsNonNullElements(regions)) return getEmptyRegion();
 		if(arePollable(regions))
-			return new PollableUnionRegion((Iterable<PollableRegion>)regions);
+			return new PollableUnionRegion<PollableRegion>((Iterable<PollableRegion>)regions);
 		else
-			return new UnionRegion(regions);
+			return new UnionRegion<R>(regions);
 	}
 	
 	@SafeVarargs
@@ -338,16 +401,26 @@ public final class Regions {
 		if(!containsNonNullElements(regions)) return getEmptyRegion();
 		if(arePollable(regions)) {
 			if(isStaticRegion(regions)) return new StaticPollableIntersectRegion(regions);
-			return new PollableIntersectRegion(regions);
+			return new PollableIntersectRegion<PollableRegion>((PollableRegion[]) regions);
+		} else
+			return new IntersectRegion(regions);
+	}
+	
+	@SafeVarargs
+	public static final <R extends PollableRegion> Region intersect(final R... regions) {
+		if(!containsNonNullElements(regions)) return getEmptyRegion();
+		if(arePollable(regions)) {
+			if(isStaticRegion(regions)) return new StaticPollableIntersectRegion(regions);
+			return new PollableIntersectRegion<PollableRegion>( regions);
 		} else
 			return new IntersectRegion(regions);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static final Region intersect(final Iterable<? extends Region> regions) {
+	public static final <R extends Region> Region intersect(final Iterable<R> regions) {
 		if(!containsNonNullElements(regions)) return getEmptyRegion();
 		if(arePollable(regions))
-			return new PollableIntersectRegion((Iterable<PollableRegion>)regions);
+			return new PollableIntersectRegion<PollableRegion>((Iterable<PollableRegion>)regions);
 		else
 			return new IntersectRegion(regions);
 	}
@@ -357,7 +430,7 @@ public final class Regions {
 		if(initial == null) return getEmptyRegion();
 		if(!containsNonNullElements(removed)) return initial;
 		if(arePollable(initial) && arePollable(removed))
-			return new PollableComplementRegion((PollableRegion)initial, removed);
+			return new PollableComplementRegion<PollableRegion>((PollableRegion)initial, (PollableRegion[]) removed);
 		return new DifferenceRegion(initial, removed);
 	}
 	
@@ -366,7 +439,7 @@ public final class Regions {
 		if(initial == null) return getEmptyRegion();
 		if(!containsNonNullElements(removed)) return initial;
 		if(arePollable(initial) && arePollable(removed))
-			return new PollableComplementRegion((PollableRegion)initial, (Iterable<PollableRegion>)removed);
+			return new PollableComplementRegion<PollableRegion>((PollableRegion)initial, (Iterable<PollableRegion>)removed);
 		return new DifferenceRegion(initial, removed);
 	}
 	
@@ -715,7 +788,13 @@ public final class Regions {
 	
 	public static final SetRegion constructSetRegion(final boolean dynamic, final Locatable... points) {
 		if(!containsNonNullElements(points) && !dynamic) return getEmptySetRegion();
-		if(dynamic) return new DynamicSetRegion(points);
+		if(dynamic) {
+			SetRegion result = new DynamicSetRegion();
+			for(Locatable loc : points) {
+				result.addPoint(loc);
+			}
+			return result;
+		}
 		return new StaticSetRegion(points);
 	}
 	
@@ -729,11 +808,9 @@ public final class Regions {
 		return new StaticSetRegion(locs);
 	}
 	
-	@StaticRegion
-	private static class StaticPollableIntersectRegion implements PollableRegion {
+	private static class StaticPollableIntersectRegion extends SimpleRegion implements PollableRegion {
 		
 		private final Set<Location> points;
-		private final Set<MapRegion> regions;
 		
 		@Override
 		public boolean contains(final Locatable loc) {
@@ -743,11 +820,6 @@ public final class Regions {
 		@Override
 		public Set<Location> getPoints() {
 			return points;
-		}
-		
-		@Override
-		public Set<MapRegion> getMapRegions() {
-			return regions;
 		}
 		
 		private <R extends Region> StaticPollableIntersectRegion(final Iterable<R> newRegions) {
@@ -760,7 +832,6 @@ public final class Regions {
 			nPoints.remove(null);
 			
 			points = Collections.unmodifiableSet(nPoints);
-			regions = Regions.getMapRegions(this);
 		}
 		
 		@SafeVarargs
@@ -773,12 +844,11 @@ public final class Regions {
 			}
 			
 			points = Collections.unmodifiableSet(nPoints);
-			regions = Regions.getMapRegions(this);
 		}
 		
 	}
 	
-	private static class PollableIntersectRegion extends CompoundRegion<PollableRegion> implements PollableRegion {
+	private static class PollableIntersectRegion<R extends PollableRegion> extends CompoundRegion<R> implements PollableRegion {
 		
 		@Override
 		public boolean contains(final Locatable loc) {
@@ -787,17 +857,6 @@ public final class Regions {
 				if(!r.contains(loc)) return false;
 			}
 			return true;
-		}
-
-		@Override
-		public Set<MapRegion> getMapRegions() {
-			final Set<MapRegion> result = new HashSet<MapRegion>();
-			
-			for(final PollableRegion r : subRegions) {
-				result.addAll(r.getMapRegions());
-			}
-			
-			return result;
 		}
 
 		@Override
@@ -821,11 +880,11 @@ public final class Regions {
 		}
 		
 		@SafeVarargs
-		<R extends Region>  PollableIntersectRegion(final R... regions) {
+		PollableIntersectRegion(final R... regions) {
 			super(regions);
 		}
 		
-		<R extends PollableRegion> PollableIntersectRegion(final Iterable<R> regions) {
+		PollableIntersectRegion(final Iterable<R> regions) {
 			super(regions);
 		}
 		
@@ -852,10 +911,10 @@ public final class Regions {
 		
 	}
 	
-	private static final class UnionRegion extends CompoundRegion<Region> {
+	private static final class UnionRegion<R extends Region> extends CompoundRegion<R> {
 		
 		@Override
-		public boolean contains(final Locatable loc) {
+		public final boolean contains(final Locatable loc) {
 			for(final Region r : subRegions) {
 				if(r.contains(loc)) return true;
 			}
@@ -863,48 +922,42 @@ public final class Regions {
 		}
 		
 		@SafeVarargs
-		<R extends Region> UnionRegion(final R... regions) {
+		UnionRegion(final R... regions) {
 			super(regions);
 		}
 		
-		<R extends Region> UnionRegion(final Iterable<R> regions) {
+		UnionRegion(final Iterable<R> regions) {
 			super(regions);
 		}
 		
 	}
 	
-	private static final class PollableUnionRegion extends PollableCompoundRegion {
+	private static final class PollableUnionRegion<R extends PollableRegion> extends CompoundRegion<R> implements PollableRegion {
 		
 		@Override
-		public boolean contains(final Locatable loc) {
+		public final boolean contains(final Locatable loc) {
 			for(final PollableRegion r : subRegions) {
 				if(r.contains(loc)) return true;
 			}
 			return false;
 		}
 		
-		@SafeVarargs
-		<R extends Region> PollableUnionRegion(final R... regions) {
-			super(regions);
-			for(final PollableRegion r : subRegions) {
-				mapRegions.addAll(r.getMapRegions());
-			}
-		}
-		
-		<R extends PollableRegion> PollableUnionRegion(final Iterable<R> regions) {
-			super(regions);
-			for(final PollableRegion r : subRegions) {
-				mapRegions.addAll(r.getMapRegions());
-			}
-		}
-
 		@Override
-		public Set<Location> getPoints() {
+		public final Set<Location> getPoints() {
 			final Set<Location> result = new HashSet<Location>();
 			for(final PollableRegion r : subRegions) {
 				result.addAll(r.getPoints());
 			}
 			return result;
+		}
+		
+		@SafeVarargs
+		PollableUnionRegion(final R... regions) {
+			super(regions);
+		}
+		
+		PollableUnionRegion(final Iterable<R> regions) {
+			super(regions);
 		}
 		
 	}
@@ -913,6 +966,7 @@ public final class Regions {
 		
 		private final Region initial;
 		
+		@Override
 		public boolean contains(final Locatable loc) {
 			if(!initial.contains(loc)) return false;
 			for(final Region r : subRegions) {
@@ -933,7 +987,7 @@ public final class Regions {
 		
 	}
 	
-	private static final class PollableComplementRegion extends PollableCompoundRegion {
+	private static final class PollableComplementRegion<R extends PollableRegion> extends CompoundRegion<R> implements PollableRegion {
 		
 		private final Set<Location> points;
 		
@@ -946,7 +1000,8 @@ public final class Regions {
 			return points.contains(loc);
 		}
 		
-		public PollableComplementRegion(final PollableRegion initial, final Region... removed) {
+		@SafeVarargs
+		public PollableComplementRegion(final R initial, final R... removed) {
 			super(removed);
 			final Set<Location> tempPoints = new HashSet<Location>(), newPoints = new HashSet<Location>();
 			tempPoints.addAll(initial.getPoints());
@@ -971,7 +1026,7 @@ public final class Regions {
 			points = Collections.unmodifiableSet(newPoints);
 		}
 
-		public PollableComplementRegion(final PollableRegion initial, final Iterable<PollableRegion> removed) {
+		public PollableComplementRegion(final R initial, final Iterable<R> removed) {
 			super(removed);
 			Set<Location> newPoints = new HashSet<Location>();
 			newPoints.addAll(initial.getPoints());
@@ -1019,47 +1074,24 @@ public final class Regions {
 		
 	}
 	
-	private abstract static class PollableCompoundRegion extends CompoundRegion<PollableRegion> implements PollableRegion {
+	private abstract static class CompoundRegion<R extends Region> extends SimpleRegion {
 		
-		protected final Set<MapRegion> mapRegions, safeRegions;
+		protected final Set<R> subRegions = new HashSet<R>();
 		
-		@Override
-		public Set<MapRegion> getMapRegions() {
-			return safeRegions;
+		@SafeVarargs
+		public CompoundRegion(final R... regions) {
+			for(final R r : regions) {
+				subRegions.add((R) r);
+			}
 		}
 		
-		public PollableCompoundRegion(final Region... regions) {
-			super(regions);
-			mapRegions = new HashSet<MapRegion>();
-			safeRegions = Collections.unmodifiableSet(mapRegions);
-		}
-		
-		public PollableCompoundRegion(final Iterable<? extends PollableRegion> regions) {
-			super(regions);
-			mapRegions = new HashSet<MapRegion>();
-			safeRegions = Collections.unmodifiableSet(mapRegions);
+		protected CompoundRegion(final Iterable<? extends R> regions) {
+			for(final R r : regions) {
+				subRegions.add((R) r);
+			}
 		}
 		
 	}
 	
-	private abstract static class CompoundRegion<R extends Region> implements Region {
-		
-		protected final Set<R> subRegions = new HashSet<R>();
-		
-		@SuppressWarnings("unchecked")
-		public CompoundRegion(final Region... regions) {
-			for(final Region r : regions) {
-				subRegions.add((R) r);
-			}
-		}
-		
-		@SuppressWarnings("unchecked")
-		protected CompoundRegion(final Iterable<? extends R> regions) {
-			for(final Region r : regions) {
-				subRegions.add((R) r);
-			}
-		}
-		
-	}
 	
 }

@@ -65,6 +65,11 @@ public class Player {
 		return false;
 	}
 	
+	@Override
+	public String toString() {
+		return "Player - " + username;
+	}
+	
 	public static enum LogoutReason {
 		DISCONNECT(),
 		LOGOUT();

@@ -13,7 +13,7 @@ import com.podts.rpg.server.model.universe.region.MonitoringRegion;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
-import com.podts.rpg.server.model.universe.region.SimpleRegionHandler;
+import com.podts.rpg.server.model.universe.region.SimpleRegion;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.TilePacket.TileUpdateType;
@@ -24,7 +24,7 @@ import com.podts.rpg.server.network.packet.TilePacket;
  * each other and the world it self.
  *
  */
-public abstract class World extends SimpleRegionHandler {
+public abstract class World extends SimpleRegion {
 	
 	private final WorldGenerator generator;
 	private String name;
@@ -307,7 +307,7 @@ public abstract class World extends SimpleRegionHandler {
 	protected final void sendToNearbyPlayers(Locatable l, Packet... packets) {
 		for(Player player : getNearbyPlayers(l)) {
 			for(Packet p : packets)
-				player.getStream().sendPacket(p);
+				player.sendPacket(p);
 		}
 	}
 	
@@ -315,7 +315,7 @@ public abstract class World extends SimpleRegionHandler {
 		for(Player player : getNearbyPlayers(l)) {
 			if(player.equals(except)) continue;
 			for(Packet p : packets)
-				player.getStream().sendPacket(p);
+				player.sendPacket(p);
 		}
 	}
 	
