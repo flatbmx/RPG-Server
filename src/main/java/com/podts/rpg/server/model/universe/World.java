@@ -2,7 +2,9 @@ package com.podts.rpg.server.model.universe;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.Utils;
@@ -120,20 +122,55 @@ public abstract class World extends SimpleRegion {
 	 * @param distance - The radius of entities around the given point.
 	 * @return A Collection of entities within the given radius in this World.
 	 */
-	public abstract Collection<Entity> getNearbyEntities(Locatable l, double distance);
+	public final Collection<Entity> getNearbyEntities(Locatable l, double distance, Predicate<Entity> condition) {
+		Utils.assertNull(l, "Cannot find surrounding Entities from null location.");
+		Utils.assertArg(!doContains(l), "Cannot find surrounding Entities from location not in this world.");
+		return doGetNearbyEntities(l.getLocation(), distance, condition);
+	}
+	
+	public final Collection<Entity> getNearbyEntities(Locatable l, double distance) {
+		return getNearbyEntities(l, distance, null);
+	}
+	
+	public abstract Collection<Entity> doGetNearbyEntities(Location point, double distance, Predicate<Entity> condition);
 	
 	/**
 	 * Returns all nearby registered entities relative to a given point in this World.
 	 * All entities are in the same Z plane as the given point.
 	 * It is up to the Worlds decision as how "nearby" is defined.
-	 * Different World implementations will have different ranges based on their native backings.
+	 * Different World implementations may have different ranges based on their native backings.
+	 * If you wish to get all nearby entities within a certain range then use {@link #getNearbyEntities(Location,double) getNearbyEntities}
 	 * The {@link Collection} may be modifiable or not however any modifications will <b>NOT</b> represent any World changes.
+	 * @param l - The central point of all entities.
+	 * @param condition - A condition that all returned entities meet.
+	 * @return A Collection of entities within the given radius in this World.
+	 */
+	public final Collection<Entity> getNearbyEntities(Locatable l, Predicate<Entity> condition) {
+		Utils.assertNull(l, "Cannot find nearby entities from null locatable.");
+		Utils.assertNull(l.getLocation(), "Cannot find nearby entities from null location.");
+		Utils.assertArg(doContains(l), "Cannot find nearby entities from location in another world.");
+		return doGetNearbyEntities(l.getLocation(), condition);
+	}
+	
+	/**
+	 * This method is equivalent to calling {@link #getNearbyEntities(Locatable,Predicate) getNearbyEntities} with no condition.
 	 * @param l - The central point of all entities.
 	 * @return A Collection of entities within the given radius in this World.
 	 */
-	public abstract Collection<Entity> getNearbyEntities(Locatable l);
+	public final Collection<Entity> getNearbyEntities(Locatable l) {
+		return getNearbyEntities(l, null);
+	}
 	
-	public abstract Collection<Player> getNearbyPlayers(Locatable l);
+	public abstract Collection<Entity> doGetNearbyEntities(Location point, Predicate<Entity> condition);
+	
+	public final Collection<Player> getNearbyPlayers(Locatable l) {
+		Utils.assertNull(l, "Cannot find nearby players from null locatable.");
+		Utils.assertNull(l.getLocation(), "Cannot find nearby players from null location.");
+		Utils.assertArg(doContains(l), "Cannot find nearby players from location in another world.");
+		return doGetNearbyPlayers(l.getLocation());
+	}
+	
+	public abstract Collection<Player> doGetNearbyPlayers(Location point);
 	
 	/**
 	 * Returns the {@link #register(Entity) registered} {@link Entity} with the given id.
@@ -152,15 +189,13 @@ public abstract class World extends SimpleRegion {
 	 */
 	public final boolean register(Entity e) {
 		boolean result = doRegister(e);
-		if(result)
-			sendToNearbyPlayers(e, EntityPacket.constructCreate(e));
-		return result;
-	}
-	
-	public final boolean register(PlayerEntity e) {
-		boolean result = doRegister(e);
-		if(result)
-			sendToNearbyPlayers(e, e.getPlayer(), EntityPacket.constructCreate(e));
+		if(result) {
+			if(e instanceof PlayerEntity)
+				sendToNearbyPlayers(e, ((PlayerEntity)e).getPlayer(), EntityPacket.constructCreate(e));
+			else
+				sendToNearbyPlayers(e, EntityPacket.constructCreate(e));
+		}
+			
 		return result;
 	}
 	
@@ -228,22 +263,32 @@ public abstract class World extends SimpleRegion {
 	public abstract Collection<Entity> getEntitiesInRegion(PollableRegion r);
 	
 	protected final World moveEntity(Entity entity, Location newLoc, MoveType type) {
-		Location currentLoc = entity.getLocation();
 		
-		Set<Region> oldRegions = new HashSet<>(getRegionsAtLocation(currentLoc));
-		for(Region r : getRegionsAtLocation(newLoc)) {
-			if(!oldRegions.contains(r)) {
-				//New region
-				fireRegionEnter(r, entity, newLoc, type);
-			} else {
-				//Move
-				fireRegionMove(r, entity, newLoc, type);
+		Set<Region> oldRegions = new HashSet<>(getRegionsAtLocation(entity.getLocation()));
+		Set<Region> staleRegions = new HashSet<>();
+		Set<Region> newRegions = new HashSet<>(getRegionsAtLocation(newLoc));
+		
+		Iterator<Region> it = newRegions.iterator();
+		while(it.hasNext()) {
+			Region r = it.next();
+			if(oldRegions.contains(r)) {
+				staleRegions.add(r);
 				oldRegions.remove(r);
+				it.remove();
 			}
 		}
+		
 		for(Region r : oldRegions) {
 			//Old regions
 			fireRegionLeave(r, entity, newLoc, type);
+		}
+		for(Region r : staleRegions) {
+			//Stale regions
+			fireRegionMove(r, entity, newLoc, type);
+		}
+		for(Region r : newRegions) {
+			//New regions
+			fireRegionEnter(r, entity, newLoc, type);
 		}
 		
 		doMoveEntity(entity, newLoc, type);

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.model.entity.PlayerEntity;
@@ -31,7 +32,9 @@ public final class StaticChunkWorld extends World {
 	private final int chunkDepth;
 
 	private final static class ChunkCoordinate {
-		private int x,y,z;
+		
+		private final int x,y,z;
+		private final int hash;
 
 		@Override
 		public String toString() {
@@ -40,13 +43,12 @@ public final class StaticChunkWorld extends World {
 
 		@Override
 		public int hashCode() {
-			return 79254 * 37 + x*25 + y*78 + z*112;
+			return hash;
 		}
 
 		@Override
 		public boolean equals(Object o) {
 			if(this == o) return true;
-			if(o == null) return false;
 			if(o instanceof ChunkCoordinate) {
 				ChunkCoordinate other = (ChunkCoordinate) o;
 				return x == other.x && y == other.y && z == other.z;
@@ -58,6 +60,7 @@ public final class StaticChunkWorld extends World {
 			this.x = x;
 			this.y = y;
 			this.z = z;
+			hash = 79254 * 37 + x*25 + y*78 + z*112;
 		}
 
 		public ChunkCoordinate move(int dx, int dy, int dz) {
@@ -112,15 +115,15 @@ public final class StaticChunkWorld extends World {
 			players.put(entity.getPlayer().getID(), entity.getPlayer());
 		}
 		
-		void removeEntity(Entity entity) {
+		synchronized void removeEntity(Entity entity) {
 			entities.remove(entity.getID());
 		}
 		
-		void addPlayer(Player player) {
+		synchronized void addPlayer(Player player) {
 			players.put(player.getID(), player);
 		}
 		
-		void removePlayer(Player player) {
+		synchronized void removePlayer(Player player) {
 			players.remove(player.getID());
 		}
 		
@@ -269,17 +272,26 @@ public final class StaticChunkWorld extends World {
 	private Chunk getOrGenerateChunkFromLocation(Location point) {
 		return getOrGenerateChunk(getCoordinateFromLocation(point));
 	}
-
-	private Chunk[][] getSurroundingChunks(SLocation point) {
-		int arraySize = 1 + getChunkDepth() * 2;
+	
+	private Chunk[][] getSurroundingChunks(SLocation point, int depth) {
+		int arraySize = 1 + depth * 2;
 		Chunk[][] result = new Chunk[arraySize][arraySize];
 		ChunkCoordinate center = point.getChunk().coord;
-		for(int i=-getChunkDepth(); i<getChunkDepth()+1; ++i) {
-			for(int j=-getChunkDepth(); j<getChunkDepth()+1; ++j) {
+		for(int i=-depth; i<depth+1; ++i) {
+			for(int j=-depth; j<depth+1; ++j) {
 				result[i+1][j+1] = getOrGenerateChunk(center.move(i, j, 0));
 			}
 		}
 		return result;
+	}
+	
+	/**
+	 * Returns the surrounding chunks around the given point using the worlds chunk depth.
+	 * @param point
+	 * @return
+	 */
+	private Chunk[][] getSurroundingChunks(SLocation point) {
+		return getSurroundingChunks(point, getChunkDepth());
 	}
 	
 	private Chunk findChunk(SLocation point) {
@@ -307,6 +319,7 @@ public final class StaticChunkWorld extends World {
 	}
 
 	private ChunkCoordinate getCoordinateFromLocation(Location point) {
+		if(point instanceof SLocation) return ((SLocation)point).getChunk().coord;
 		return getCoordinateFromLocation(point.getX(), point.getY(), point.getZ());
 	}
 
@@ -356,8 +369,9 @@ public final class StaticChunkWorld extends World {
 			}
 		}
 	}
-
-	public void doSetTile(Tile newTile) {
+	
+	@Override
+	protected void doSetTile(Tile newTile) {
 		Location point = newTile.getLocation();
 		Chunk chunk = getOrGenerateChunk(getCoordinateFromLocation(point));
 		Location topLeft = chunk.topLeft;
@@ -367,28 +381,51 @@ public final class StaticChunkWorld extends World {
 	}
 
 	@Override
-	public Collection<Entity> getNearbyEntities(Locatable l, double distance) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implmented yet.");
+	public Collection<Entity> doGetNearbyEntities(Location point, double distance, Predicate<Entity> condition) {
+		int surroundingChunkDepth = (int) Math.floor(getChunkSize()/distance);
+		Chunk[][] chunks = getSurroundingChunks((SLocation)point, surroundingChunkDepth);
+		Collection<Entity> result = new HashSet<>();
+		
+		for(int i=0; i<chunks.length; ++i) {
+			for(int j=0; j<chunks[i].length; ++j) {
+				if(condition == null) {
+					for(Entity e : chunks[i][j].entities.values()) {
+						if(point.distance(e) <= distance) result.add(e);
+					}
+				} else {
+					for(Entity e : chunks[i][j].entities.values()) {
+						if(point.distance(e) <= distance && condition.test(e)) result.add(e);
+					}
+				}
+				
+			}
+		}
+		return result;
 	}
 
 	@Override
-	public Collection<Entity> getNearbyEntities(Locatable l) {
+	public Collection<Entity> doGetNearbyEntities(Location point, Predicate<Entity> condition) {
 		Set<Entity> result = new HashSet<>();
-		SLocation point = (SLocation) l.getLocation();
-		Chunk[][] chunks = getSurroundingChunks(point);
+		SLocation spoint = (SLocation) point;
+		Chunk[][] chunks = getSurroundingChunks(spoint);
 		for(int i=0; i<chunks.length; ++i) {
 			for(int j=0; j<chunks[i].length; ++j) {
-				result.addAll(chunks[i][j].entities.values());
+				if(condition == null) {
+					result.addAll(chunks[i][j].entities.values());
+				} else {
+					for(Entity e : chunks[i][j].entities.values()) {
+						if(condition.test(e)) result.add(e);
+					}
+				}
 			}
 		}
 		return result;
 	}
 	
 	@Override
-	public Collection<Player> getNearbyPlayers(Locatable l) {
-		List<Player> result = new ArrayList<>();;
-		Chunk[][] chunks = getSurroundingChunks((SLocation) l.getLocation());
+	public Collection<Player> doGetNearbyPlayers(Location point) {
+		Set<Player> result = new HashSet<>();
+		Chunk[][] chunks = getSurroundingChunks((SLocation) point);
 		for(int i=0; i<chunks.length; ++i) {
 			for(int j=0; j<chunks[i].length; ++j) {
 				result.addAll(chunks[i][j].players.values());
