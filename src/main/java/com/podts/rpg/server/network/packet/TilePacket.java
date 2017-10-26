@@ -36,14 +36,30 @@ public final class TilePacket extends Packet {
 		return tiles;
 	}
 	
-	public TilePacket(Tile tile, TileUpdateType updateType) {
+	public static final TilePacket constructCreate(Tile tile) {
+		return new TilePacket(tile, TileUpdateType.CREATE);
+	}
+	
+	public static final TilePacket constructCreate(Tile[][] tiles) {
+		return new TilePacket(tiles, TileUpdateType.CREATE);
+	}
+	
+	public static final TilePacket constructDestroy(Tile tile) {
+		return new TilePacket(tile, TileUpdateType.DESTROY);
+	}
+	
+	public static final TilePacket constructDestroy(Tile[][] tiles) {
+		return new TilePacket(tiles, TileUpdateType.DESTROY);
+	}
+	
+	TilePacket(Tile tile, TileUpdateType updateType) {
 		sendType = TileSendType.SINGLE;
 		this.updateType = updateType;
 		this.tile = tile;
 		tiles = null;
 	}
 	
-	public TilePacket(Tile[][] tiles, TileUpdateType updateType) {
+	TilePacket(Tile[][] tiles, TileUpdateType updateType) {
 		sendType = TileSendType.GROUP;
 		this.updateType = updateType;
 		this.tiles = tiles;

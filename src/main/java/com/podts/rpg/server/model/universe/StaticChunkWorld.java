@@ -1,6 +1,6 @@
 package com.podts.rpg.server.model.universe;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,19 +14,21 @@ import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
-import com.podts.rpg.server.model.universe.region.SimpleRegion;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.TilePacket;
-import com.podts.rpg.server.network.packet.TilePacket.TileUpdateType;
 
 public final class StaticChunkWorld extends World {
-
-	private static final int CHUNK_SIZE = 25;
-
+	
+	private static final int DEFAULT_CHUNK_SIZE = 25;
+	private static final int DEFAULT_CHUNK_DEPTH = 1;
+	
 	private final Map<Integer,Player> players = new HashMap<>();
 	private final Collection<Player> safePlayers = Collections.unmodifiableCollection(players.values());
 	private final Map<Integer,Entity> entities = new HashMap<>();
 	private final Map<Integer,Map<ChunkCoordinate,Chunk>> chunks = new HashMap<>();
+	
+	private final int chunkSize;
+	private final int chunkDepth;
 
 	private final static class ChunkCoordinate {
 		private int x,y,z;
@@ -43,6 +45,7 @@ public final class StaticChunkWorld extends World {
 
 		@Override
 		public boolean equals(Object o) {
+			if(this == o) return true;
 			if(o == null) return false;
 			if(o instanceof ChunkCoordinate) {
 				ChunkCoordinate other = (ChunkCoordinate) o;
@@ -69,7 +72,7 @@ public final class StaticChunkWorld extends World {
 		
 		boolean generated = false;
 
-		private final Tile[][] tiles = new Tile[CHUNK_SIZE][CHUNK_SIZE];
+		private final Tile[][] tiles = new Tile[getChunkSize()][getChunkSize()];
 		private final Map<Integer,Player> players = new HashMap<>();
 		private final Map<Integer,Entity> entities = new HashMap<>();
 		private final Set<Region> regions = new HashSet<>(),
@@ -127,8 +130,8 @@ public final class StaticChunkWorld extends World {
 		
 		protected Chunk(ChunkCoordinate coord) {
 			this.coord = coord;
-			int x = coord.x * CHUNK_SIZE - (CHUNK_SIZE-1)/2;
-			int y = coord.y * CHUNK_SIZE - (CHUNK_SIZE-1)/2;
+			int x = coord.x * getChunkSize() - (getChunkSize()-1)/2;
+			int y = coord.y * getChunkSize() - (getChunkSize()-1)/2;
 			topLeft = new SLocation(this, x, y, coord.z);
 		}
 
@@ -205,14 +208,14 @@ public final class StaticChunkWorld extends World {
 		public SLocation move(int dx, int dy, int dz) {
 			SLocation sl = chunk.topLeft;
 			int nX = x + dx, nY = y + dy;
-			if(nX < sl.x || nY < sl.y || nX - sl.x >= CHUNK_SIZE || nY - sl.y >= CHUNK_SIZE)
+			if(nX < sl.x || nY < sl.y || nX - sl.x >= getChunkSize() || nY - sl.y >= getChunkSize())
 				return new SLocation(nX, nY, z + dz);
 			return new SLocation(chunk, nX, nY, z + dz);
 		}
 		
 		Chunk getChunk() {
 			if(chunk == null) {
-				chunk = StaticChunkWorld.this.getChunk(this);
+				chunk = StaticChunkWorld.this.findChunk(this);
 			}
 			return chunk;
 		}
@@ -228,11 +231,18 @@ public final class StaticChunkWorld extends World {
 			this.x = x;
 			this.y = y;
 			this.z = z;
-			chunk = StaticChunkWorld.this.getChunk(this);
 		}
 
 	}
-
+	
+	private int getChunkSize() {
+		return chunkSize;
+	}
+	
+	private int getChunkDepth() {
+		return chunkDepth;
+	}
+	
 	private Set<Chunk> getChunksFromLocations(Collection<Location> points) {
 		return getChunksFromCoordinates(getCoordinatesFromLocations(points));
 	}
@@ -261,21 +271,22 @@ public final class StaticChunkWorld extends World {
 	}
 
 	private Chunk[][] getSurroundingChunks(SLocation point) {
-		Chunk[][] result = new Chunk[3][3];
+		int arraySize = 1 + getChunkDepth() * 2;
+		Chunk[][] result = new Chunk[arraySize][arraySize];
 		ChunkCoordinate center = point.getChunk().coord;
-		for(int i=-1; i<2; ++i) {
-			for(int j=-1; j<2; ++j) {
-				result[i+1][j+1] = getOrGenerateChunk(new ChunkCoordinate(center.x + i, center.y + j, point.getZ()));
+		for(int i=-getChunkDepth(); i<getChunkDepth()+1; ++i) {
+			for(int j=-getChunkDepth(); j<getChunkDepth()+1; ++j) {
+				result[i+1][j+1] = getOrGenerateChunk(center.move(i, j, 0));
 			}
 		}
 		return result;
 	}
 	
-	private Chunk getChunk(SLocation point) {
-		return getChunk(getCoordinateFromLocation(point));
+	private Chunk findChunk(SLocation point) {
+		return findChunk(getCoordinateFromLocation(point));
 	}
 	
-	private Chunk getChunk(ChunkCoordinate coord) {
+	private Chunk findChunk(ChunkCoordinate coord) {
 		Map<ChunkCoordinate,Chunk> ch = chunks.get(coord.z);
 		if(ch == null) {
 			ch = new HashMap<ChunkCoordinate,Chunk>();
@@ -290,16 +301,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private Chunk getOrGenerateChunk(ChunkCoordinate coord) {
-		Map<ChunkCoordinate,Chunk> ch = chunks.get(coord.z);
-		if(ch == null) {
-			ch = new HashMap<ChunkCoordinate,Chunk>();
-			chunks.put(coord.z, ch);
-		}
-		Chunk chunk = ch.get(coord);
-		if(chunk == null) {
-			chunk = new Chunk(coord);
-			ch.put(coord, chunk);
-		}
+		Chunk chunk = findChunk(coord);
 		if(!chunk.isGenerated()) generateChunk(chunk);
 		return chunk;
 	}
@@ -309,8 +311,8 @@ public final class StaticChunkWorld extends World {
 	}
 
 	private ChunkCoordinate getCoordinateFromLocation(int x, int y, int z) {
-		int cx = (int) Math.floor((x+(CHUNK_SIZE-1)/2d)/CHUNK_SIZE);
-		int cy = (int) Math.floor((y+(CHUNK_SIZE-1)/2d)/CHUNK_SIZE);
+		int cx = (int) Math.floor((x+(getChunkSize()-1)/2d)/getChunkSize());
+		int cy = (int) Math.floor((y+(getChunkSize()-1)/2d)/getChunkSize());
 		return new ChunkCoordinate(cx,cy,z);
 	}
 	
@@ -346,8 +348,8 @@ public final class StaticChunkWorld extends World {
 		for(int i=0; i<=chunkWidth; ++i) {
 			for(int j=0; j<chunkHeight; ++j) {
 				Chunk chunk = getOrGenerateChunk(topLeftChunk.coord.move(i,j,0));
-				for(int dy=loc.getY() - chunk.topLeft.getY(); dy<CHUNK_SIZE; ++dy) {
-					for(int dx=loc.getX() - chunk.topLeft.getX(); dx<CHUNK_SIZE; ++dx) {
+				for(int dy=loc.getY() - chunk.topLeft.getY(); dy<getChunkSize(); ++dy) {
+					for(int dx=loc.getX() - chunk.topLeft.getX(); dx<getChunkSize(); ++dx) {
 						//TODO Implement this, holy shit!
 					}
 				}
@@ -375,31 +377,21 @@ public final class StaticChunkWorld extends World {
 		Set<Entity> result = new HashSet<>();
 		SLocation point = (SLocation) l.getLocation();
 		Chunk[][] chunks = getSurroundingChunks(point);
-		for(int i=-1; i<2; ++i) {
-			for(int j=-1; j<2; ++j) {
+		for(int i=0; i<chunks.length; ++i) {
+			for(int j=0; j<chunks[i].length; ++j) {
 				result.addAll(chunks[i][j].entities.values());
 			}
 		}
 		return result;
 	}
-
+	
+	@Override
 	public Collection<Player> getNearbyPlayers(Locatable l) {
-		List<Player> result;
+		List<Player> result = new ArrayList<>();;
 		Chunk[][] chunks = getSurroundingChunks((SLocation) l.getLocation());
-		int size = 0;
-		for(int i=0; i<3; ++i) {
-			for(int j=0; j<3; ++j) {
-				size += chunks[i][j].players.size();
-			}
-		}
-		Player[] pArr = new Player[size];
-		result = Arrays.asList(pArr);
-		size = 0;
-		for(int i=0; i<3; ++i) {
-			for(int j=0; j<3; ++j) {
-				for(Player player : chunks[i][j].players.values()) {
-					pArr[size++] = player;
-				}
+		for(int i=0; i<chunks.length; ++i) {
+			for(int j=0; j<chunks[i].length; ++j) {
+				result.addAll(chunks[i][j].players.values());
 			}
 		}
 		return result;
@@ -436,19 +428,23 @@ public final class StaticChunkWorld extends World {
 		addPlayer(player);
 		player.sendPacket(EntityPacket.constructCreate(pE));
 		Chunk[][] chunks = getSurroundingChunks((SLocation)pE.getLocation());
-		for(int i=0; i<3; ++i) {
-			for(int j=0; j<3; ++j) {
-				sendNewChunk(chunks[i][j], player);
+		for(int i=0; i<chunks.length; ++i) {
+			for(int j=0; j<chunks[i].length; ++j) {
+				sendEntireChunk(chunks[i][j], player);
 			}
 		}
 	}
 	
-	private void sendNewChunk(Chunk chunk, Player player) {
-		player.sendPacket(new TilePacket(chunk.tiles, TileUpdateType.CREATE));
+	private void sendEntireChunk(Chunk chunk, Player player) {
+		sendCreateChunk(player,chunk);
 		for(Entity entity : chunk.getEntities()) {
 			if(entity.equals(player.getEntity())) continue;
 			sendCreateEntity(player, entity);
 		}
+	}
+	
+	private void deSendEntireChunk(Chunk chunk, Player player) {
+		sendDeleteChunk(player, chunk);
 	}
 	
 	@Override
@@ -468,7 +464,8 @@ public final class StaticChunkWorld extends World {
 
 	@Override
 	public Collection<Region> getRegionsAtLocation(Locatable loc) {
-		return getOrGenerateChunkFromLocation(loc.getLocation()).safeRegions;
+		if(!contains(loc)) throw new IllegalArgumentException("Cannot get Regions from a Location from another World.");
+		return findChunk((SLocation)loc.getLocation()).safeRegions;
 	}
 
 	@Override
@@ -544,13 +541,13 @@ public final class StaticChunkWorld extends World {
 				int dy = newChunk.coord.y - oldChunk.coord.y;
 				
 				for(Player oP : oldPlayers) {
-					if(player.equals(oP) || newPlayers.contains(oP)) continue;
+					if(newPlayers.contains(oP) || player.equals(oP)) continue;
 					oP.sendPacket(destroyPacket);
 					player.sendPacket(EntityPacket.constructDestroy(oP.getEntity()));
 				}
 				
 				for(Player nP : newPlayers) {
-					if(player.equals(nP) || oldPlayers.contains(nP)) continue;
+					if(oldPlayers.contains(nP) || player.equals(nP)) continue;
 					nP.sendPacket(createPacket);
 					player.sendPacket(EntityPacket.constructCreate(nP.getEntity()));
 				}
@@ -584,15 +581,21 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private void sendCreateChunk(Player player, Chunk chunk) {
-		player.sendPacket(new TilePacket(chunk.tiles, TileUpdateType.CREATE));
+		player.sendPacket(TilePacket.constructCreate(chunk.tiles));
 	}
 	
 	private void sendDeleteChunk(Player player, Chunk chunk) {
-		player.sendPacket(new TilePacket(chunk.tiles, TileUpdateType.DESTROY));
+		player.sendPacket(TilePacket.constructDestroy(chunk.tiles));
+	}
+	
+	protected StaticChunkWorld(String name, int chunkSize, int chunkDepth, WorldGenerator generator) {
+		super(name, generator);
+		this.chunkSize = chunkSize;
+		this.chunkDepth = chunkDepth;
 	}
 	
 	protected StaticChunkWorld(String name, WorldGenerator generator) {
-		super(name, generator);
+		this(name, DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_DEPTH, generator);
 	}
-
+	
 }

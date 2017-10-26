@@ -42,13 +42,16 @@ public abstract class Location implements Locatable {
 		
 	}
 	
+	@Override
 	public abstract World getWorld();
+	
 	public abstract int getX();
 	public abstract int getY();
 	public abstract int getZ();
 	
 	public abstract Location move(int dx, int dy, int dz);
 	
+	@Override
 	public final double distance(Locatable other) {
 		if(other == null) throw new IllegalArgumentException("Cannot calculate distance between a null Location.");
 		if(!getWorld().equals(other.getWorld())) throw new IllegalArgumentException("Cannot calculate distance between points in different worlds.");

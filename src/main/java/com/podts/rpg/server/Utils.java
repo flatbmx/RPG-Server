@@ -1,4 +1,4 @@
-package com.podts.rpg.server.model.universe;
+package com.podts.rpg.server;
 
 public class Utils {
 	

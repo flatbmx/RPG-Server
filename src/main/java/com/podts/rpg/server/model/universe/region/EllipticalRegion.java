@@ -11,10 +11,12 @@ public interface EllipticalRegion extends CenteredRegion, PollableRegion {
 	public int getXRadius();
 	public int getYRadius();
 	
+	@Override
 	public default boolean contains(final Locatable loc) {
 		return Math.pow((getCenter().getX() - loc.getLocation().getX())/getXRadius(), 2) + Math.pow((getCenter().getY() - loc.getLocation().getY())/getYRadius(), 2) <= 1;
 	}
 	
+	@Override
 	public default Set<Location> getPoints() {
 		final Set<Location> result = new HashSet<Location>();
 		final Location center = getCenter();

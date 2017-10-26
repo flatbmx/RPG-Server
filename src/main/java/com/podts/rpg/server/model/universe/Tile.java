@@ -32,6 +32,7 @@ public class Tile implements Locatable {
 		return type;
 	}
 	
+	@Override
 	public final Location getLocation() {
 		return location;
 	}

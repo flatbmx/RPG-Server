@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.podts.rpg.server.Player;
+import com.podts.rpg.server.Utils;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
@@ -16,7 +17,6 @@ import com.podts.rpg.server.model.universe.region.RegionListener;
 import com.podts.rpg.server.model.universe.region.SimpleRegion;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.EntityPacket;
-import com.podts.rpg.server.network.packet.TilePacket.TileUpdateType;
 import com.podts.rpg.server.network.packet.TilePacket;
 
 /**
@@ -88,7 +88,7 @@ public abstract class World extends SimpleRegion {
 		
 		doSetTile(newTile);
 		
-		sendToNearbyPlayers(newTile, new TilePacket(newTile, TileUpdateType.CREATE));
+		sendToNearbyPlayers(newTile, TilePacket.constructCreate(newTile));
 		return this;
 	}
 	
@@ -100,7 +100,7 @@ public abstract class World extends SimpleRegion {
 			if(t == null) continue;
 			if(!doContains(t)) continue;
 			doSetTile(t);
-			sendToNearbyPlayers(t, new TilePacket(t, TileUpdateType.CREATE));
+			sendToNearbyPlayers(t, TilePacket.constructCreate(t));
 		}
 		
 		return this;
@@ -271,6 +271,11 @@ public abstract class World extends SimpleRegion {
 		return new Tile(type, location);
 	}
 	
+	public final Tile createTile(TileType type, int x, int y, int z) {
+		Utils.assertNullArg(type, "Cannot create Tile with null type!");
+		return new Tile(type, createLocation(x,y,z));
+	}
+	
 	@Override
 	public final boolean contains(Locatable loc) {
 		Utils.assertNullArg(loc, "Cannot determine if null Locatable is in World.");
@@ -286,21 +291,27 @@ public abstract class World extends SimpleRegion {
 		return "World - " + name;
 	}
 	
-	private static final void fireRegionEnter(Region r, Entity e, Location newLocation, MoveType type) {
+	private static final void fireRegionEnter(Region r, Entity entity, Location newLocation, MoveType type) {
+		if(r instanceof MonitoringRegion) {
+			((MonitoringRegion) r).addEntity(entity);
+		}
 		for(RegionListener l : r.getRegionListeners()) {
-			l.onEntityEnter(r, e, type);
+			l.onEntityEnter(r, entity, type);
 		}
 	}
 	
-	private static final void fireRegionMove(Region r, Entity e, Location newLocation, MoveType type) {
+	private static final void fireRegionMove(Region r, Entity entity, Location newLocation, MoveType type) {
 		for(RegionListener l : r.getRegionListeners()) {
-			l.onEntityMove(r, e, type);
+			l.onEntityMove(r, entity, type);
 		}
 	}
 	
-	private static final void fireRegionLeave(Region r, Entity e, Location newLocation, MoveType type) {
+	private static final void fireRegionLeave(Region r, Entity entity, Location newLocation, MoveType type) {
+		if(r instanceof MonitoringRegion) {
+			((MonitoringRegion) r).removeEntity(entity);
+		}
 		for(RegionListener l : r.getRegionListeners()) {
-			l.onEntityLeave(r, e, type);
+			l.onEntityLeave(r, entity, type);
 		}
 	}
 	

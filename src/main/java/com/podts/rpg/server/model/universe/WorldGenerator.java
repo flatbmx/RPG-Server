@@ -1,5 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
+import com.podts.rpg.server.Utils;
+
 /**
  * A class that can generate Tiles based on a location.
  *
@@ -7,15 +9,15 @@ package com.podts.rpg.server.model.universe;
 public abstract class WorldGenerator {
 	
 	public final Tile generateTile(Location point) {
-		if(point == null) throw new IllegalArgumentException("Cannot generate Tile with null location.");
+		Utils.assertNull(point, "Cannot generate Tile with null location.");
 		return doGenerateTile(point);
 	}
 	
 	protected abstract Tile doGenerateTile(Location point);
 	
 	public final Tile[][] generateRectTiles(Location point, int width, int height) {
-		if(point == null) throw new IllegalArgumentException("Cannot generate Tiles with null starting point.");
-		if(width <= 0 || height <= 0) throw new IllegalArgumentException("Cannot generate Tiles with negative or 0 width/height.");
+		Utils.assertNull(point, "Cannot generate Tiles with null starting point.");
+		Utils.assertArg(width <= 0 || height <= 0, "Cannot generate Tiles with negative or 0 width/height.");
 		Tile[][] result = new Tile[width][height];
 		doGenerateRectTiles(result, point);
 		return result;
@@ -31,18 +33,17 @@ public abstract class WorldGenerator {
 	 * @return The WorldGenerator for chaining.
 	 */
 	public final WorldGenerator generateRectTiles(Tile[][] tiles, Location point) {
-		if(tiles == null) throw new IllegalArgumentException("Cannot generate Tiles with a null array.");
-		if(point == null) throw new IllegalArgumentException("Cannot generate Tiles with a null starting location.");
-		if(tiles.length == 0 || tiles[0].length == 0) throw new IllegalArgumentException("Cannot generate Tiles with an array of size 0.");
+		Utils.assertNull(tiles, "Cannot generate Tiles with a null array.");
+		Utils.assertNull(point, "Cannot generate Tiles with a null starting location.");
+		Utils.assertArg(tiles.length == 0 || tiles[0].length == 0, "Cannot generate Tiles with an array of size 0.");
 		
 		return doGenerateRectTiles(tiles, point);
 	}
 	
 	protected WorldGenerator doGenerateRectTiles(Tile[][] tiles, Location point) {
-		
 		for(int dy=0; dy < tiles[0].length; ++dy) {
 			for(int dx=0; dx < tiles.length; ++dx) {
-				tiles[dx][dy] = generateTile(point.move(dx, dy, 0));
+				tiles[dx][dy] = doGenerateTile(point.move(dx, dy, 0));
 			}
 		}
 		

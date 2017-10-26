@@ -13,7 +13,7 @@ public class PlayerEntity extends Entity {
 		return player;
 	}
 	
-	protected PlayerEntity(Player player, Location loc) {
+	PlayerEntity(Player player, Location loc) {
 		super(player.getUsername(), EntityType.PLAYER, loc);
 		this.player = player;
 	}
