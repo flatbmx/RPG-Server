@@ -26,7 +26,7 @@ import com.podts.rpg.server.network.packet.TilePacket;
  * each other and the world it self.
  *
  */
-public abstract class World extends SimpleRegion {
+public abstract class World {
 	
 	private final WorldGenerator generator;
 	private String name;
@@ -321,7 +321,6 @@ public abstract class World extends SimpleRegion {
 		return new Tile(type, createLocation(x,y,z));
 	}
 	
-	@Override
 	public final boolean contains(Locatable loc) {
 		Utils.assertNullArg(loc, "Cannot determine if null Locatable is in World.");
 		return doContains(loc);

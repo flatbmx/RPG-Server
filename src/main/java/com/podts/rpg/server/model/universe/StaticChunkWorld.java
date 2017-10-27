@@ -1,11 +1,9 @@
 package com.podts.rpg.server.model.universe;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -209,7 +207,7 @@ public final class StaticChunkWorld extends World {
 		
 		@Override
 		public SLocation move(int dx, int dy, int dz) {
-			SLocation sl = chunk.topLeft;
+			SLocation sl = getChunk().topLeft;
 			int nX = x + dx, nY = y + dy;
 			if(nX < sl.x || nY < sl.y || nX - sl.x >= getChunkSize() || nY - sl.y >= getChunkSize())
 				return new SLocation(nX, nY, z + dz);
@@ -441,13 +439,8 @@ public final class StaticChunkWorld extends World {
 		if(!chunk.isGenerated()) {
 			generateChunk(chunk);
 		}
-		if(e.isPlayer()) {
-			PlayerEntity pE = (PlayerEntity) e;
-			chunk.addEntity(pE);
-			initPlayer(pE);
-		} else {
-			chunk.addEntity(e);
-		}
+		chunk.addEntity(e);
+		if(e.isPlayer()) initPlayer((PlayerEntity) e);
 		entities.put(e.getID(), e);
 		return true;
 	}
