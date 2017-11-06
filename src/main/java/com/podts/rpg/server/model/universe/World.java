@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.Utils;
@@ -16,7 +17,6 @@ import com.podts.rpg.server.model.universe.region.MonitoringRegion;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
-import com.podts.rpg.server.model.universe.region.SimpleRegion;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.TilePacket;
@@ -151,6 +151,9 @@ public abstract class World {
 		Utils.assertArg(doContains(l), "Cannot find nearby entities from location in another world.");
 		return doGetNearbyEntities(l.getLocation(), condition);
 	}
+	
+	public abstract Stream<Entity> getNearbyEntitiesStream(Locatable l);
+	public abstract Stream<Entity> getNearbyEntitiesStream(Locatable l, double distance);
 	
 	/**
 	 * This method is equivalent to calling {@link #getNearbyEntities(Locatable,Predicate) getNearbyEntities} with no condition.

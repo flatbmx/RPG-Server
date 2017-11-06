@@ -7,8 +7,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
+import com.podts.rpg.server.Utils;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
@@ -179,6 +181,7 @@ public final class StaticChunkWorld extends World {
 
 		private Chunk chunk;
 		private final int x, y, z;
+		private final int hash;
 
 		@Override
 		public World getWorld() {
@@ -214,6 +217,20 @@ public final class StaticChunkWorld extends World {
 			return new SLocation(chunk, nX, nY, z + dz);
 		}
 		
+		@Override
+		public final int hashCode() {
+			return hash;
+		}
+		
+		@Override
+		public final boolean equals(Object o) {
+			if(this == o) return true;
+			if(o == null) return false;
+			if(!(o instanceof SLocation)) return false;
+			SLocation other = (SLocation) o;
+			return getX() == other.getX() && getY() == other.getY() && getZ() == other.getZ();
+		}
+		
 		Chunk getChunk() {
 			if(chunk == null) {
 				chunk = StaticChunkWorld.this.findChunk(this);
@@ -226,12 +243,14 @@ public final class StaticChunkWorld extends World {
 			this.x = x;
 			this.y = y;
 			this.z = z;
+			hash = 79254 * 31 + x*17 + y*77 + z*111;
 		}
 
 		protected SLocation(int x, int y, int z) {
 			this.x = x;
 			this.y = y;
 			this.z = z;
+			hash = 79254 * 31 + x*17 + y*77 + z*111;
 		}
 
 	}
@@ -421,6 +440,25 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
+	public Stream<Entity> getNearbyEntitiesStream(Locatable l) {
+		Utils.assertArg(!contains(l), "Cannot get nearby Entity Stream from location in another world.");
+		Chunk[][] chunks = getSurroundingChunks((SLocation)l.getLocation());
+		Stream<Entity> stream = Stream.empty();
+		for(int i=0; i<chunks.length; ++i) {
+			for(int j=0; j<chunks[i].length; ++j) {
+				stream = Stream.concat(stream, chunks[i][j].entities.values().stream());
+			}
+		}
+		return stream;
+	}
+	
+	@Override
+	public Stream<Entity> getNearbyEntitiesStream(Locatable l, double distance) {
+		Utils.assertArg(!contains(l), "Cannot get nearby Entity Stream from location in another world.");
+		return getNearbyEntities(l, distance).stream();
+	}
+	
+	@Override
 	public Collection<Player> doGetNearbyPlayers(Location point) {
 		Set<Player> result = new HashSet<>();
 		Chunk[][] chunks = getSurroundingChunks((SLocation) point);
@@ -528,7 +566,7 @@ public final class StaticChunkWorld extends World {
 		}
 		return result;
 	}
-
+	
 	private Collection<Entity> getEntitiesAtLocation(Location point) {
 		Set<Entity> result = new HashSet<>();
 		Chunk chunk = getOrGenerateChunkFromLocation(point);
@@ -537,12 +575,12 @@ public final class StaticChunkWorld extends World {
 		}
 		return result;
 	}
-
+	
 	@Override
 	public SLocation createLocation(int x, int y, int z) {
 		return new SLocation(x, y, z);
 	}
-
+	
 	@Override
 	protected World doMoveEntity(Entity entity, Location newLocation, MoveType type) {
 		SLocation newLoc = (SLocation) newLocation;
