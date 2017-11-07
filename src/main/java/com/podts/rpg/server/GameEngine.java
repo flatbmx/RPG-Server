@@ -63,6 +63,7 @@ public final class GameEngine {
 			try {
 				r.run();
 			} catch(Exception e) {
+				//TODO use Logger
 				e.printStackTrace();
 			}
 		}

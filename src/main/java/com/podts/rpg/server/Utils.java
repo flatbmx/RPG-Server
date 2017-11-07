@@ -1,6 +1,6 @@
 package com.podts.rpg.server;
 
-public class Utils {
+public final class Utils {
 	
 	public static final void assertNull(Object o, String message) {
 		if(o == null) throw new NullPointerException(message);

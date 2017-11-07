@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.account.AcceptingAccountLoader;
+import com.podts.rpg.server.command.CommandHandler;
 import com.podts.rpg.server.model.PlayerLoginListener;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.model.universe.Universe.WorldAlreadyExistsException;
@@ -51,6 +52,7 @@ public final class Server {
 	
 	private final NetworkManager networkManager;
 	private final AccountLoader accountLoader;
+	private final CommandHandler commandHandler;
 	
 	private final Player[] players;
 	private final Map<String,Player> playerNameMap = new HashMap<>();
@@ -112,8 +114,12 @@ public final class Server {
 		}
 	}
 	
-	public AccountLoader getAccountLoader() {
+	public final AccountLoader getAccountLoader() {
 		return accountLoader;
+	}
+	
+	public final CommandHandler getCommandHandler() {
+		return commandHandler;
 	}
 	
 	public Player getPlayer(int id) {
@@ -188,6 +194,7 @@ public final class Server {
 		status = ServerStatus.OFFLINE;
 		networkListenPort = port;
 		statusHooks = new HashSet<>();
+		commandHandler = new CommandHandler();
 		networkManager = new NettyNetworkManager(new StreamListener() {
 			@Override
 			public void onDisconnect(Stream stream) {

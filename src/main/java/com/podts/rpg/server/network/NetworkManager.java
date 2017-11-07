@@ -67,7 +67,6 @@ public abstract class NetworkManager {
 	
 	protected final void addLoginRequest(LoginPacket p) {
 		loginRequests.add(p);
-		System.out.println("Added a login request.");
 	}
 	
 	protected final void handleLoginRequests() {
@@ -117,7 +116,7 @@ public abstract class NetworkManager {
 	}
 	
 	public final boolean isBound() {
-		return status.isBound();
+		return getStatus().isBound();
 	}
 	
 	public final boolean bind(int port) {

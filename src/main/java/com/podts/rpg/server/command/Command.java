@@ -21,6 +21,14 @@ public abstract class Command {
 		return safeAliases;
 	}
 	
+	public final int getMinimumArguments() {
+		return minArgs;
+	}
+	
+	public final int getMaximumArguments() {
+		return maxArgs;
+	}
+	
 	public final boolean execute(CommandSender sender, String commandEntry) {
 		if(commandEntry == null || commandEntry.isEmpty()) return false;
 		

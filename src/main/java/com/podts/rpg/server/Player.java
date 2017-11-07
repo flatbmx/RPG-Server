@@ -1,10 +1,12 @@
 package com.podts.rpg.server;
 
+import com.podts.rpg.server.command.CommandSender;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
+import com.podts.rpg.server.network.packet.MessagePacket;
 
-public class Player {
+public class Player implements CommandSender {
 	
 	private final int id;
 	private String username, password;
@@ -15,23 +17,18 @@ public class Player {
 		return id;
 	}
 	
+	@Override
+	public final String getName() {
+		return username;
+	}
+	
 	public final Stream getStream() {
 		return stream;
 	}
 	
+	//TODO REALLY REALLY need to change this scope.
 	public final void setStream(Stream s) {
 		stream = s;
-	}
-	
-	Player(int id, Stream stream) {
-		this.id = id;
-		this.stream = stream;
-	}
-	
-	Player(int id, String username, String hashPassword) {
-		this.id = id;
-		this.username = username;
-		this.password = hashPassword;
 	}
 	
 	public final String getUsername() {
@@ -42,11 +39,11 @@ public class Player {
 		return password;
 	}
 	
-	public PlayerEntity getEntity() {
+	public final PlayerEntity getEntity() {
 		return entity;
 	}
 	
-	//TODO Really need to change this scope.
+	//TODO REALLY need to change this scope.
 	public void setEntity(PlayerEntity e) {
 		entity = e;
 	}
@@ -54,6 +51,16 @@ public class Player {
 	public final void sendPacket(Packet... packets) {
 		for(Packet p : packets)
 			getStream().sendPacket(p);
+	}
+	
+	@Override
+	public final void sendMessage(String message) {
+		sendPacket(new MessagePacket(message));
+	}
+	
+	@Override
+	public final void sendMessage(CommandSender sender, String message) {
+		sendPacket(new MessagePacket(sender, message));
 	}
 	
 	@Override
@@ -68,6 +75,17 @@ public class Player {
 	@Override
 	public String toString() {
 		return "Player - " + username;
+	}
+	
+	Player(int id, Stream stream) {
+		this.id = id;
+		this.stream = stream;
+	}
+	
+	Player(int id, String username, String hashPassword) {
+		this.id = id;
+		this.username = username;
+		this.password = hashPassword;
 	}
 	
 	public static enum LogoutReason {
