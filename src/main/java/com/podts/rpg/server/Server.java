@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.logging.Logger;
 
 import com.podts.rpg.server.account.AcceptingAccountLoader;
 import com.podts.rpg.server.command.CommandHandler;
@@ -45,6 +46,8 @@ public final class Server {
 		ONLINE();
 	}
 	
+	private final Logger logger;
+	
 	private ServerStatus status;
 	private final Set<BiConsumer<ServerStatus,ServerStatus>> statusHooks;
 	private final Set<PlayerLoginListener> playerLoginListeners = new HashSet<>();
@@ -75,6 +78,10 @@ public final class Server {
 	
 	public ServerStatus getStatus() {
 		return status;
+	}
+	
+	public final Logger getLogger() {
+		return logger;
 	}
 	
 	public boolean isRunning() {
@@ -192,6 +199,7 @@ public final class Server {
 	private Server(int port) {
 		if(instance == null) instance = this;
 		status = ServerStatus.OFFLINE;
+		logger = Logger.getLogger("Server");
 		networkListenPort = port;
 		statusHooks = new HashSet<>();
 		commandHandler = new CommandHandler();
