@@ -8,6 +8,10 @@ public class MessagePacket extends Packet {
 	private final CommandSender sender;
 	private final String message;
 	
+	public final boolean hasSender() {
+		return getSender() != null;
+	}
+	
 	public final CommandSender getSender() {
 		return sender;
 	}

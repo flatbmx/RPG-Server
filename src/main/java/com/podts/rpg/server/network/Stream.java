@@ -5,6 +5,8 @@ import java.net.InetAddress;
 import javax.crypto.SecretKey;
 
 import com.podts.rpg.server.Player;
+import com.podts.rpg.server.network.packet.AcknowledgePacket;
+import com.podts.rpg.server.network.packet.AcknowledgementPacket;
 
 public interface Stream {
 	
@@ -21,5 +23,9 @@ public interface Stream {
 	public SecretKey getSecretKey();
 	
 	public void sendPacket(Packet p);
+	
+	public default void acknowledge(AcknowledgementPacket packet) {
+		sendPacket(new AcknowledgePacket(packet));
+	}
 	
 }

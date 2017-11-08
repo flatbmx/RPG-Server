@@ -31,7 +31,6 @@ public abstract class Command {
 	
 	public final boolean execute(CommandSender sender, String commandEntry) {
 		if(commandEntry == null || commandEntry.isEmpty()) return false;
-		
 		return doExecute(sender, commandEntry, new String[0]);
 	}
 	

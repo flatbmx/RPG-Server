@@ -20,6 +20,7 @@ import com.podts.rpg.server.model.universe.TileSelection.SelectionType;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
+import com.podts.rpg.server.network.packet.AcknowledgePacket;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
@@ -53,7 +54,8 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	private static final int PID_STATE = 4;
 	private static final int PID_ENTITY = 5;
 	private static final int PID_MESSAGE = 6;
-	private static final int PID_TILESELECTION = 7;
+	private static final int PID_ACK = 7;
+	private static final int PID_TILESELECTION = 8;
 	
 	static {
 		addEncoder(AESReplyPacket.class, new PacketEncoder(PID_AESREPLY) {
@@ -180,6 +182,14 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 					writeLocation(e.getLocation(), buf);
 					break;
 				}
+			}
+		});
+		
+		addEncoder(AcknowledgePacket.class, new PacketEncoder(PID_ACK) {
+			@Override
+			public void encode(NettyStream s, Packet op, ByteBuf buf) {
+				AcknowledgePacket p = (AcknowledgePacket) op;
+				buf.writeInt(p.getACK());
 			}
 		});
 		

@@ -2,9 +2,8 @@ package com.podts.rpg.server.network.packet;
 
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.network.Packet;
 
-public class EntityPacket extends Packet {
+public class EntityPacket extends AcknowledgementPacket {
 	
 	public static final EntityPacket constructCreate(Entity entity) {
 		return new EntityPacket(entity, UpdateType.CREATE);
@@ -20,6 +19,10 @@ public class EntityPacket extends Packet {
 	
 	public static final EntityPacket constructMove(Entity entity, Location newLocation) {
 		return new EntityPacket(entity, UpdateType.UPDATE, newLocation);
+	}
+	
+	public static final EntityPacket constructMove(Entity entity, Location newLocation, int ack) {
+		return new EntityPacket(entity, UpdateType.UPDATE, newLocation, ack);
 	}
 	
 	public enum UpdateType {
@@ -44,16 +47,19 @@ public class EntityPacket extends Packet {
 		return newLocation;
 	}
 	
-	private EntityPacket(Entity entity, UpdateType type) {
-		this.type = type;
-		this.entity = entity;
-		this.newLocation = entity.getLocation();
-	}
-	
-	private EntityPacket(Entity entity, UpdateType type, Location newLocation) {
+	private EntityPacket(Entity entity, UpdateType type, Location newLocation, int ack) {
+		super(ack);
 		this.type = type;
 		this.entity = entity;
 		this.newLocation = newLocation;
+	}
+	
+	private EntityPacket(Entity entity, UpdateType type) {
+		this(entity, type, entity.getLocation(), -1);
+	}
+	
+	private EntityPacket(Entity entity, UpdateType type, Location newLocation) {
+		this(entity, type, newLocation, -1);
 	}
 	
 }
