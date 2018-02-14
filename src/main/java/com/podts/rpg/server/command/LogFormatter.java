@@ -11,7 +11,7 @@ public final class LogFormatter extends Formatter {
 	private static final DateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
 	
 	@Override
-	public String format(LogRecord record) {
+	public final String format(final LogRecord record) {
 		return dateFormatter.format(new Date(record.getMillis())) + " [" + record.getLevel() + "]" + " " + record.getMessage();
 	}
 	

@@ -1,6 +1,7 @@
 package com.podts.rpg.server.model.universe.region;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Entity;
 
@@ -11,20 +12,34 @@ import com.podts.rpg.server.model.universe.Entity;
  */
 public interface MonitoringRegion extends Region {
 	
-	public default MonitoringRegion addEntities(Iterable<Entity> entities) {
-		for(Entity entity : entities) {
+	public default boolean contains(final Entity entity) {
+		return getEntities().contains(entity);
+	}
+	
+	public default MonitoringRegion addEntities(final Iterable<Entity> entities) {
+		for(Entity entity : entities)
 			addEntity(entity);
-		}
+		return this;
+	}
+	
+	public default MonitoringRegion addEntities(final Entity... entities) {
+		for(Entity entity : entities)
+			addEntity(entity);
 		return this;
 	}
 	
 	public MonitoringRegion addEntity(Entity entity);
 	public MonitoringRegion removeEntity(Entity entity);
 	
-	public default MonitoringRegion removeEntities(Iterable<Entity> entities) {
-		for(Entity entity : entities) {
+	public default MonitoringRegion removeEntities(final Iterable<Entity> entities) {
+		for(Entity entity : entities)
 			removeEntity(entity);
-		}
+		return this;
+	}
+	
+	public default MonitoringRegion removeEntities(final Entity... entities) {
+		for(Entity entity : entities)
+			removeEntity(entity);
 		return this;
 	}
 	
@@ -34,5 +49,9 @@ public interface MonitoringRegion extends Region {
 	 * @return A Collection containing all the entities inside the region.
 	 */
 	public Collection<Entity> getEntities();
+	
+	public default Stream<Entity> getEntityStream() {
+		return getEntities().stream();
+	}
 	
 }

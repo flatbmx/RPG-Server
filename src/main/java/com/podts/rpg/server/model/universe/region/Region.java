@@ -3,6 +3,7 @@ package com.podts.rpg.server.model.universe.region;
 import java.util.Collection;
 
 import com.podts.rpg.server.model.universe.Locatable;
+import com.podts.rpg.server.model.universe.World;
 
 /**
  * A subset of the Universe.

@@ -2,6 +2,7 @@ package com.podts.rpg.server.model.universe.region;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location;
 
@@ -16,6 +17,10 @@ public interface PollableRegion extends Region, Iterable<Location> {
 	 * @return Un-Modifiable Collection of all the points.
 	 */
 	public Set<Location> getPoints();
+	
+	public default Stream<Location> stream() {
+		return getPoints().stream();
+	}
 	
 	@Override
 	public default Iterator<Location> iterator() {

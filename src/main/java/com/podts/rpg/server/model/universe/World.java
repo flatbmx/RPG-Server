@@ -1,8 +1,11 @@
 package com.podts.rpg.server.model.universe;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -30,6 +33,8 @@ public abstract class World {
 	
 	private final WorldGenerator generator;
 	private String name;
+	
+	protected static final Collection<Entity> emptyEntities = Collections.unmodifiableList(Collections.emptyList());
 	
 	/**
 	 * Returns the name of the World.
@@ -227,26 +232,33 @@ public abstract class World {
 	 * @param region - The given {@link PollableRegion region} to register.
 	 * @return The {@link World world} for chaining.
 	 */
-	public final World registerRegion(PollableRegion region) {
+	public final World register(PollableRegion region) {
 		Utils.assertNull(region, "Cannot register a null region!");
 		
-		doRegisterRegion(region);
+		doRegister(region);
 		if(region instanceof MonitoringRegion) {
 			MonitoringRegion mR = (MonitoringRegion) region;
-			mR.addEntities(getEntitiesInRegion(region));
+			mR.addEntities(findEntitiesInRegion(region));
 		}
 		return this;
 	}
 	
-	protected abstract void doRegisterRegion(PollableRegion r);
+	protected abstract void doRegister(PollableRegion region);
+	
+	/**
+	 * Returns true if the region is registered to this World.
+	 * @param region - The region in question.
+	 * @return true if the region is registered to this world, false if it is not registered.
+	 */
+	public abstract boolean isRegistered(PollableRegion region);
 	
 	/**
 	 * Un-registers the given {@link PollableRegion region} from this World.
-	 * If the {@link PollableRegion region} was not previously {@link #registerRegion(PollableRegion) registered} then nothing will happen.
+	 * If the {@link PollableRegion region} was not previously {@link #register(PollableRegion) registered} then nothing will happen.
 	 * @param r - The given Region to un-register.
 	 * @return The World for chaining.
 	 */
-	public abstract World deRegisterRegion(PollableRegion r);
+	public abstract World deRegister(PollableRegion r);
 	
 	/**
 	 * Returns all registered {@link PollableRegion}s that contain a given {@link Location}.
@@ -256,24 +268,77 @@ public abstract class World {
 	 */
 	public abstract Collection<Region> getRegionsAtLocation(Locatable loc);
 	
+	protected abstract void findEntitiesInRegion(final PollableRegion r, final Collection<Entity> collection);
+	
+	protected final Collection<Entity> findEntitiesInRegion(final PollableRegion region) {
+		final Set<Entity> result = new HashSet<>();
+		findEntitiesInRegion(region, result);
+		return result;
+	}
+	
 	/**
-	 * Returns all {@link Entity entities} that are within the given {@link PollableRegion region}.
-	 * The {@link PollableRegion region} does <b>NOT</b> have to be {@link #registerRegion(Region) registered} for this method to operate.
+	 * Adds all {@link Entity entities} that are within the given {@link PollableRegion region} into the given Collection.
+	 * The {@link PollableRegion region} does <b>NOT</b> have to be {@link #register(Region) registered} for this method to operate.
 	 * @param r - The given {@link PollableRegion} that all entities are in.
 	 * @return A {@link Collection} that contains all entities within this {@link Region}. The Collection may be modifable or not
 	 * however any modifications will not affect the Entities, Region or World in any way.
+	 * @param region - The region that all entities are in.
+	 * @param collection - The collection to add the entities in.
+	 * @return
 	 */
-	public abstract Collection<Entity> getEntitiesInRegion(PollableRegion r);
+	public final Collection<Entity> getEntitiesInRegion(final PollableRegion region, final Collection<Entity> collection) {
+		Objects.requireNonNull(region, "Cannot get entities from a null region!");
+		if(region instanceof MonitoringRegion) {
+			if(isRegistered(region)) {
+				MonitoringRegion mR = (MonitoringRegion) region;
+				for(final Entity e : mR.getEntities()) {
+					collection.add(e);
+				}
+				return collection;
+			}
+		}
+		findEntitiesInRegion(region, collection);
+		return collection;
+	}
 	
-	protected final World moveEntity(Entity entity, Location newLoc, MoveType type) {
+	
+	public final Collection<Entity> getEntitiesInRegion(final PollableRegion r) {
+		return getEntitiesInRegion(r, new HashSet<>());
+	}
+	
+	
+	protected final World moveEntity(final Entity entity, final Location newLoc, final MoveType type) {
+		final Collection<Region>[] regionChanges = findRegionChanges(entity.getLocation(), newLoc);
 		
-		Set<Region> oldRegions = new HashSet<>(getRegionsAtLocation(entity.getLocation()));
-		Set<Region> staleRegions = new HashSet<>();
-		Set<Region> newRegions = new HashSet<>(getRegionsAtLocation(newLoc));
+		for(final Region r : regionChanges[0]) {
+			//Old regions
+			fireRegionLeave(r, entity, newLoc, type);
+		}
+		for(final Region r : regionChanges[1]) {
+			//Stale regions
+			fireRegionMove(r, entity, newLoc, type);
+		}
+		for(final Region r : regionChanges[2]) {
+			//New regions
+			fireRegionEnter(r, entity, newLoc, type);
+		}
 		
-		Iterator<Region> it = newRegions.iterator();
+		doMoveEntity(entity, newLoc, type);
+		
+		//Update entity position to all viewers.
+		sendToNearbyPlayers(entity, EntityPacket.constructUpdate(entity));
+		
+		return this;
+	}
+	
+	private final Collection<Region>[] findRegionChanges(final Location start, final Location end) {
+		final Set<Region> oldRegions = new HashSet<>(getRegionsAtLocation(start));
+		final Set<Region> staleRegions = new HashSet<>();
+		final Set<Region> newRegions = new HashSet<>(getRegionsAtLocation(end));
+		
+		final Iterator<Region> it = newRegions.iterator();
 		while(it.hasNext()) {
-			Region r = it.next();
+			final Region r = it.next();
 			if(oldRegions.contains(r)) {
 				staleRegions.add(r);
 				oldRegions.remove(r);
@@ -281,24 +346,13 @@ public abstract class World {
 			}
 		}
 		
-		for(Region r : oldRegions) {
-			//Old regions
-			fireRegionLeave(r, entity, newLoc, type);
-		}
-		for(Region r : staleRegions) {
-			//Stale regions
-			fireRegionMove(r, entity, newLoc, type);
-		}
-		for(Region r : newRegions) {
-			//New regions
-			fireRegionEnter(r, entity, newLoc, type);
-		}
+		@SuppressWarnings("unchecked")
+		final Collection<Region>[] result = (Collection<Region>[]) Array.newInstance(Collection.class, 3);
 		
-		doMoveEntity(entity, newLoc, type);
-		
-		sendToNearbyPlayers(entity, EntityPacket.constructUpdate(entity));
-		
-		return this;
+		result[0] = Collections.unmodifiableCollection(oldRegions);
+		result[1] = Collections.unmodifiableCollection(staleRegions);
+		result[2] = Collections.unmodifiableCollection(newRegions);
+		return result;
 	}
 	
 	protected abstract World doMoveEntity(Entity entity, Location newLocation, MoveType type);
@@ -309,9 +363,13 @@ public abstract class World {
 		return result;
 	}
 	
+	protected final Location moveEntity(Entity entity, MoveType type, int dx, int dy) {
+		return moveEntity(entity, type, dx, dy, 0);
+	}
+	
 	public abstract Location createLocation(int x, int y, int z);
 	
-	public final Tile createTile(TileType type, Location location) {
+	public final Tile createTile(final TileType type, final Location location) {
 		Utils.assertNullArg(type, "Cannot create Tile with null type!");
 		Utils.assertNullArg(location, "Cannot create Tile with null location!");
 		Utils.assertArg(!doContains(location), "Cannot create Tile with location in a different world.");
@@ -319,17 +377,17 @@ public abstract class World {
 		return new Tile(type, location);
 	}
 	
-	public final Tile createTile(TileType type, int x, int y, int z) {
+	public final Tile createTile(final TileType type, final int x, final int y, final int z) {
 		Utils.assertNullArg(type, "Cannot create Tile with null type!");
 		return new Tile(type, createLocation(x,y,z));
 	}
 	
-	public final boolean contains(Locatable loc) {
+	public final boolean contains(final Locatable loc) {
 		Utils.assertNullArg(loc, "Cannot determine if null Locatable is in World.");
 		return doContains(loc);
 	}
 	
-	protected final boolean doContains(Locatable loc) {
+	protected final boolean doContains(final Locatable loc) {
 		return equals(loc.getWorld());
 	}
 	
@@ -377,29 +435,29 @@ public abstract class World {
 		}
 	}
 	
-	protected World(String name, WorldGenerator generator) {
-		this.name = name;
-		this.generator = generator;
-	}
-
 	public final Location moveEntity(Entity entity, Direction dir) {
 		return moveEntity(entity, MoveType.UPDATE, dir.getX(), dir.getY(), 0);
 	}
 	
-	protected final void sendCreateEntity(Player player, Entity entity) {
-		player.sendPacket(EntityPacket.constructCreate(entity));
+	protected final void sendCreateEntity(Entity entity, Player... players) {
+		final Packet packet = EntityPacket.constructCreate(entity);
+		for(final Player player : players)
+			player.sendPacket(packet);
 	}
 	
 	protected final void sendUpdateEntity(Player player, Entity entity, Location newLocation) {
 		player.sendPacket(EntityPacket.constructMove(entity, newLocation));
 	}
 	
-	protected final void sendUpdateEntity(Player player, Entity entity) {
-		sendUpdateEntity(player, entity, entity.getLocation());
+	protected final void sendDestroyEntity(Entity entity, Player... players) {
+		final Packet packet = EntityPacket.constructDestroy(entity);
+		for(final Player player : players)
+			player.sendPacket(packet);
 	}
 	
-	protected final void sendDestroyEntity(Player player, Entity entity) {
-		player.sendPacket(EntityPacket.constructDestroy(entity));
+	protected World(final String name, final WorldGenerator generator) {
+		this.name = name;
+		this.generator = generator;
 	}
 	
 }

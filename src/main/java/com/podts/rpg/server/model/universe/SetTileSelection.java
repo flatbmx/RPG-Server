@@ -24,6 +24,14 @@ public final class SetTileSelection extends TileSelection {
 		return safeTiles.size();
 	}
 	
+	public SetTileSelection(Iterable<Tile> tiles) {
+		this.tiles = new HashSet<Tile>();
+		for(Tile tile : tiles) {
+			this.tiles.add(tile);
+		}
+		safeTiles = Collections.unmodifiableSet(this.tiles);
+	}
+	
 	public SetTileSelection(Tile... tiles) {
 		this.tiles = new HashSet<Tile>();
 		for(Tile tile : tiles) {

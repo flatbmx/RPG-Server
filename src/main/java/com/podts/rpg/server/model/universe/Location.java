@@ -42,6 +42,12 @@ public abstract class Location implements Locatable {
 		
 	}
 	
+	public enum MoveType {
+		CREATE(),
+		UPDATE(),
+		DESTROY();
+	}
+	
 	@Override
 	public abstract World getWorld();
 	
@@ -52,11 +58,15 @@ public abstract class Location implements Locatable {
 	public abstract Location move(int dx, int dy, int dz);
 	
 	@Override
-	public final double distance(Locatable other) {
+	public final double distance(final Locatable other) {
 		if(other == null) throw new IllegalArgumentException("Cannot calculate distance between a null Location.");
 		if(!getWorld().equals(other.getWorld())) throw new IllegalArgumentException("Cannot calculate distance between points in different worlds.");
 		final Location otherPoint = other.getLocation();
 		if(getZ() != otherPoint.getZ()) throw new IllegalArgumentException("Cannot calculate distance between points in different Z planes.");
+		return distance(otherPoint);
+	}
+	
+	final double distance(final Location otherPoint) {
 		return Math.sqrt(Math.pow(getX() - otherPoint.getX(), 2) + Math.pow(getY() - otherPoint.getY(), 2));
 	}
 	
@@ -67,12 +77,6 @@ public abstract class Location implements Locatable {
 	
 	protected Location() {
 		
-	}
-	
-	public enum MoveType {
-		CREATE(),
-		UPDATE(),
-		DESTROY();
 	}
 	
 }
