@@ -120,12 +120,12 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		void addEntity(Entity entity) {
+			if(entity instanceof PlayerEntity) {
+				PlayerEntity pE = (PlayerEntity) entity;
+				players.put(pE.getPlayer().getID(), pE.getPlayer());
+			}
+				
 			entities.put(entity.getID(), entity);
-		}
-		
-		void addEntity(PlayerEntity entity) {
-			entities.put(entity.getID(), entity);
-			players.put(entity.getPlayer().getID(), entity.getPlayer());
 		}
 		
 		void removeEntity(Entity entity) {
