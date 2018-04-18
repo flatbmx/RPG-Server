@@ -174,7 +174,7 @@ public abstract class World {
 	public final Collection<Player> getNearbyPlayers(Locatable l) {
 		Utils.assertNull(l, "Cannot find nearby players from null locatable.");
 		Utils.assertNull(l.getLocation(), "Cannot find nearby players from null location.");
-		Utils.assertArg(doContains(l), "Cannot find nearby players from location in another world.");
+		Utils.assertArg(!doContains(l), "Cannot find nearby players from location in another world.");
 		return doGetNearbyPlayers(l.getLocation());
 	}
 	

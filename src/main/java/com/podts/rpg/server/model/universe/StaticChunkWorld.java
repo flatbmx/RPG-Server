@@ -375,7 +375,7 @@ public final class StaticChunkWorld extends World {
 	}
 
 	private ChunkCoordinate getCoordinateFromLocation(final Location point) {
-		if(point instanceof SLocation) return ((SLocation)point).getChunk().coord;
+		//if(point instanceof SLocation) return ((SLocation)point).getChunk().coord;
 		return getCoordinateFromLocation(point.getX(), point.getY(), point.getZ());
 	}
 
