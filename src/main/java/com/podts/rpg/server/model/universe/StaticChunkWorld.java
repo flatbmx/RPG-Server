@@ -661,7 +661,7 @@ public final class StaticChunkWorld extends World {
 		final Chunk oldChunk = currentLoc.getChunk();
 		final Chunk newChunk = newLoc.getChunk();
 
-		if(oldChunk != newChunk) {
+		if(!oldChunk.equals(newChunk)) {
 			checkGenerateChunk(newChunk);
 			
 			oldChunk.removeEntity(entity);
@@ -720,11 +720,11 @@ public final class StaticChunkWorld extends World {
 		return this;
 	}
 	
-	private void sendCreateChunk(final Player player, final Chunk chunk) {
+	private static void sendCreateChunk(final Player player, final Chunk chunk) {
 		player.sendPacket(TilePacket.constructCreate(chunk.tiles));
 	}
 	
-	private void sendDeleteChunk(final Player player, final Chunk chunk) {
+	private static void sendDeleteChunk(final Player player, final Chunk chunk) {
 		player.sendPacket(TilePacket.constructDestroy(chunk.tiles));
 	}
 	
