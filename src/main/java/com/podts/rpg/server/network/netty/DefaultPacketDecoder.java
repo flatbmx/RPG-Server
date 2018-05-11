@@ -16,8 +16,9 @@ import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.Stream;
-import com.podts.rpg.server.network.packet.*;
-import com.podts.rpg.server.network.packet.EntityPacket.UpdateType;
+import com.podts.rpg.server.network.packet.EntityPacket;
+import com.podts.rpg.server.network.packet.LoginPacket;
+import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

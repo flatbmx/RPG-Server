@@ -34,7 +34,7 @@ public abstract class World {
 	private final WorldGenerator generator;
 	private String name;
 	
-	protected static final Collection<Entity> emptyEntities = Collections.unmodifiableList(Collections.emptyList());
+	protected static final Collection<Entity> EMPTY_ENTITIES = Collections.unmodifiableList(Collections.emptyList());
 	
 	/**
 	 * Returns the name of the World.
@@ -157,8 +157,8 @@ public abstract class World {
 		return doGetNearbyEntities(l.getLocation(), condition);
 	}
 	
-	public abstract Stream<Entity> getNearbyEntitiesStream(Locatable l);
-	public abstract Stream<Entity> getNearbyEntitiesStream(Locatable l, double distance);
+	public abstract Stream<Entity> nearbyEntities(Locatable l);
+	public abstract Stream<Entity> nearbyEntities(Locatable l, double distance);
 	
 	/**
 	 * This method is equivalent to calling {@link #getNearbyEntities(Locatable,Predicate) getNearbyEntities} with no condition.
@@ -179,6 +179,15 @@ public abstract class World {
 	}
 	
 	public abstract Collection<Player> doGetNearbyPlayers(Location point);
+	
+	public final Stream<Player> nearbyPlayers(Locatable l) {
+		Utils.assertNull(l, "Cannot find nearby players from null locatable.");
+		Utils.assertNull(l.getLocation(), "Cannot find nearby players from null location.");
+		Utils.assertArg(!doContains(l), "Cannot find nearby players from location in another world.");
+		return doNearbyPlayers(l.getLocation());
+	}
+	
+	public abstract Stream<Player> doNearbyPlayers(Location point);
 	
 	/**
 	 * Returns the {@link #register(Entity) registered} {@link Entity} with the given id.
@@ -421,6 +430,7 @@ public abstract class World {
 	}
 	
 	protected final void sendToNearbyPlayers(Locatable l, Packet... packets) {
+		
 		for(Player player : getNearbyPlayers(l)) {
 			for(Packet p : packets)
 				player.sendPacket(p);

@@ -18,7 +18,7 @@ public interface PollableRegion extends Region, Iterable<Location> {
 	 */
 	public Set<Location> getPoints();
 	
-	public default Stream<Location> stream() {
+	public default Stream<Location> points() {
 		return getPoints().stream();
 	}
 	

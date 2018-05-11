@@ -1,9 +1,9 @@
 package com.podts.rpg.server.model.universe.region;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Locatable;
-import com.podts.rpg.server.model.universe.World;
 
 /**
  * A subset of the Universe.
@@ -19,6 +19,10 @@ public interface Region {
 	 * @return Collection of all the listeners.
 	 */
 	public Collection<RegionListener> getRegionListeners();
+	
+	public default Stream<RegionListener> listeners() {
+		return getRegionListeners().stream();
+	}
 	
 	/**
 	 * Adds a given {@link RegionListener} to this Region.

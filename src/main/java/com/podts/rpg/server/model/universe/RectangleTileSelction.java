@@ -1,7 +1,9 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 public final class RectangleTileSelction extends TileSelection {
 	
@@ -32,6 +34,10 @@ public final class RectangleTileSelction extends TileSelection {
 	
 	public Location getTopLeft() {
 		return tiles[0][0].getLocation();
+	}
+	
+	public Stream<Tile> tiles() {
+		return Arrays.stream(tiles).flatMap(Arrays::stream);
 	}
 	
 	public RectangleTileSelction(Tile[][] tiles) {

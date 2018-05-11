@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public final class SetTileSelection extends TileSelection {
 	
@@ -17,6 +18,10 @@ public final class SetTileSelection extends TileSelection {
 	
 	public Iterator<Tile> iterator() {
 		return safeTiles.iterator();
+	}
+	
+	public Stream<Tile> tiles() {
+		return tiles.stream();
 	}
 	
 	@Override

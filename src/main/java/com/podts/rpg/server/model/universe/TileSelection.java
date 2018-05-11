@@ -1,5 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.stream.Stream;
+
 public abstract class TileSelection implements Iterable<Tile> {
 	
 	public enum SelectionType {
@@ -9,6 +11,8 @@ public abstract class TileSelection implements Iterable<Tile> {
 	
 	public abstract SelectionType getSelectionType();
 	public abstract int size();
+	
+	public abstract Stream<Tile> tiles();
 	
 	public final TileSelection merge(final TileSelection other) {
 		//TODO implement me
