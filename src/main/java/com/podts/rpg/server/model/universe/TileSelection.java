@@ -14,6 +14,11 @@ public abstract class TileSelection implements Iterable<Tile> {
 	
 	public abstract Stream<Tile> tiles();
 	
+	public boolean contains(Locatable point) {
+		return tiles()
+				.anyMatch(tile -> tile.isAt(point));
+	}
+	
 	public final TileSelection merge(final TileSelection other) {
 		//TODO implement me
 		return null;

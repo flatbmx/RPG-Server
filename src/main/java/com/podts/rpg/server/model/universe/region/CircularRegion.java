@@ -18,7 +18,7 @@ public interface CircularRegion extends EllipticalRegion {
 	
 	@Override
 	public default boolean contains(final Locatable l) {
-		return getCenter().distance(l) <= getRadius();
+		return getCenter().isInRange(l, getRadius());
 	}
 	
 }

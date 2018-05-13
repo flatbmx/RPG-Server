@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
@@ -57,6 +58,10 @@ public abstract class World {
 	}
 	
 	public abstract Collection<Player> getPlayers();
+	
+	public Stream<Player> players() {
+		return getPlayers().stream();
+	}
 	
 	/**
 	 * Returns the tile that is located at the given point in this World.
@@ -119,42 +124,9 @@ public abstract class World {
 	 */
 	protected abstract void doSetTile(Tile newTile);
 	
-	/**
-	 * Returns all registered entities that are within a given distance around a given point in this World.
-	 * All entities are in the same Z plane as the given point.
-	 * The {@link Collection} may be modifiable or not however any modifications will <b>NOT</b> represent any World changes.
-	 * @param l - The central point
-	 * @param distance - The radius of entities around the given point.
-	 * @return A Collection of entities within the given radius in this World.
-	 */
-	public final Collection<Entity> getNearbyEntities(Locatable l, double distance, Predicate<Entity> condition) {
-		Utils.assertNull(l, "Cannot find surrounding Entities from null location.");
-		Utils.assertArg(!doContains(l), "Cannot find surrounding Entities from location not in this world.");
-		return doGetNearbyEntities(l.getLocation(), distance, condition);
-	}
-	
 	public final Collection<Entity> getNearbyEntities(Locatable l, double distance) {
-		return getNearbyEntities(l, distance, null);
-	}
-	
-	public abstract Collection<Entity> doGetNearbyEntities(Location point, double distance, Predicate<Entity> condition);
-	
-	/**
-	 * Returns all nearby registered entities relative to a given point in this World.
-	 * All entities are in the same Z plane as the given point.
-	 * It is up to the Worlds decision as how "nearby" is defined.
-	 * Different World implementations may have different ranges based on their native backings.
-	 * If you wish to get all nearby entities within a certain range then use {@link #getNearbyEntities(Location,double) getNearbyEntities}
-	 * The {@link Collection} may be modifiable or not however any modifications will <b>NOT</b> represent any World changes.
-	 * @param l - The central point of all entities.
-	 * @param condition - A condition that all returned entities meet.
-	 * @return A Collection of entities within the given radius in this World.
-	 */
-	public final Collection<Entity> getNearbyEntities(Locatable l, Predicate<Entity> condition) {
-		Utils.assertNull(l, "Cannot find nearby entities from null locatable.");
-		Utils.assertNull(l.getLocation(), "Cannot find nearby entities from null location.");
-		Utils.assertArg(doContains(l), "Cannot find nearby entities from location in another world.");
-		return doGetNearbyEntities(l.getLocation(), condition);
+		return nearbyEntities(l, distance)
+				.collect(Collectors.toSet());
 	}
 	
 	public abstract Stream<Entity> nearbyEntities(Locatable l);
@@ -166,19 +138,14 @@ public abstract class World {
 	 * @return A Collection of entities within the given radius in this World.
 	 */
 	public final Collection<Entity> getNearbyEntities(Locatable l) {
-		return getNearbyEntities(l, null);
+		return nearbyEntities(l)
+				.collect(Collectors.toSet());
 	}
-	
-	public abstract Collection<Entity> doGetNearbyEntities(Location point, Predicate<Entity> condition);
 	
 	public final Collection<Player> getNearbyPlayers(Locatable l) {
-		Utils.assertNull(l, "Cannot find nearby players from null locatable.");
-		Utils.assertNull(l.getLocation(), "Cannot find nearby players from null location.");
-		Utils.assertArg(!doContains(l), "Cannot find nearby players from location in another world.");
-		return doGetNearbyPlayers(l.getLocation());
+		return nearbyPlayers(l)
+				.collect(Collectors.toSet());
 	}
-	
-	public abstract Collection<Player> doGetNearbyPlayers(Location point);
 	
 	public final Stream<Player> nearbyPlayers(Locatable l) {
 		Utils.assertNull(l, "Cannot find nearby players from null locatable.");
@@ -187,7 +154,18 @@ public abstract class World {
 		return doNearbyPlayers(l.getLocation());
 	}
 	
-	public abstract Stream<Player> doNearbyPlayers(Location point);
+	/**
+	 * It is recommended to implement this method in the sub class that extends World.
+	 * Default Implementation filters nearby entities for PlayerEntitys.
+	 * @param point
+	 * @return
+	 */
+	protected Stream<Player> doNearbyPlayers(Location point) {
+		return nearbyEntities(point)
+				.filter(PlayerEntity.class::isInstance)
+				.map(PlayerEntity.class::cast)
+				.map(PlayerEntity::getPlayer);
+	}
 	
 	/**
 	 * Returns the {@link #register(Entity) registered} {@link Entity} with the given id.
@@ -195,6 +173,32 @@ public abstract class World {
 	 * @return The {@link Entity} that has the given ID otherwise null if the {@link Entity} either does not exist or is not {@link #register(Entity) registered}.
 	 */
 	public abstract Entity getEntity(int id);
+	
+	public abstract Stream<Entity> entities();
+	
+	public Stream<Entity> entities(int z) {
+		return entities()
+				.filter(e -> e.isInPlane(z));
+	}
+	
+	public final Stream<Entity> entities(Stream<Integer> ids) {
+		return ids.map(this::getEntity)
+				.filter(Objects::nonNull);
+	}
+	
+	public abstract Stream<Tile> tiles();
+	
+	public Stream<Tile> tiles(int z) {
+		return tiles()
+				.filter(t -> t.isInPlane(z));
+	}
+	
+	public abstract Stream<Tile> nearbyTiles(Locatable l);
+	
+	public Stream<Tile> nearbyTiles(Locatable l, double distance) {
+		return tiles()
+				.filter(tile -> tile.isInRange(l, distance));
+	}
 	
 	/**
 	 * Registers an entity with this {@link Word}.
@@ -247,7 +251,7 @@ public abstract class World {
 		doRegister(region);
 		if(region instanceof MonitoringRegion) {
 			MonitoringRegion mR = (MonitoringRegion) region;
-			mR.addEntities(findEntitiesInRegion(region));
+			mR.addEntities(findEntitiesIn(region));
 		}
 		return this;
 	}
@@ -270,50 +274,36 @@ public abstract class World {
 	public abstract World deRegister(PollableRegion r);
 	
 	/**
+	 * Returns a stream consisting of registered regions at the passed location.
+	 * @param loc
+	 * @return Stream of regions that the location is in.
+	 */
+	public abstract Stream<Region> regionsAt(Locatable loc);
+	
+	/**
 	 * Returns all registered {@link PollableRegion}s that contain a given {@link Location}.
 	 * @param loc - The given point.
 	 * @return A {@link Collection} of all the registered {@link PollableRegion}s that {@link Region#contains(Locatable) contains} the given point.
 	 * The Collection may be modifiable or not however any changes will not affect anything outside of the Collection returned.
 	 */
-	public abstract Collection<Region> getRegionsAtLocation(Locatable loc);
-	
-	protected abstract void findEntitiesInRegion(final PollableRegion r, final Collection<Entity> collection);
-	
-	protected final Collection<Entity> findEntitiesInRegion(final PollableRegion region) {
-		final Set<Entity> result = new HashSet<>();
-		findEntitiesInRegion(region, result);
-		return result;
+	public Collection<Region> getRegionsAt(Locatable loc) {
+		return regionsAt(loc)
+				.collect(Collectors.toSet());
 	}
 	
-	/**
-	 * Adds all {@link Entity entities} that are within the given {@link PollableRegion region} into the given Collection.
-	 * The {@link PollableRegion region} does <b>NOT</b> have to be {@link #register(Region) registered} for this method to operate.
-	 * @param r - The given {@link PollableRegion} that all entities are in.
-	 * @return A {@link Collection} that contains all entities within this {@link Region}. The Collection may be modifable or not
-	 * however any modifications will not affect the Entities, Region or World in any way.
-	 * @param region - The region that all entities are in.
-	 * @param collection - The collection to add the entities in.
-	 * @return
-	 */
-	public final Collection<Entity> getEntitiesInRegion(final PollableRegion region, final Collection<Entity> collection) {
-		Objects.requireNonNull(region, "Cannot get entities from a null region!");
-		if(region instanceof MonitoringRegion) {
-			if(isRegistered(region)) {
-				MonitoringRegion mR = (MonitoringRegion) region;
-				for(final Entity e : mR.getEntities()) {
-					collection.add(e);
-				}
-				return collection;
-			}
-		}
-		findEntitiesInRegion(region, collection);
-		return collection;
+	protected final Collection<Entity> findEntitiesIn(final PollableRegion region) {
+		return entitiesIn(region)
+				.collect(Collectors.toSet());
 	}
 	
-	
-	public final Collection<Entity> getEntitiesInRegion(final PollableRegion r) {
-		return getEntitiesInRegion(r, new HashSet<>());
+	public final Stream<Entity> entitiesIn(final PollableRegion region) {
+		Objects.requireNonNull(region, "Cannot get stream of entities from a null region!");
+		if(region instanceof MonitoringRegion)
+			return ((MonitoringRegion)region).entities();
+		return doEntitiesIn(region);
 	}
+	
+	abstract Stream<Entity> doEntitiesIn(final PollableRegion region);
 	
 	
 	protected final World moveEntity(final Entity entity, final Location newLoc, final MoveType type) {
@@ -341,9 +331,9 @@ public abstract class World {
 	}
 	
 	private final Collection<Region>[] findRegionChanges(final Location start, final Location end) {
-		final Set<Region> oldRegions = new HashSet<>(getRegionsAtLocation(start));
+		final Set<Region> oldRegions = new HashSet<>(getRegionsAt(start));
 		final Set<Region> staleRegions = new HashSet<>();
-		final Set<Region> newRegions = new HashSet<>(getRegionsAtLocation(end));
+		final Set<Region> newRegions = new HashSet<>(getRegionsAt(end));
 		
 		final Iterator<Region> it = newRegions.iterator();
 		while(it.hasNext()) {
@@ -430,19 +420,20 @@ public abstract class World {
 	}
 	
 	protected final void sendToNearbyPlayers(Locatable l, Packet... packets) {
-		
-		for(Player player : getNearbyPlayers(l)) {
-			for(Packet p : packets)
-				player.sendPacket(p);
-		}
+		nearbyPlayers(l)
+		.forEach(player -> {
+			for(Packet packet : packets)
+				player.sendPacket(packet);
+		});
 	}
 	
 	protected final void sendToNearbyPlayers(Locatable l, Player except, Packet... packets) {
-		for(Player player : getNearbyPlayers(l)) {
-			if(player.equals(except)) continue;
-			for(Packet p : packets)
-				player.sendPacket(p);
-		}
+		nearbyPlayers(l)
+		.filter(p -> !p.equals(except))
+		.forEach(player -> {
+			for(Packet packet : packets)
+				player.sendPacket(packet);
+		});
 	}
 	
 	public final Location moveEntity(Entity entity, Direction dir) {

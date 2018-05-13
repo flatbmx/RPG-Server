@@ -50,7 +50,7 @@ public interface MonitoringRegion extends Region {
 	 */
 	public Collection<Entity> getEntities();
 	
-	public default Stream<Entity> getEntityStream() {
+	public default Stream<Entity> entities() {
 		return getEntities().stream();
 	}
 	

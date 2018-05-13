@@ -265,7 +265,7 @@ public final class Regions {
 	private static final boolean resemblesCircular(final Region r) {
 		if((r instanceof CircularRegion)) return true;
 		
-		final Set<Location> points;
+		final Collection<Location> points;
 		if(r instanceof PollableRegion)
 			points = ((PollableRegion) r).getPoints();
 		else
@@ -274,11 +274,11 @@ public final class Regions {
 		return computeResemblesCircular(points);
 	}
 	
-	private static final boolean computeResemblesCircular(final Set<Location> points) {
+	private static final boolean computeResemblesCircular(final Collection<Location> points) {
 		return computeCircularParameters(points) != null;
 	}
 	
-	private static final Entry<Location,Integer> computeCircularParameters(final Set<Location> points) {
+	private static final Entry<Location,Integer> computeCircularParameters(final Collection<Location> points) {
 		if(isDisjoint(points)) return null;
 		
 		int radius = 0;
@@ -304,7 +304,7 @@ public final class Regions {
 	private static final <R extends Region> boolean resemblesTorus(final R r) {
 		if((r instanceof TorusRegion)) return true;
 		
-		final Set<Location> points;
+		final Collection<Location> points;
 		if(r instanceof PollableRegion)
 			points = ((PollableRegion) r).getPoints();
 		else
@@ -313,7 +313,7 @@ public final class Regions {
 		return computeResemblesTorus(points);
 	}
 	
-	private static final boolean computeResemblesTorus(final Set<Location> points) {
+	private static final boolean computeResemblesTorus(final Collection<Location> points) {
 		if(points.isEmpty()) return false;
 		
 		final Location center = computeFindPlaneCenter(points);
@@ -348,7 +348,7 @@ public final class Regions {
 	private static final boolean resemblesRectangle(final Region r) {
 		if((r instanceof RectangularRegion)) return true;
 		
-		final Set<Location> points;
+		final Collection<Location> points;
 		if(r instanceof PollableRegion)
 			points = ((PollableRegion) r).getPoints();
 		else
@@ -357,7 +357,7 @@ public final class Regions {
 		return computeResemblesRectangle(points);
 	}
 	
-	private static final boolean computeResemblesRectangle(final Set<Location> points) {
+	private static final boolean computeResemblesRectangle(final Collection<Location> points) {
 		if(points.size() < 4) return false;
 		
 		final Iterator<Location> it = points.iterator();
@@ -453,7 +453,7 @@ public final class Regions {
 		return new ComplementRegion(regions);
 	}
 	
-	public static final boolean isDisjoint(final Set<Location> points) {
+	public static final boolean isDisjoint(final Collection<Location> points) {
 		if(points == null) return false;
 		final Set<Location> leftOverPoints = new HashSet<Location>(points);
 		final Queue<Location> pointQueue = new LinkedList<Location>();
@@ -584,7 +584,7 @@ public final class Regions {
 		return result;
 	}
 	
-	public static final Set<Location> findPoints(final Region r) {
+	public static final Collection<Location> findPoints(final Region r) {
 		if(r == null) return new HashSet<Location>();
 		if(r instanceof PollableRegion) return ((PollableRegion) r).getPoints();
 		final Set<Location> points = new HashSet<Location>();
@@ -620,7 +620,7 @@ public final class Regions {
 		return computeFindPlaneCenter(locs);
 	}
 	
-	private static final <L extends Locatable> Location computeFindPlaneCenter(final Set<L> locs) {
+	private static final <L extends Locatable> Location computeFindPlaneCenter(final Collection<L> locs) {
 		long ax = 0, ay = 0;
 		int z;
 		final Iterator<L> it = locs.iterator();
@@ -684,7 +684,7 @@ public final class Regions {
 	public static final boolean isProperSubSet(final PollableRegion a, final PollableRegion b) {
 		if(b == null) return false;
 		if(a == null) return true;
-		final Set<Location> aPoints = a.getPoints();
+		final Collection<Location> aPoints = a.getPoints();
 		for(final Location point : aPoints) {
 			if(!b.contains(point)) return false;
 		}

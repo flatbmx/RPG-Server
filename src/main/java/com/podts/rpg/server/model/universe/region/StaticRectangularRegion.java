@@ -62,15 +62,7 @@ public class StaticRectangularRegion extends SimpleRegion implements Rectangular
 	}
 	
 	protected StaticRectangularRegion(final Locatable center, final int width) {
-		this.center = center.getLocation();
-		xWidth = width;
-		yWidth = width;
-		final Location[] corners = new Location[4];
-		final Corner[] cornerValues = Corner.values();
-		for(int i=0; i<4; ++i) {
-			corners[i] = getCenter().move(cornerValues[i].dx * xWidth/2, cornerValues[i].dy * yWidth/2, 0);
-		}
-		this.corners = Collections.unmodifiableList(Arrays.asList(corners));
+		this(center, width, width);
 	}
 	
 	protected StaticRectangularRegion(final Locatable topLeft, final Locatable bottomRight) {
