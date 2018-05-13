@@ -2,6 +2,9 @@ package com.podts.rpg.server.model.universe;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
+
+import com.podts.rpg.server.model.universe.region.PollableRegion;
 
 public final class Universe {
 	
@@ -70,6 +73,25 @@ public final class Universe {
 	public synchronized final Universe deleteWorld(World world) {
 		worlds.remove(world.getName());
 		return this;
+	}
+	
+	public Stream<World> worlds() {
+		return worlds.values().stream();
+	}
+	
+	public Stream<Tile> tiles() {
+		return worlds()
+				.flatMap(World::tiles);
+	}
+	
+	public Stream<Entity> entities() {
+		return worlds()
+				.flatMap(World::entities);
+	}
+	
+	public Stream<PollableRegion> regions() {
+		return worlds()
+				.flatMap(World::regions);
 	}
 	
 	private Universe() {

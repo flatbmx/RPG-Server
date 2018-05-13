@@ -16,7 +16,6 @@ import com.podts.rpg.server.Utils;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
-import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.TilePacket;
 
@@ -91,7 +90,7 @@ public final class StaticChunkWorld extends World {
 		private final Tile[][] tiles = new Tile[getChunkSize()][getChunkSize()];
 		private final Map<Integer,Player> players = new HashMap<>();
 		private final Map<Integer,Entity> entities = new HashMap<>();
-		private final Set<Region> regions = new HashSet<>(),
+		private final Set<PollableRegion> regions = new HashSet<>(),
 				safeRegions = Collections.unmodifiableSet(regions);
 		
 		@Override
@@ -107,15 +106,15 @@ public final class StaticChunkWorld extends World {
 			return StaticChunkWorld.this.chunkSize;
 		}
 		
-		Stream<Region> regions() {
+		Stream<PollableRegion> regions() {
 			return safeRegions.stream();
 		}
 		
-		boolean addRegion(Region r) {
+		boolean addRegion(PollableRegion r) {
 			return regions.add(r);
 		}
 		
-		boolean removeRegion(Region r) {
+		boolean removeRegion(PollableRegion r) {
 			return regions.remove(r);
 		}
 		
@@ -384,10 +383,10 @@ public final class StaticChunkWorld extends World {
 	
 	private Stream<Chunk> surroundingChunks(SLocation point, int depth) {
 		ChunkCoordinate center = getCoordinate(point);
-		return IntStream.range(-depth, depth+1)
+		return IntStream.rangeClosed(-depth, depth)
 			.mapToObj(Integer::valueOf)
 			.flatMap(i -> {
-				return IntStream.range(-depth, depth+1)
+				return IntStream.rangeClosed(-depth, depth)
 						.mapToObj(j -> findChunk(center.move(j, i)));
 			});
 	}
@@ -613,9 +612,9 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Stream<Region> regionsAt(Locatable loc) {
+	public Stream<PollableRegion> regionsAt(Locatable loc) {
 		if(!contains(loc)) throw new IllegalArgumentException("Cannot get Regions from a Location from another World.");
-		return ((SLocation)loc.getLocation()).getChunk().regions()
+		return chunk(loc).regions()
 				.filter(s -> s.contains(loc));
 	}
 	
@@ -655,7 +654,12 @@ public final class StaticChunkWorld extends World {
 		return this;
 	}
 	
-	public Stream<Entity> entitiesAtLocation(final Location point) {
+	@Override
+	public Stream<PollableRegion> regions() {
+		return registeredRegions.stream();
+	}
+	
+	public Stream<Entity> entities(final Location point) {
 		if(!contains(point)) throw new IllegalArgumentException("Cannot get Entities at a Location from another World.");
 		return chunk(point).entities()
 				.filter(e -> e.isAt(point));

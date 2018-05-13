@@ -273,12 +273,17 @@ public abstract class World {
 	 */
 	public abstract World deRegister(PollableRegion r);
 	
+	public abstract Stream<PollableRegion> regions();
+	
 	/**
 	 * Returns a stream consisting of registered regions at the passed location.
 	 * @param loc
 	 * @return Stream of regions that the location is in.
 	 */
-	public abstract Stream<Region> regionsAt(Locatable loc);
+	public Stream<PollableRegion> regionsAt(Locatable loc) {
+		return regions()
+				.filter(r -> r.contains(loc));
+	}
 	
 	/**
 	 * Returns all registered {@link PollableRegion}s that contain a given {@link Location}.
@@ -292,11 +297,11 @@ public abstract class World {
 	}
 	
 	protected final Collection<Entity> findEntitiesIn(final PollableRegion region) {
-		return entitiesIn(region)
+		return entities(region)
 				.collect(Collectors.toSet());
 	}
 	
-	public final Stream<Entity> entitiesIn(final PollableRegion region) {
+	public final Stream<Entity> entities(final PollableRegion region) {
 		Objects.requireNonNull(region, "Cannot get stream of entities from a null region!");
 		if(region instanceof MonitoringRegion)
 			return ((MonitoringRegion)region).entities();
