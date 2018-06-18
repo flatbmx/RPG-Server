@@ -31,23 +31,23 @@ import com.podts.rpg.server.network.packet.StatePacket;
 
 public final class PacketHandler {
 	
-	private static final Map<Class<? extends Packet>,BiConsumer<Stream,Packet>> handlers;
+	private static final Map<Class<? extends Packet>,BiConsumer<NetworkStream,Packet>> handlers;
 	
 	static {
 		handlers = new HashMap<>();
 		
-		handlers.put(RSAHandShakePacket.class, new BiConsumer<Stream,Packet>() {
+		handlers.put(RSAHandShakePacket.class, new BiConsumer<NetworkStream,Packet>() {
 			@Override
-			public void accept(Stream stream, Packet packet) {
+			public void accept(NetworkStream networkStream, Packet packet) {
 				RSAHandShakePacket rsaPacket = (RSAHandShakePacket) packet;				
-				AESReplyPacket reply = new AESReplyPacket(rsaPacket.getPublicKey(), stream.getSecretKey());
-				stream.sendPacket(reply);
+				AESReplyPacket reply = new AESReplyPacket(rsaPacket.getPublicKey(), networkStream.getSecretKey());
+				networkStream.sendPacket(reply);
 			}
 		});
 		
-		handlers.put(EntityPacket.class, new BiConsumer<Stream,Packet>() {
+		handlers.put(EntityPacket.class, new BiConsumer<NetworkStream,Packet>() {
 			@Override
-			public void accept(Stream s, Packet packet) {
+			public void accept(NetworkStream s, Packet packet) {
 				EntityPacket p = (EntityPacket) packet;
 				PlayerEntity pE = s.getPlayer().getEntity();
 				Entity e = p.getEntity();
@@ -72,14 +72,14 @@ public final class PacketHandler {
 			}
 		});
 		
-		handlers.put(LoginPacket.class, new BiConsumer<Stream,Packet>() {
+		handlers.put(LoginPacket.class, new BiConsumer<NetworkStream,Packet>() {
 			@Override
-			public void accept(Stream stream, Packet oldPacket) {
+			public void accept(NetworkStream networkStream, Packet oldPacket) {
 				LoginPacket packet = (LoginPacket) oldPacket;
 				
 				if(!NetworkStatus.ONLINE.equals(NetworkManager.networkManager.getStatus())) {
 					NetworkManager.networkManager.addLoginRequest(packet);
-					stream.sendPacket(new LoginResponsePacket(LoginResponseType.WAIT, "Server is loading, please wait."));
+					networkStream.sendPacket(new LoginResponsePacket(LoginResponseType.WAIT, "Server is loading, please wait."));
 					return;
 				}
 				
@@ -105,7 +105,7 @@ public final class PacketHandler {
 						}
 					}
 					
-					stream.setPlayer(player);
+					networkStream.setPlayer(player);
 					responseType = LoginResponseType.ACCEPT;
 					response = "Successfully logged in.";
 				} catch (AccountDoesNotExistException e) {
@@ -118,19 +118,19 @@ public final class PacketHandler {
 				
 				if(responseType == null) responseType = LoginResponseType.DECLINE;
 				
-				stream.sendPacket(new LoginResponsePacket(responseType, response));
+				networkStream.sendPacket(new LoginResponsePacket(responseType, response));
 
 				if(responseType.equals(LoginResponseType.DECLINE)) {
-					stream.closeStream();
+					networkStream.closeStream();
 					return;
 				}
 
 				World world = Universe.get().getDefaultWorld();
-				player.setStream(stream);
+				player.setStream(networkStream);
 				player.sendPacket(new PlayerInitPacket(player));
 				world.register(player.getEntity());
 				
-				stream.sendPacket(new StatePacket(GameState.PLAYING));
+				networkStream.sendPacket(new StatePacket(GameState.PLAYING));
 				
 			}
 		});
@@ -139,13 +139,13 @@ public final class PacketHandler {
 	
 	public static void handlePacket(Packet packet) {
 		
-		BiConsumer<Stream,Packet> handler = handlers.get(packet.getClass());
+		BiConsumer<NetworkStream,Packet> handler = handlers.get(packet.getClass());
 		
-		final Stream stream = packet.getOrigin();
+		final NetworkStream networkStream = packet.getOrigin();
 		
 		if(handler != null) {
 			//System.out.println("Recieved " + packet.getClass().getSimpleName());
-			GameEngine.get().submit(new PacketRunner(handler, packet, stream));
+			GameEngine.get().submit(new PacketRunner(handler, packet, networkStream));
 		} else {
 			System.out.println("Recieved unhandled packet " + packet.getClass().getSimpleName());
 		}
@@ -154,16 +154,16 @@ public final class PacketHandler {
 	
 	private static final class PacketRunner implements Runnable {
 		private final Packet packet;
-		private final Stream stream;
-		private final BiConsumer<Stream,Packet> handler;
+		private final NetworkStream networkStream;
+		private final BiConsumer<NetworkStream,Packet> handler;
 		@Override
 		public void run() {
-			handler.accept(stream, packet);
+			handler.accept(networkStream, packet);
 		}
-		PacketRunner(BiConsumer<Stream,Packet> handler, Packet packet, Stream stream) {
+		PacketRunner(BiConsumer<NetworkStream,Packet> handler, Packet packet, NetworkStream networkStream) {
 			this.handler = handler;
 			this.packet = packet;
-			this.stream = stream;
+			this.networkStream = networkStream;
 		}
 	}
 	

@@ -3,24 +3,24 @@ package com.podts.rpg.server.command;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
-import com.podts.rpg.server.network.Stream;
+import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.packet.MessagePacket;
 
 public class NetworkLogger extends GameLogger {
 	
-	private final Stream stream;
+	private final NetworkStream networkStream;
 	
-	public final Stream getStream() {
-		return stream;
+	public final NetworkStream getStream() {
+		return networkStream;
 	}
 	
 	protected Handler createhandler() {
 		return new NetworkHandler();
 	}
 	
-	NetworkLogger(Stream stream, String bundle) {
-		super(stream.getAddress().toString() + " - Logger", bundle);
-		this.stream = stream;
+	NetworkLogger(NetworkStream networkStream, String bundle) {
+		super(networkStream.getAddress().toString() + " - Logger", bundle);
+		this.networkStream = networkStream;
 		setUseParentHandlers(false);
 	}
 	

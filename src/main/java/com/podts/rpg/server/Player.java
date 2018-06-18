@@ -3,7 +3,7 @@ package com.podts.rpg.server;
 import com.podts.rpg.server.command.CommandSender;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.network.Packet;
-import com.podts.rpg.server.network.Stream;
+import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.packet.MessagePacket;
 
 public class Player implements CommandSender {
@@ -11,7 +11,7 @@ public class Player implements CommandSender {
 	private final int id;
 	private String username, password;
 	private PlayerEntity entity;
-	private Stream stream;
+	private NetworkStream networkStream;
 	
 	public final int getID() {
 		return id;
@@ -22,13 +22,13 @@ public class Player implements CommandSender {
 		return username;
 	}
 	
-	public final Stream getStream() {
-		return stream;
+	public final NetworkStream getStream() {
+		return networkStream;
 	}
 	
 	//TODO REALLY REALLY need to change this scope.
-	public final void setStream(Stream s) {
-		stream = s;
+	public final void setStream(NetworkStream s) {
+		networkStream = s;
 	}
 	
 	public final String getUsername() {
@@ -77,9 +77,9 @@ public class Player implements CommandSender {
 		return "Player - " + username;
 	}
 	
-	Player(int id, Stream stream) {
+	Player(int id, NetworkStream networkStream) {
 		this.id = id;
-		this.stream = stream;
+		this.networkStream = networkStream;
 	}
 	
 	Player(int id, String username, String hashPassword) {

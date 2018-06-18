@@ -196,12 +196,12 @@ public abstract class World {
 	public abstract Stream<Tile> nearbyTiles(Locatable l);
 	
 	public Stream<Tile> nearbyTiles(Locatable l, double distance) {
-		return tiles()
+		return tiles(l.getLocation().getZ())
 				.filter(tile -> tile.isInRange(l, distance));
 	}
 	
 	/**
-	 * Registers an entity with this {@link Word}.
+	 * Registers an entity with this {@link World}.
 	 * Any non-registered entities will not be viewable by {@link #getEntity(int)},
 	 * {@link #getNearbyEntities(Locatable)} nor {@link #getNearbyEntities(Locatable,double)}.
 	 * @param e - The {@link Entity} that is to be registered.

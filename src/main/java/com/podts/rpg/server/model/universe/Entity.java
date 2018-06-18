@@ -4,7 +4,7 @@ import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 
-public class Entity implements Locatable {
+public abstract class Entity implements Locatable {
 	
 	private static int nextID;
 	
@@ -49,11 +49,11 @@ public class Entity implements Locatable {
 	}
 	
 	public final boolean register() {
-		return location.getWorld().register(this);
+		return getWorld().register(this);
 	}
 	
 	public final void deRegister() {
-		location.getWorld().deRegister(this);
+		getWorld().deRegister(this);
 	}
 	
 	public Entity(EntityType type, Location loc) {

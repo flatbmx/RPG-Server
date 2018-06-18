@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import com.podts.rpg.server.Server;
 import com.podts.rpg.server.Server.ServerStatus;
@@ -76,8 +77,8 @@ public abstract class NetworkManager {
 		loginRequests.clear();
 	}
 	
-	protected final void setPacketStream(Packet packet, Stream stream) {
-		packet.setStream(stream);
+	protected final void setPacketStream(Packet packet, NetworkStream networkStream) {
+		packet.setStream(networkStream);
 	}
 	
 	private final BiConsumer<ServerStatus,ServerStatus> serverOnlineHook = new BiConsumer<ServerStatus,ServerStatus>() {
@@ -156,13 +157,17 @@ public abstract class NetworkManager {
 	
 	protected abstract void doUnbind();
 	
-	public abstract Collection<? extends Stream> getStreams();
+	public abstract Collection<? extends NetworkStream> getStreams();
 	
-	protected final void onPlayerDisconnect(Stream stream) {
+	public Stream<? extends NetworkStream> streams() {
+		return getStreams().stream();
+	}
+	
+	protected final void onPlayerDisconnect(NetworkStream networkStream) {
 		for(StreamListener listener : streamListeners) {
-			listener.onDisconnect(stream);
+			listener.onDisconnect(networkStream);
 		}
-		if(veryLastStreamListener != null) veryLastStreamListener.onDisconnect(stream);
+		if(veryLastStreamListener != null) veryLastStreamListener.onDisconnect(networkStream);
 	}
 	
 	public NetworkManager() {

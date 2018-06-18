@@ -2,13 +2,13 @@ package com.podts.rpg.server.network;
 
 public abstract class Packet {
 	
-	private Stream origin;
+	private NetworkStream origin;
 	
-	public final Stream getOrigin() {
+	public final NetworkStream getOrigin() {
 		return origin;
 	}
 	
-	protected final void setStream(Stream newStream) {
+	protected final void setStream(NetworkStream newStream) {
 		origin = newStream;
 	}
 	
@@ -20,7 +20,7 @@ public abstract class Packet {
 		origin = null;
 	}
 	
-	public Packet(Stream origin) {
+	public Packet(NetworkStream origin) {
 		this.origin = origin;
 	}
 	

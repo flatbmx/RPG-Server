@@ -8,7 +8,7 @@ import com.podts.rpg.server.Player;
 import com.podts.rpg.server.network.packet.AcknowledgePacket;
 import com.podts.rpg.server.network.packet.AcknowledgementPacket;
 
-public interface Stream {
+public interface NetworkStream {
 	
 	public boolean isOpen();
 	

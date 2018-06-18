@@ -15,7 +15,7 @@ import javax.crypto.SecretKey;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.network.Packet;
-import com.podts.rpg.server.network.Stream;
+import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
@@ -40,7 +40,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		// RSAHandShake Constructor
 		packetConstructors[PID_RSAHANDSHAKE] = new PacketConstructor() {
 			@Override
-			public Packet construct(Stream s, int size, byte opCode, ByteBuf buf) {
+			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				byte[] keyBytes = new byte[size];
 				buf.readBytes(keyBytes, 0, size);
 				try {
@@ -58,7 +58,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		// LoginPacket Constructor
 		packetConstructors[PID_LOGINREQUST] = new PacketConstructor() {
 			@Override
-			public Packet construct(Stream s, int size, byte opCode, ByteBuf buf) {
+			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				String username = readEncryptedString(s, buf);
 				String password = readEncryptedString(s, buf);
 				return new LoginPacket(username, password);
@@ -67,7 +67,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		
 		packetConstructors[PID_MOVE] = new PacketConstructor() {
 			@Override
-			public Packet construct(Stream s, int size, byte opCode, ByteBuf buf) {
+			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				Location newLocation = readLocation(buf);
 				return EntityPacket.constructMove(s.getPlayer().getEntity(), newLocation);
 			}
@@ -78,21 +78,21 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 	@Override
 	protected void decode(ChannelHandlerContext c, ByteBuf buf, List<Object> out) throws Exception {
 
-		Stream stream = (Stream) c.channel();
+		NetworkStream networkStream = (NetworkStream) c.channel();
 
 		int size = buf.readInt();
 		byte opCode = buf.readByte();
 
 		if(opCode > -1 && opCode < packetConstructors.length) {
 			if(packetConstructors[opCode] != null) {
-				Packet packet = packetConstructors[opCode].construct(stream, size - 1, opCode, buf);
+				Packet packet = packetConstructors[opCode].construct(networkStream, size - 1, opCode, buf);
 				if(packet != null) {
-					NettyNetworkManager.get().doSetPacketStream(packet, stream);
+					NettyNetworkManager.get().doSetPacketStream(packet, networkStream);
 					out.add(packet);
 				}
 					
 			} else {
-				System.out.println("WARNING ==== Recieved unknown Packet OPCODE = " + opCode + " with size " + (size-1) + " from " + stream.getAddress());
+				System.out.println("WARNING ==== Recieved unknown Packet OPCODE = " + opCode + " with size " + (size-1) + " from " + networkStream.getAddress());
 				buf.skipBytes(size-1);
 			}
 		}
@@ -106,12 +106,12 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		return Universe.get().getDefaultWorld().createLocation(x, y, z);
 	}
 	
-	private static String readEncryptedString(Stream stream, ByteBuf buf) {
+	private static String readEncryptedString(NetworkStream networkStream, ByteBuf buf) {
 		int encryptedLength = buf.readInt();
 		byte[] encryptedBytes = new byte[encryptedLength];
 		buf.readBytes(encryptedBytes);
 		ByteBuf realBuf = Unpooled.buffer();
-		realBuf.writeBytes(decrypt(encryptedBytes, stream.getSecretKey()));
+		realBuf.writeBytes(decrypt(encryptedBytes, networkStream.getSecretKey()));
 		realBuf.resetReaderIndex();
 		int size = realBuf.readInt();
 		String result = null;
@@ -148,7 +148,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 	}
 	
 	private static interface PacketConstructor {
-		public Packet construct(Stream s, int size, byte opCode, ByteBuf buf);
+		public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf);
 	}
 
 	DefaultPacketDecoder() {

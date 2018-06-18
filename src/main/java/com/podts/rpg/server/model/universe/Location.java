@@ -75,6 +75,11 @@ public abstract class Location implements Locatable {
 		return this;
 	}
 	
+	@Override
+	public String toString() {
+		return "[ " + getWorld().getName() + " | " + getX() + ", " + getY() + ", " + getZ() + "]";
+	}
+	
 	protected Location() {
 		
 	}

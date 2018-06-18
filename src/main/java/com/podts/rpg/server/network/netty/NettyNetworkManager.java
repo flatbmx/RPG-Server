@@ -7,7 +7,7 @@ import java.util.Set;
 
 import com.podts.rpg.server.network.NetworkManager;
 import com.podts.rpg.server.network.Packet;
-import com.podts.rpg.server.network.Stream;
+import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.StreamListener;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -84,8 +84,8 @@ public final class NettyNetworkManager extends NetworkManager {
 		
 	}
 	
-	protected final void doSetPacketStream(Packet packet, Stream stream) {
-		setPacketStream(packet, stream);
+	protected final void doSetPacketStream(Packet packet, NetworkStream networkStream) {
+		setPacketStream(packet, networkStream);
 	}
 	
 	@Override

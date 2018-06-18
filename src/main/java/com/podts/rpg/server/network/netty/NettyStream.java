@@ -9,13 +9,13 @@ import javax.crypto.SecretKey;
 
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.network.Packet;
-import com.podts.rpg.server.network.Stream;
+import com.podts.rpg.server.network.NetworkStream;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-class NettyStream extends NioSocketChannel implements Stream {
+class NettyStream extends NioSocketChannel implements NetworkStream {
 	
 	private static KeyGenerator keyGenerator;
 	

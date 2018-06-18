@@ -18,7 +18,7 @@ import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.model.universe.TileSelection;
 import com.podts.rpg.server.model.universe.TileSelection.SelectionType;
 import com.podts.rpg.server.network.Packet;
-import com.podts.rpg.server.network.Stream;
+import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.AcknowledgePacket;
 import com.podts.rpg.server.network.packet.EntityPacket;
@@ -259,18 +259,18 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		buf.writeInt(loc.getZ());
 	}
 	
-	private static void writeEncryptedLocation(Location loc, Stream stream, ByteBuf buf) {
+	private static void writeEncryptedLocation(Location loc, NetworkStream networkStream, ByteBuf buf) {
 		ByteBuf plainBuf = Unpooled.copiedBuffer(new byte[0]);
 		writeLocation(loc, plainBuf);
-		buf.writeBytes(encrypt(plainBuf.array(), stream.getSecretKey()));
+		buf.writeBytes(encrypt(plainBuf.array(), networkStream.getSecretKey()));
 	}
 	
-	private static void writeEncryptedString(String string, Stream stream, ByteBuf buf) {
+	private static void writeEncryptedString(String string, NetworkStream networkStream, ByteBuf buf) {
 		try {
 			ByteBuf plainBuf = Unpooled.copiedBuffer(new byte[0]);
 			byte[] plain = string.getBytes("UTF-8");
 			plainBuf.writeInt(plain.length).writeBytes(plain);
-			byte[] encryptedBytes = encrypt(plainBuf.array(), stream.getSecretKey());
+			byte[] encryptedBytes = encrypt(plainBuf.array(), networkStream.getSecretKey());
 			buf.writeInt(encryptedBytes.length).writeBytes(encryptedBytes);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
