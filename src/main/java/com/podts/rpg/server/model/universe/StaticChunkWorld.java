@@ -331,6 +331,10 @@ public final class StaticChunkWorld extends World {
 				.flatMap(map -> map.values().stream());
 	}
 	
+	public Stream<Chunk> generatedChunks(Stream<Chunk> stream) {
+		return stream.peek(chunk -> checkGenerateChunk(chunk));
+	}
+	
 	public Stream<Chunk> chunks(int z) {
 		Map<ChunkCoordinate,Chunk> c = chunks.get(z);
 		if(c == null)
@@ -582,10 +586,11 @@ public final class StaticChunkWorld extends World {
 		player.sendPacket(EntityPacket.constructCreate(pE));
 		
 		surroundingChunks(pE)
-			.forEach(chunk -> sendEntireChunk(chunk, player));
+		.forEach(chunk -> sendEntireChunk(chunk, player));
 	}
 	
 	private void sendEntireChunk(Chunk chunk, Player player) {
+		checkGenerateChunk(chunk);
 		sendCreateChunk(player,chunk);
 		chunk.entities()
 			.filter(e -> !e.equals(player.getEntity()))
@@ -719,13 +724,15 @@ public final class StaticChunkWorld extends World {
 				if(dx != 0) {
 					for(int y=-1; y<2; ++y) {
 						sendDeleteChunk(player, checkGenerateChunk(shiftChunk(currentLoc, dx*-1, y)));
-						sendCreateChunk(player, checkGenerateChunk(shiftChunk(currentLoc, dx, y)));
+						Chunk tc = shiftChunk(currentLoc, dx, y);
+						System.out.println(tc);
+						sendEntireChunk(tc, player);
 					}
 				}
 				if(dy != 0) {
 					for(int x=-1; x<2; ++x) {
 						sendDeleteChunk(player, checkGenerateChunk(shiftChunk(currentLoc, x, dy*-1)));
-						sendCreateChunk(player, checkGenerateChunk(shiftChunk(currentLoc, x, dy)));
+						sendEntireChunk(shiftChunk(currentLoc, x, dy), player);
 					}
 				}
 			} else {

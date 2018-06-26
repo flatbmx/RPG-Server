@@ -11,7 +11,9 @@ import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.StreamListener;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -41,6 +43,12 @@ public final class NettyNetworkManager extends NetworkManager {
 	private final ChannelInitializer<SocketChannel> channelInitializer = new ChannelInitializer<SocketChannel>() {
 		@Override
 		public void initChannel(SocketChannel ch) throws Exception {
+			ch.closeFuture().addListener(new ChannelFutureListener() {
+			    @Override
+			    public void operationComplete(ChannelFuture future) throws Exception {
+			        NettyNetworkManager.this.closeChannel(future.channel());
+			    }
+			});
 			ch.pipeline().addLast(new ChannelWatcher())
 			.addLast(new DefaultFrameEncoder())
 			.addLast(new DefaultPacketEncoder())
@@ -66,20 +74,25 @@ public final class NettyNetworkManager extends NetworkManager {
 		}
 	}
 	
+	private final void closeChannel(Channel channel) {
+		NettyStream stream = (NettyStream) channel;
+		stream.getPlayer().getEntity().deRegister();
+		streams.remove(stream);
+        NettyNetworkManager.this.onPlayerDisconnect(stream);
+	}
+	
 	private final class ChannelWatcher extends ChannelOutboundHandlerAdapter {
 		
-		@Override
-	    public void close(ChannelHandlerContext ctx, ChannelPromise promise) {
-	        streams.remove((NettyStream) ctx.channel());
-	        NettyNetworkManager.this.onPlayerDisconnect((NettyStream)ctx.channel());
-	    }
+		private void handleClose(ChannelHandlerContext ctx) {
+			closeChannel(ctx.channel());
+		}
 		
 		@Override
 	    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 	    	if(!cause.getMessage().equals("An existing connection was forcibly closed by the remote host")) {
 	    		cause.printStackTrace();
 	    	}
-	    	ctx.channel().close();
+	    	handleClose(ctx);
 	    }
 		
 	}
