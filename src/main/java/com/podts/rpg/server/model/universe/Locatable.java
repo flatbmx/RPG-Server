@@ -29,7 +29,7 @@ public interface Locatable {
 		return getLocation().getZ() == z;
 	}
 	
-	public default boolean isInSamePlane(Locatable l) {
+	public default boolean isInPlane(Locatable l) {
 		return isInPlane(l.getLocation().getZ());
 	}
 	

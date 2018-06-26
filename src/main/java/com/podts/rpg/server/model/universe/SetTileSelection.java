@@ -21,7 +21,7 @@ public final class SetTileSelection extends TileSelection {
 	}
 	
 	public Stream<Tile> tiles() {
-		return tiles.stream();
+		return safeTiles.stream();
 	}
 	
 	@Override

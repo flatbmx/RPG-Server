@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
+import com.podts.rpg.server.Player.LogoutReason;
 import com.podts.rpg.server.account.AcceptingAccountLoader;
 import com.podts.rpg.server.command.CommandHandler;
 import com.podts.rpg.server.model.PlayerLoginListener;
@@ -138,10 +139,10 @@ public final class Server {
 		return new Player(getNewID(), username, password);
 	}
 	
-	public void logoutPlayer(Player player) {
+	public void logoutPlayer(Player player, LogoutReason reason) {
 		player.getEntity().deRegister();
 		for(PlayerLoginListener listener : playerLoginListeners) {
-			listener.onPlayerLogout(player);
+			listener.onPlayerLogout(player, reason);
 		}
 		int id = player.getID();
 		players[id] = null;
@@ -206,7 +207,7 @@ public final class Server {
 		networkManager = new NettyNetworkManager(new StreamListener() {
 			@Override
 			public void onDisconnect(NetworkStream networkStream) {
-				logoutPlayer(networkStream.getPlayer());
+				logoutPlayer(networkStream.getPlayer(), LogoutReason.DISCONNECT);
 			}
 		});
 		accountLoader = new AcceptingAccountLoader();

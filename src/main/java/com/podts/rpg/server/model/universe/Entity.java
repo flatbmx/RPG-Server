@@ -21,15 +21,12 @@ public abstract class Entity implements Locatable {
 		return type;
 	}
 	
-	public final boolean isPlayer() {
-		return EntityType.PLAYER.equals(type);
-	}
-	
 	public final String getName() {
 		return name;
 	}
 	
-	public Location getLocation() {
+	@Override
+	public final Location getLocation() {
 		return location;
 	}
 	
@@ -43,7 +40,7 @@ public abstract class Entity implements Locatable {
 		return this;
 	}
 	
-	protected final Entity setLocation(Location newLocation) {
+	final Entity setLocation(Location newLocation) {
 		location = newLocation;
 		return this;
 	}

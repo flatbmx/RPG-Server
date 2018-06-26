@@ -162,7 +162,7 @@ public abstract class World {
 	 */
 	protected Stream<Player> doNearbyPlayers(Location point) {
 		return nearbyEntities(point)
-				.filter(PlayerEntity.class::isInstance)
+				.filter(Player::is)
 				.map(PlayerEntity.class::cast)
 				.map(PlayerEntity::getPlayer);
 	}
@@ -205,7 +205,7 @@ public abstract class World {
 	 * Any non-registered entities will not be viewable by {@link #getEntity(int)},
 	 * {@link #getNearbyEntities(Locatable)} nor {@link #getNearbyEntities(Locatable,double)}.
 	 * @param e - The {@link Entity} that is to be registered.
-	 * @return True if the {@link Entity} was sucessfully registered, false if there already exists an 
+	 * @return True if the {@link Entity} was successfully registered, false if there already exists an 
 	 * {@link Entity} that has the same ID in this {@link Word}.
 	 */
 	public final boolean register(Entity e) {
@@ -291,7 +291,7 @@ public abstract class World {
 	 * @return A {@link Collection} of all the registered {@link PollableRegion}s that {@link Region#contains(Locatable) contains} the given point.
 	 * The Collection may be modifiable or not however any changes will not affect anything outside of the Collection returned.
 	 */
-	public Collection<Region> getRegionsAt(Locatable loc) {
+	public Collection<PollableRegion> getRegionsAt(Locatable loc) {
 		return regionsAt(loc)
 				.collect(Collectors.toSet());
 	}

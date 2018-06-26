@@ -1,12 +1,19 @@
 package com.podts.rpg.server;
 
 import com.podts.rpg.server.command.CommandSender;
+import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.entity.PlayerEntity;
-import com.podts.rpg.server.network.Packet;
+import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.network.NetworkStream;
+import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.MessagePacket;
 
 public class Player implements CommandSender {
+	
+	public static final boolean is(Entity e) {
+		if(e == null) return false;
+		return EntityType.PLAYER.equals(e.getType());
+	}
 	
 	private final int id;
 	private String username, password;
@@ -65,6 +72,8 @@ public class Player implements CommandSender {
 	
 	@Override
 	public boolean equals(Object o) {
+		if(o == null) return false;
+		if(o == this) return true;
 		if(o instanceof Player) {
 			Player other = (Player) o;
 			return id == other.id;

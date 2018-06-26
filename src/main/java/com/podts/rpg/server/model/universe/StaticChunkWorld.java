@@ -434,7 +434,6 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private ChunkCoordinate getCoordinate(final Location point) {
-		//if(point instanceof SLocation) return ((SLocation)point).getChunk().coord;
 		return getCoordinateFromLocation(point.getX(), point.getY(), point.getZ());
 	}
 
@@ -456,12 +455,13 @@ public final class StaticChunkWorld extends World {
 	
 	/**
 	 * Generates the given chunk using this worlds world generator.
+	 * <p>
 	 * <b>NOTE:</b> This will re-generate already generated chunks.
-	 * @param chunk
+	 * </p>
+	 * @param chunk - The chunk that will be generated.
 	 */
 	private void generateChunk(final Chunk chunk) {
 		getWorldGenerator().doGenerateRectTiles(chunk.tiles, chunk.topLeft);
-		System.out.println("Generated " + chunk.getCoordinate());
 		chunk.generated = true;
 	}
 	
@@ -562,7 +562,7 @@ public final class StaticChunkWorld extends World {
 		checkGenerateChunk(chunk(e)).addEntity(e);
 		
 		//If entity is player, add/setup the player.
-		if(e.isPlayer()) initPlayer((PlayerEntity) e);
+		if(Player.is(e)) initPlayer((PlayerEntity) e);
 		
 		//Add entity to world-wide collection.
 		entities.put(e.getID(), e);
@@ -608,7 +608,7 @@ public final class StaticChunkWorld extends World {
 		final Chunk chunk = ((SLocation)e.getLocation()).getChunk();
 		synchronized(chunk) {
 			chunk.removeEntity(e);
-			if(e.isPlayer()) {
+			if(Player.is(e)) {
 				PlayerEntity pE = (PlayerEntity) e;
 				chunk.removePlayer(pE.getPlayer());
 				removePlayer(pE.getPlayer());
