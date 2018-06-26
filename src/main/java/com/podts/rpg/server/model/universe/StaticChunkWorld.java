@@ -461,6 +461,7 @@ public final class StaticChunkWorld extends World {
 	 */
 	private void generateChunk(final Chunk chunk) {
 		getWorldGenerator().doGenerateRectTiles(chunk.tiles, chunk.topLeft);
+		System.out.println("Generated " + chunk.getCoordinate());
 		chunk.generated = true;
 	}
 	
@@ -723,16 +724,16 @@ public final class StaticChunkWorld extends World {
 				
 				if(dx != 0) {
 					for(int y=-1; y<2; ++y) {
-						sendDeleteChunk(player, checkGenerateChunk(shiftChunk(currentLoc, dx*-1, y)));
-						Chunk tc = shiftChunk(currentLoc, dx, y);
-						System.out.println(tc);
-						sendEntireChunk(tc, player);
+						Chunk oc = checkGenerateChunk(shiftChunk(currentLoc, dx*-1, y));
+						sendDeleteChunk(player, oc);
+						Chunk nc = shiftChunk(newLoc, dx, y);
+						sendEntireChunk(nc, player);
 					}
 				}
 				if(dy != 0) {
 					for(int x=-1; x<2; ++x) {
 						sendDeleteChunk(player, checkGenerateChunk(shiftChunk(currentLoc, x, dy*-1)));
-						sendEntireChunk(shiftChunk(currentLoc, x, dy), player);
+						sendEntireChunk(shiftChunk(newLoc, x, dy), player);
 					}
 				}
 			} else {
@@ -752,6 +753,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private static void sendCreateChunk(final Player player, final Chunk chunk) {
+		System.out.println("Sending " + chunk);
 		player.sendPacket(TilePacket.constructCreate(chunk.tiles));
 	}
 	
