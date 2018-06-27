@@ -174,6 +174,11 @@ public abstract class World {
 	 */
 	public abstract Entity getEntity(int id);
 	
+	public Stream<Entity> entities(Location loc) {
+		return entities(loc.getZ())
+				.filter(e -> e.isAt(loc));
+	}
+	
 	public abstract Stream<Entity> entities();
 	
 	public Stream<Entity> entities(int z) {
@@ -198,6 +203,17 @@ public abstract class World {
 	public Stream<Tile> nearbyTiles(Locatable l, double distance) {
 		return tiles(l.getLocation().getZ())
 				.filter(tile -> tile.isInRange(l, distance));
+	}
+	
+	public Stream<Tile> nearbyWalkingTiles(Locatable l, int distance) {
+		return tiles(l.getLocation().getZ())
+				.filter(tile -> tile.isInWalkingRange(l, distance));
+	}
+	
+	public Stream<Tile> tiles(PollableRegion r) {
+		Objects.requireNonNull(r, "Cannot find tiles in null region!");
+		return r.points()
+				.map(this::getTile);
 	}
 	
 	/**

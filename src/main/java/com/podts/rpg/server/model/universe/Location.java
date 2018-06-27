@@ -66,8 +66,20 @@ public abstract class Location implements Locatable {
 		return distance(otherPoint);
 	}
 	
+	public final int WalkingDistance(final Locatable other) {
+		if(other == null) throw new IllegalArgumentException("Cannot calculate walking distance between a null Location.");
+		if(!getWorld().equals(other.getWorld())) throw new IllegalArgumentException("Cannot calculate walking distance between points in different worlds.");
+		final Location otherPoint = other.getLocation();
+		if(getZ() != otherPoint.getZ()) throw new IllegalArgumentException("Cannot calculate walking distance between points in different Z planes.");
+		return walkingDistance(otherPoint);
+	}
+	
 	final double distance(final Location otherPoint) {
 		return Math.sqrt(Math.pow(getX() - otherPoint.getX(), 2) + Math.pow(getY() - otherPoint.getY(), 2));
+	}
+	
+	final int walkingDistance(final Location otherPoint) {
+		return Math.abs(getX() - otherPoint.getX()) + Math.abs(getY() - otherPoint.getY());
 	}
 	
 	@Override

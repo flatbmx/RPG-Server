@@ -12,11 +12,24 @@ public interface Locatable {
 		return getLocation().distance(o.getLocation());
 	}
 	
+	public default int walkingDistance(Locatable o) {
+		return getLocation().WalkingDistance(o.getLocation());
+	}
+	
 	public default boolean isInRange(Locatable o, double distance) {
 		return distance(o) <= distance;
 	}
 	
+	public default boolean isInWalkingRange(Locatable o, int distance) {
+		return walkingDistance(o) <= distance;
+	}
+	
 	public default boolean isBetween(Locatable o, double min, double max) {
+		double dist = distance(o);
+		return dist >= min && dist <= max;
+	}
+	
+	public default boolean isWalkingBetween(Locatable o, int min, int max) {
 		double dist = distance(o);
 		return dist >= min && dist <= max;
 	}
