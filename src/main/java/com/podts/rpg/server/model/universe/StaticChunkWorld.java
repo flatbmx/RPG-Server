@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -623,12 +624,17 @@ public final class StaticChunkWorld extends World {
 		addPlayer(player);
 		player.sendPacket(EntityPacket.constructCreate(pE));
 		
-		surroundingChunks(pE)
-		.forEach(chunk -> sendEntireChunk(chunk, player));
+		//surroundingChunks(pE)
+		//.forEach(chunk -> sendEntireChunk(chunk, player));
 		
-		//nearbyTiles(pE, 30)
-		//.forEach(t -> player.sendPacket(TilePacket.constructCreate(t)));
+		nearbyTiles(pE, 15)
+		.forEach(t -> player.sendPacket(TilePacket.constructCreate(t)));
 		
+	}
+	
+	private Collection<Tile> getView(Locatable l) {
+		return nearbyTiles(l, 15)
+				.collect(Collectors.toSet());
 	}
 	
 	private void sendEntireChunk(Chunk chunk, Player player) {
@@ -686,7 +692,6 @@ public final class StaticChunkWorld extends World {
 	
 	@Override
 	public void doRegister(PollableRegion r) {
-		
 		Stream<Chunk> stream = chunks(r);
 		
 		if(Regions.isStaticRegion(r)) {
@@ -700,13 +705,12 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public StaticChunkWorld deRegister(PollableRegion r) {
+	protected void doUnRegister(PollableRegion r) {
 		chunks(r)
 		.forEach(chunk -> chunk.removeRegion(r));
 		
 		cachedRegionChunks.remove(r);
 		registeredRegions.remove(r);
-		return this;
 	}
 	
 	@Override
@@ -714,8 +718,18 @@ public final class StaticChunkWorld extends World {
 		return registeredRegions.stream();
 	}
 	
+	@Override
+	protected void handleRegionChange(PollableRegion region) {
+		
+	}
+	
+	@Override
 	public Stream<Entity> entities(final Location point) {
-		if(!contains(point)) throw new IllegalArgumentException("Cannot get Entities at a Location from another World.");
+		if(!contains(point)) throw new IllegalArgumentException("Cannot get Entities at a Location from another World!");
+		return doEntities(point);
+	}
+	
+	protected Stream<Entity> doEntities(final Location point) {
 		return chunk(point).entities()
 				.filter(e -> e.isAt(point));
 	}
@@ -769,7 +783,7 @@ public final class StaticChunkWorld extends World {
 					player.sendPacket(EntityPacket.constructCreate(nP.getEntity()));
 				}
 				
-				if(dx != 0) {
+				/*if(dx != 0) {
 					for(int y=-1; y<2; ++y) {
 						sendDeleteChunk(checkGenerateChunk(shiftChunk(currentLoc, dx*-1, y)), player);
 						sendEntireChunk(shiftChunk(newLoc, dx, y), player);
@@ -780,7 +794,8 @@ public final class StaticChunkWorld extends World {
 						sendDeleteChunk(checkGenerateChunk(shiftChunk(currentLoc, x, dy*-1)), player);
 						sendEntireChunk(shiftChunk(newLoc, x, dy), player);
 					}
-				}
+				}*/
+				
 			} else {
 				for(Player oP : oldPlayers) {
 					if(newPlayers.contains(oP)) continue;
@@ -793,8 +808,35 @@ public final class StaticChunkWorld extends World {
 				}
 			}
 		}
+		
+		if(Player.is(entity)) {
+			PlayerEntity pE = (PlayerEntity) entity;
+			Player player = pE.getPlayer();
+			Collection<Tile> newTiles = getView(newLoc);
+			Collection<Tile> oldTiles = getView(currentLoc);
+			
+			Iterator<Tile> ni = newTiles.iterator();
+			while(ni.hasNext()) {
+				Tile t = ni.next();
+				if(oldTiles.contains(t))
+					oldTiles.remove(t);
+				else
+					sendCreateTile(player, t);
+			}
+			
+			oldTiles.forEach(t -> sendDestroyTile(player, t));
+		}
+		
 		entity.setLocation(newLocation);
 		return this;
+	}
+	
+	private static void sendCreateTile(Player player, Tile tile) {
+		player.sendPacket(TilePacket.constructCreate(tile));
+	}
+	
+	private static void sendDestroyTile(Player player, Tile tile) {
+		player.sendPacket(TilePacket.constructDestroy(tile));
 	}
 	
 	private static void sendCreateChunk(final Chunk chunk, final Player player) {

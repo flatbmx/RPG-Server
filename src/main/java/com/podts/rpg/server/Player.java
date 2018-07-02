@@ -4,15 +4,28 @@ import com.podts.rpg.server.command.CommandSender;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
+import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.MessagePacket;
 
 public class Player implements CommandSender {
 	
+	public static final boolean is(Locatable l) {
+		return l instanceof PlayerEntity;
+	}
+	
 	public static final boolean is(Entity e) {
 		if(e == null) return false;
 		return EntityType.PLAYER.equals(e.getType());
+	}
+	
+	public static final Player get(Entity e) {
+		if(e instanceof PlayerEntity) {
+			PlayerEntity pE = (PlayerEntity) e;
+			return pE.getPlayer();
+		}
+		return null;
 	}
 	
 	private final int id;

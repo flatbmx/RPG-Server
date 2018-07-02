@@ -18,9 +18,9 @@ public interface Region {
 	 * Returns an un-Modifiable view of all the current {@link RegionListener}s that is listening to this Region.
 	 * @return Collection of all the listeners.
 	 */
-	public Collection<RegionListener> getRegionListeners();
+	public Collection<? extends RegionListener> getRegionListeners();
 	
-	public default Stream<RegionListener> listeners() {
+	public default Stream<? extends RegionListener> listeners() {
 		return getRegionListeners().stream();
 	}
 	

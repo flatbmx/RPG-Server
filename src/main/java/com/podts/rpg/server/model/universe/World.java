@@ -17,6 +17,8 @@ import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.Tile.TileType;
+import com.podts.rpg.server.model.universe.region.DynamicRegion;
+import com.podts.rpg.server.model.universe.region.DynamicRegionListener;
 import com.podts.rpg.server.model.universe.region.MonitoringRegion;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.model.universe.region.Region;
@@ -175,6 +177,7 @@ public abstract class World {
 	public abstract Entity getEntity(int id);
 	
 	public Stream<Entity> entities(Location loc) {
+		Objects.requireNonNull(loc, "Cannot get Stream of Entitites at a null Location!");
 		return entities(loc.getZ())
 				.filter(e -> e.isAt(loc));
 	}
@@ -269,6 +272,9 @@ public abstract class World {
 			MonitoringRegion mR = (MonitoringRegion) region;
 			mR.addEntities(findEntitiesIn(region));
 		}
+		if(region instanceof DynamicRegion) {
+			region.addRegionListener(regionChangeHandler);
+		}
 		return this;
 	}
 	
@@ -287,7 +293,14 @@ public abstract class World {
 	 * @param r - The given Region to un-register.
 	 * @return The World for chaining.
 	 */
-	public abstract World deRegister(PollableRegion r);
+	public final World unRegister(PollableRegion region) {
+		if(region instanceof DynamicRegion) {
+			region.removeRegionListener(regionChangeHandler);
+		}
+		return this;
+	}
+	
+	protected abstract void doUnRegister(PollableRegion r);
 	
 	public abstract Stream<PollableRegion> regions();
 	
@@ -439,6 +452,25 @@ public abstract class World {
 			l.onEntityLeave(r, entity, type);
 		}
 	}
+	
+	private final class RegionChangeListener implements DynamicRegionListener {
+		@Override
+		public void onRegionChange(Region r) {
+			handleRegionChange((PollableRegion) r);
+		}
+	}
+	
+	private final RegionListener regionChangeHandler = new RegionChangeListener();
+	
+	private final void followRegion(DynamicRegion r) {
+		r.addRegionListener(regionChangeHandler);
+	}
+	
+	private final void unFollowRegion(DynamicRegion r) {
+		r.removeRegionListener(regionChangeHandler);
+	}
+	
+	protected abstract void handleRegionChange(PollableRegion r);
 	
 	protected final void sendToNearbyPlayers(Locatable l, Packet... packets) {
 		nearbyPlayers(l)
