@@ -25,7 +25,7 @@ public final class PseudoRandomGenerator extends WorldGenerator {
 				break;
 			}
 		}
-		return point.getWorld().createTile(t, point);
+		return point.getSpace().createTile(t, point);
 	}
 	
 	public PseudoRandomGenerator(final Random r, final int[] weights, final TileType[] types) {

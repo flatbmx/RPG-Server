@@ -32,7 +32,7 @@ public final class StaticChunkWorld extends World {
 	private final Map<Integer,Player> players = new HashMap<>();
 	private final Collection<Player> safePlayers = Collections.unmodifiableCollection(players.values());
 	private final Map<Integer,Entity> entities = new HashMap<>();
-	private final Map<Integer,Map<ChunkCoordinate,Chunk>> chunks = new HashMap<>();
+	private final Map<Integer,ChunkPlane> planes = new HashMap<>();
 	
 	private final Collection<PollableRegion> registeredRegions = new HashSet<>();
 	private final Map<PollableRegion,Collection<Chunk>> cachedRegionChunks = new HashMap<>();
@@ -134,7 +134,9 @@ public final class StaticChunkWorld extends World {
 					.map(Tile::getLocation);
 		}
 		
+		@Override
 		public final Stream<Tile> tiles() {
+			if(!generated) return Stream.empty();
 			return Arrays.stream(tiles)
 				.flatMap(Arrays::stream);
 		}
@@ -213,13 +215,54 @@ public final class StaticChunkWorld extends World {
 		}
 
 	}
-
+	
+	private final class ChunkPlane extends Plane {
+		
+		private final Map<ChunkCoordinate,Chunk> chunks = new HashMap<>();
+		private boolean generated = false;
+		
+		Chunk getOrCreateChunk(ChunkCoordinate coord) {
+			Chunk chunk = chunks.get(coord);
+			if(chunk == null) {
+				chunk = new Chunk(coord);
+				chunks.put(coord, chunk);
+			}
+			return chunk;
+		}
+		
+		Stream<Chunk> chunks() {
+			return chunks.values().stream();
+		}
+		
+		@Override
+		public Collection<Tile> getTiles() {
+			return tiles()
+					.collect(Collectors.toList());
+		}
+		
+		@Override
+		public Stream<Tile> tiles() {
+			return chunks()
+					.flatMap(Chunk::tiles);
+		}
+		
+		@Override
+		public StaticChunkWorld getSpace() {
+			return StaticChunkWorld.this;
+		}
+		
+		private ChunkPlane(int z) {
+			super(z);
+		}
+		
+	}
+	
 	private final class MLocation extends Location {
 
 		private int x, y, z;
 
 		@Override
-		public World getWorld() {
+		public Space getSpace() {
 			return StaticChunkWorld.this;
 		}
 
@@ -258,7 +301,7 @@ public final class StaticChunkWorld extends World {
 		private final int hash;
 
 		@Override
-		public World getWorld() {
+		public Space getSpace() {
 			return StaticChunkWorld.this;
 		}
 
@@ -352,19 +395,37 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	public Stream<Chunk> chunks() {
-		return chunks.values().stream()
-				.flatMap(planeMap -> planeMap.values().stream());
+		return planes()
+				.flatMap(ChunkPlane::chunks);
+	}
+	
+	@Override
+	public Stream<ChunkPlane> planes() {
+		return planes.values().stream();
+	}
+	
+	@Override
+	public ChunkPlane getPlane(int z) {
+		return planes.get(z);
 	}
 	
 	public Stream<Chunk> generatedChunks(Stream<Chunk> stream) {
 		return stream.peek(chunk -> checkGenerateChunk(chunk));
 	}
 	
+	private ChunkPlane getOrCreatePlane(int z) {
+		ChunkPlane plane = planes.get(z);
+		if(plane == null) {
+			plane = new ChunkPlane(z);
+			planes.put(z, plane);
+		}
+		return plane;
+	}
+	
 	public Stream<Chunk> chunks(int z) {
-		Map<ChunkCoordinate,Chunk> c = chunks.get(z);
-		if(c == null)
-			return Stream.empty();
-		return c.values().stream();
+		ChunkPlane plane = getPlane(z);
+		if(plane == null) return Stream.empty();
+		return plane.chunks();
 	}
 	
 	@Override
@@ -396,15 +457,16 @@ public final class StaticChunkWorld extends World {
 	
 	@Override
 	public Stream<Tile> nearbyWalkingTiles(Locatable l, int distance) {
-		int depth = (int)Math.floor(distance / getChunkSize());
+		int depth = (int)Math.ceil(distance / getChunkSize()) + 1;
 		return surroundingChunks(l, depth)
+				.peek(chunk -> checkGenerateChunk(chunk))
 				.flatMap(Chunk::tiles)
 				.filter(tile -> tile.isInWalkingRange(l, distance));
 	}
 	
 	/**
 	 * Returns a stream of chunks that the passed region is in.
-	 * @param r - The region that's chunks should be returned.
+	 * @param r - The region thats chunks should be returned.
 	 * @return Stream of chunks that the passed region is in.
 	 */
 	private Stream<Chunk> chunks(PollableRegion r) {
@@ -450,17 +512,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private Chunk findChunk(final ChunkCoordinate coord) {
-		Map<ChunkCoordinate,Chunk> ch = chunks.get(coord.z);
-		if(ch == null) {
-			ch = new HashMap<ChunkCoordinate,Chunk>();
-			chunks.put(coord.z, ch);
-		}
-		Chunk chunk = ch.get(coord);
-		if(chunk == null) {
-			chunk = new Chunk(coord);
-			ch.put(coord, chunk);
-		}
-		return chunk;
+		return getOrCreatePlane(coord.z).getOrCreateChunk(coord);
 	}
 	
 	private Chunk getGeneratedChunk(final ChunkCoordinate coord) {
@@ -650,6 +702,24 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
+	public boolean isRegistered(Registerable r) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean register(Registerable r) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean deRegister(Registerable r) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	@Override
 	public boolean doDeRegister(Entity e) {
 		if(entities.remove(e.getID()) == null) return false;
 		final Chunk chunk = ((SLocation)e.getLocation()).getChunk();
@@ -665,10 +735,10 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Stream<PollableRegion> regionsAt(Locatable loc) {
-		if(!contains(loc)) throw new IllegalArgumentException("Cannot get Regions from a Location from another World.");
-		return chunk(loc).regions()
-				.filter(s -> s.contains(loc));
+	public Stream<PollableRegion> regions(Locatable l) {
+		if(!contains(l)) throw new IllegalArgumentException("Cannot get Regions from a Location from another World.");
+		return chunk(l).regions()
+				.filter(s -> s.contains(l));
 	}
 	
 	@Override
@@ -681,6 +751,7 @@ public final class StaticChunkWorld extends World {
 		return entities.values().stream();
 	}
 	
+	@Override
 	public Stream<Entity> entities(Locatable l) {
 		return chunk(l).entities()
 				.filter(e -> e.isAt(l));
@@ -721,12 +792,6 @@ public final class StaticChunkWorld extends World {
 	@Override
 	protected void handleRegionChange(PollableRegion region) {
 		
-	}
-	
-	@Override
-	public Stream<Entity> entities(final Location point) {
-		if(!contains(point)) throw new IllegalArgumentException("Cannot get Entities at a Location from another World!");
-		return doEntities(point);
 	}
 	
 	protected Stream<Entity> doEntities(final Location point) {

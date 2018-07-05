@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.Utils;
 import com.podts.rpg.server.model.entity.PlayerEntity;
-import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.model.universe.region.DynamicRegion;
@@ -32,7 +31,7 @@ import com.podts.rpg.server.network.packet.TilePacket;
  * each other and the world it self.
  *
  */
-public abstract class World {
+public abstract class World extends Space {
 	
 	private final WorldGenerator generator;
 	private String name;
@@ -61,6 +60,7 @@ public abstract class World {
 	
 	public abstract Collection<Player> getPlayers();
 	
+	@Override
 	public Stream<Player> players() {
 		return getPlayers().stream();
 	}
@@ -132,7 +132,6 @@ public abstract class World {
 	}
 	
 	public abstract Stream<Entity> nearbyEntities(Locatable l);
-	public abstract Stream<Entity> nearbyEntities(Locatable l, double distance);
 	
 	/**
 	 * This method is equivalent to calling {@link #getNearbyEntities(Locatable,Predicate) getNearbyEntities} with no condition.
@@ -176,48 +175,12 @@ public abstract class World {
 	 */
 	public abstract Entity getEntity(int id);
 	
-	public Stream<Entity> entities(Location loc) {
-		Objects.requireNonNull(loc, "Cannot get Stream of Entitites at a null Location!");
-		return entities(loc.getZ())
-				.filter(e -> e.isAt(loc));
-	}
-	
-	public abstract Stream<Entity> entities();
-	
-	public Stream<Entity> entities(int z) {
-		return entities()
-				.filter(e -> e.isInPlane(z));
-	}
-	
 	public final Stream<Entity> entities(Stream<Integer> ids) {
 		return ids.map(this::getEntity)
 				.filter(Objects::nonNull);
 	}
 	
-	public abstract Stream<Tile> tiles();
-	
-	public Stream<Tile> tiles(int z) {
-		return tiles()
-				.filter(t -> t.isInPlane(z));
-	}
-	
 	public abstract Stream<Tile> nearbyTiles(Locatable l);
-	
-	public Stream<Tile> nearbyTiles(Locatable l, double distance) {
-		return tiles(l.getLocation().getZ())
-				.filter(tile -> tile.isInRange(l, distance));
-	}
-	
-	public Stream<Tile> nearbyWalkingTiles(Locatable l, int distance) {
-		return tiles(l.getLocation().getZ())
-				.filter(tile -> tile.isInWalkingRange(l, distance));
-	}
-	
-	public Stream<Tile> tiles(PollableRegion r) {
-		Objects.requireNonNull(r, "Cannot find tiles in null region!");
-		return r.points()
-				.map(this::getTile);
-	}
 	
 	/**
 	 * Registers an entity with this {@link World}.
@@ -302,26 +265,14 @@ public abstract class World {
 	
 	protected abstract void doUnRegister(PollableRegion r);
 	
-	public abstract Stream<PollableRegion> regions();
-	
-	/**
-	 * Returns a stream consisting of registered regions at the passed location.
-	 * @param loc
-	 * @return Stream of regions that the location is in.
-	 */
-	public Stream<PollableRegion> regionsAt(Locatable loc) {
-		return regions()
-				.filter(r -> r.contains(loc));
-	}
-	
 	/**
 	 * Returns all registered {@link PollableRegion}s that contain a given {@link Location}.
 	 * @param loc - The given point.
 	 * @return A {@link Collection} of all the registered {@link PollableRegion}s that {@link Region#contains(Locatable) contains} the given point.
 	 * The Collection may be modifiable or not however any changes will not affect anything outside of the Collection returned.
 	 */
-	public Collection<PollableRegion> getRegionsAt(Locatable loc) {
-		return regionsAt(loc)
+	public Collection<PollableRegion> getRegions(Locatable loc) {
+		return regions(loc)
 				.collect(Collectors.toSet());
 	}
 	
@@ -365,9 +316,9 @@ public abstract class World {
 	}
 	
 	private final Collection<Region>[] findRegionChanges(final Location start, final Location end) {
-		final Set<Region> oldRegions = new HashSet<>(getRegionsAt(start));
+		final Set<Region> oldRegions = new HashSet<>(getRegions(start));
 		final Set<Region> staleRegions = new HashSet<>();
-		final Set<Region> newRegions = new HashSet<>(getRegionsAt(end));
+		final Set<Region> newRegions = new HashSet<>(getRegions(end));
 		
 		final Iterator<Region> it = newRegions.iterator();
 		while(it.hasNext()) {
@@ -390,7 +341,7 @@ public abstract class World {
 	
 	protected abstract World doMoveEntity(Entity entity, Location newLocation, MoveType type);
 	
-	protected final Location moveEntity(Entity entity, MoveType type, int dx, int dy, int dz) {
+	final Location moveEntity(Entity entity, MoveType type, int dx, int dy, int dz) {
 		Location result = entity.getLocation().move(dx, dy, dz);
 		moveEntity(entity, result, type);
 		return result;
@@ -400,8 +351,10 @@ public abstract class World {
 		return moveEntity(entity, type, dx, dy, 0);
 	}
 	
+	@Override
 	public abstract Location createLocation(int x, int y, int z);
 	
+	@Override
 	public final Tile createTile(final TileType type, final Location location) {
 		Utils.assertNullArg(type, "Cannot create Tile with null type!");
 		Utils.assertNullArg(location, "Cannot create Tile with null location!");
@@ -421,7 +374,7 @@ public abstract class World {
 	}
 	
 	protected final boolean doContains(final Locatable loc) {
-		return equals(loc.getWorld());
+		return equals(loc.getSpace());
 	}
 	
 	@Override
@@ -487,10 +440,6 @@ public abstract class World {
 			for(Packet packet : packets)
 				player.sendPacket(packet);
 		});
-	}
-	
-	public final Location moveEntity(Entity entity, Direction dir) {
-		return moveEntity(entity, MoveType.UPDATE, dir.getX(), dir.getY(), 0);
 	}
 	
 	protected final void sendCreateEntity(Entity entity, Player... players) {

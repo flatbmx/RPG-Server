@@ -42,7 +42,7 @@ public class StaticRectangularRegion extends SimpleRegion implements Rectangular
 		final Location topLeft = getCorner(Corner.TOP_LEFT), bottomRight = getCorner(Corner.BOTTOM_RIGHT);
 		for(int y=topLeft.getY(); y <= bottomRight.getY(); ++y) {
 			for(int x=topLeft.getX(); x <= bottomRight.getX(); ++x) {
-				pointSet.add(getCenter().getWorld().createLocation(x, y, getCenter().getZ()));
+				pointSet.add(getCenter().getSpace().createLocation(x, y, getCenter().getZ()));
 			}
 		}
 		return pointSet;
@@ -70,7 +70,7 @@ public class StaticRectangularRegion extends SimpleRegion implements Rectangular
 		Objects.requireNonNull(bottomRight);
 		xWidth = bottomRight.getLocation().getX() - topLeft.getLocation().getX();
 		yWidth = bottomRight.getLocation().getY() - topLeft.getLocation().getY();
-		center = topLeft.getWorld().createLocation(topLeft.getLocation().getX() + xWidth/2
+		center = topLeft.getSpace().createLocation(topLeft.getLocation().getX() + xWidth/2
 				, topLeft.getLocation().getY() + yWidth/2, topLeft.getLocation().getZ());
 		final Location[] corners = new Location[4];
 		final Corner[] cornerValues = Corner.values();

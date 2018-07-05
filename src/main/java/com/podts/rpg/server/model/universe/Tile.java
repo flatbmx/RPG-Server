@@ -2,7 +2,7 @@ package com.podts.rpg.server.model.universe;
 
 import java.util.Objects;
 
-public class Tile implements Locatable {
+public class Tile implements Registerable, Locatable {
 	
 	public enum TileType {
 		VOID(false),

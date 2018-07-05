@@ -5,14 +5,14 @@ import java.util.List;
 
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.World;
+import com.podts.rpg.server.model.universe.Space;
 
 class DynamicRectangularRegion extends SimpleRegion implements RectangularRegion {
 	
 	private final Locatable corner1, corner2;
 	
-	final World getWorld() {
-		return corner1.getWorld();
+	final Space getSpace() {
+		return corner1.getSpace();
 	}
 	
 	private final Location[] getTwoCorners() {
@@ -25,7 +25,7 @@ class DynamicRectangularRegion extends SimpleRegion implements RectangularRegion
 				result[1] = l2;
 			} else {
 				//l1 is bottom-left
-				result[0] = getWorld().createLocation(l1.getX(), l2.getY(), l1.getZ());
+				result[0] = getSpace().createLocation(l1.getX(), l2.getY(), l1.getZ());
 				result[1] = l2;
 			}
 		} else {
@@ -35,7 +35,7 @@ class DynamicRectangularRegion extends SimpleRegion implements RectangularRegion
 				result[1] = l1;
 			} else {
 				//l2 is bottom-left
-				result[0] = getWorld().createLocation(l2.getX(), l1.getY(), l2.getZ());
+				result[0] = getSpace().createLocation(l2.getX(), l1.getY(), l2.getZ());
 				result[1] = l1;
 			}
 		}

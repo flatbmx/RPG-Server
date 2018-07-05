@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Space;
 import com.podts.rpg.server.model.universe.World;
 
 public final class Regions {
@@ -626,7 +627,7 @@ public final class Regions {
 		final Iterator<L> it = locs.iterator();
 		final L first = it.next();
 		Location point = first.getLocation();
-		World world = point.getWorld();
+		Space space = point.getSpace();
 		ax = point.getX();
 		ay = point.getY();
 		z = point.getZ();
@@ -641,7 +642,7 @@ public final class Regions {
 			}
 		}
 		
-		return world.createLocation((int)ax/locs.size(), (int)ay/locs.size(), z);
+		return space.createLocation((int)ax/locs.size(), (int)ay/locs.size(), z);
 	}
 	
 	public static final Location findCenter(final Set<? extends Locatable> locs) {
@@ -653,32 +654,32 @@ public final class Regions {
 	public static final <L extends Locatable> Location findCenter(final L... locs) {
 		Objects.requireNonNull(locs);
 		int ax = 0, ay = 0, az = 0, counter = 0;
-		World world = null;
+		Space space = null;
 		for(final L loc : locs) {
 			if(loc == null) continue;
 			++counter;
 			final Location l = loc.getLocation();
-			world = l.getWorld();
+			space = l.getSpace();
 			ax += l.getX();
 			ay += l.getY();
 			az += l.getZ();
 		}
 		if(counter == 0) throw new IllegalArgumentException("Cannot find the center of empty or all null array.");
-		return world.createLocation(ax/counter, ay/counter, az/counter);
+		return space.createLocation(ax/counter, ay/counter, az/counter);
 	}
 	
 	private static final Location computeFindCenter(final Set<? extends Locatable> locs) {
 		long ax = 0, ay = 0, az = 0;
 		if(locs.isEmpty() || (locs.size() == 1) && locs.contains(null)) new IllegalArgumentException("Cannot find the center of null, empty or just null containing set.");
-		World world = null;
+		Space space = null;
 		for(final Locatable loc : locs) {
 			final Location point = loc.getLocation();
-			world = point.getWorld();
+			space = point.getSpace();
 			ax += point.getX();
 			ay += point.getY();
 			az += point.getZ();
 		}
-		return world.createLocation((int)ax/locs.size(), (int)ay/locs.size(), (int)az/locs.size());
+		return space.createLocation((int)ax/locs.size(), (int)ay/locs.size(), (int)az/locs.size());
 	}
 	
 	public static final boolean isProperSubSet(final PollableRegion a, final PollableRegion b) {

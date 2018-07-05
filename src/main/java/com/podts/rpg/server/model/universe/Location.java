@@ -49,7 +49,7 @@ public abstract class Location implements Locatable {
 	}
 	
 	@Override
-	public abstract World getWorld();
+	public abstract Space getSpace();
 	
 	public abstract int getX();
 	public abstract int getY();
@@ -60,7 +60,7 @@ public abstract class Location implements Locatable {
 	@Override
 	public final double distance(final Locatable other) {
 		if(other == null) throw new IllegalArgumentException("Cannot calculate distance between a null Location.");
-		if(!getWorld().equals(other.getWorld())) throw new IllegalArgumentException("Cannot calculate distance between points in different worlds.");
+		if(!getSpace().equals(other.getSpace())) throw new IllegalArgumentException("Cannot calculate distance between points in different worlds.");
 		final Location otherPoint = other.getLocation();
 		if(getZ() != otherPoint.getZ()) throw new IllegalArgumentException("Cannot calculate distance between points in different Z planes.");
 		return distance(otherPoint);
@@ -68,7 +68,7 @@ public abstract class Location implements Locatable {
 	
 	public final int WalkingDistance(final Locatable other) {
 		if(other == null) throw new IllegalArgumentException("Cannot calculate walking distance between a null Location.");
-		if(!getWorld().equals(other.getWorld())) throw new IllegalArgumentException("Cannot calculate walking distance between points in different worlds.");
+		if(!getSpace().equals(other.getSpace())) throw new IllegalArgumentException("Cannot calculate walking distance between points in different worlds.");
 		final Location otherPoint = other.getLocation();
 		if(getZ() != otherPoint.getZ()) throw new IllegalArgumentException("Cannot calculate walking distance between points in different Z planes.");
 		return walkingDistance(otherPoint);
@@ -89,7 +89,7 @@ public abstract class Location implements Locatable {
 	
 	@Override
 	public String toString() {
-		return "[ " + getWorld().getName() + " | " + getX() + ", " + getY() + ", " + getZ() + "]";
+		return "[ " + getSpace() + " | " + getX() + ", " + getY() + ", " + getZ() + "]";
 	}
 	
 	protected Location() {
