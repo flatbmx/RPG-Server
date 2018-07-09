@@ -8,6 +8,7 @@ import com.podts.rpg.server.Player;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Plane;
 import com.podts.rpg.server.model.universe.Space;
 import com.podts.rpg.server.model.universe.Tile;
 
@@ -33,14 +34,21 @@ public interface PollableRegion extends Region, Iterable<Location> {
 				.distinct();
 	}
 	
+	public default Stream<Plane> planes() {
+		return points()
+				.map(Location::getPlane)
+				.distinct();
+	}
+	
 	public default Stream<Tile> tiles() {
 		return points()
 				.map(point -> point.getSpace().getTile(point));
 	}
 	
 	public default Stream<Entity> entities() {
-		return points()
-				.flatMap(point -> point.getSpace().entities(point));
+		return spaces()
+				.flatMap(Space::entities)
+				.filter(this::contains);
 	}
 	
 	public default Stream<Player> players() {

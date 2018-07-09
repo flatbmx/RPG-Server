@@ -1,6 +1,6 @@
 package com.podts.rpg.server.model.universe;
 
-public abstract class Location implements Locatable {
+public abstract class Location implements Locatable, Cloneable {
 	
 	public enum Direction {
 		UP(0,-1),
@@ -51,11 +51,17 @@ public abstract class Location implements Locatable {
 	@Override
 	public abstract Space getSpace();
 	
+	public Plane getPlane() {
+		return getSpace().getPlane(getZ());
+	}
+	
 	public abstract int getX();
 	public abstract int getY();
 	public abstract int getZ();
 	
-	public abstract Location move(int dx, int dy, int dz);
+	public Location move(int dx, int dy, int dz) {
+		return getSpace().createLocation(getX() + dx, getY() + dy, getZ() + dz);
+	}
 	
 	@Override
 	public final double distance(final Locatable other) {
@@ -90,6 +96,11 @@ public abstract class Location implements Locatable {
 	@Override
 	public String toString() {
 		return "[ " + getSpace() + " | " + getX() + ", " + getY() + ", " + getZ() + "]";
+	}
+	
+	@Override
+	public Location clone() {
+		return getSpace().createLocation(getX(), getY(), getZ());
 	}
 	
 	protected Location() {

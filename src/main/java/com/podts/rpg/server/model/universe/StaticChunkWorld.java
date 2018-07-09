@@ -151,6 +151,7 @@ public final class StaticChunkWorld extends World {
 			return getEntities().stream();
 		}
 		
+		@Override
 		public Stream<Player> players() {
 			return players.values().stream();
 		}
@@ -219,31 +220,35 @@ public final class StaticChunkWorld extends World {
 	private final class ChunkPlane extends Plane {
 		
 		private final Map<ChunkCoordinate,Chunk> chunks = new HashMap<>();
-		private boolean generated = false;
 		
 		Chunk getOrCreateChunk(ChunkCoordinate coord) {
-			Chunk chunk = chunks.get(coord);
-			if(chunk == null) {
-				chunk = new Chunk(coord);
-				chunks.put(coord, chunk);
-			}
-			return chunk;
+			return chunks.computeIfAbsent(coord, (c) -> new Chunk(c));
 		}
 		
 		Stream<Chunk> chunks() {
 			return chunks.values().stream();
 		}
 		
+		Stream<Chunk> generatedChunks() {
+			return chunks()
+					.filter(Chunk::isGenerated);
+		}
+		
 		@Override
 		public Collection<Tile> getTiles() {
 			return tiles()
-					.collect(Collectors.toList());
+					.collect(Collectors.toSet());
 		}
 		
 		@Override
 		public Stream<Tile> tiles() {
-			return chunks()
+			return generatedChunks()
 					.flatMap(Chunk::tiles);
+		}
+		
+		public Stream<Entity> entities() {
+			return generatedChunks()
+					.flatMap(Chunk::entities);
 		}
 		
 		@Override
@@ -251,7 +256,7 @@ public final class StaticChunkWorld extends World {
 			return StaticChunkWorld.this;
 		}
 		
-		private ChunkPlane(int z) {
+		private ChunkPlane(final int z) {
 			super(z);
 		}
 		
@@ -399,6 +404,11 @@ public final class StaticChunkWorld extends World {
 				.flatMap(ChunkPlane::chunks);
 	}
 	
+	public Stream<Chunk> generatedChunks() {
+		return chunks()
+				.filter(Chunk::isGenerated);
+	}
+	
 	@Override
 	public Stream<ChunkPlane> planes() {
 		return planes.values().stream();
@@ -409,17 +419,8 @@ public final class StaticChunkWorld extends World {
 		return planes.get(z);
 	}
 	
-	public Stream<Chunk> generatedChunks(Stream<Chunk> stream) {
-		return stream.peek(chunk -> checkGenerateChunk(chunk));
-	}
-	
 	private ChunkPlane getOrCreatePlane(int z) {
-		ChunkPlane plane = planes.get(z);
-		if(plane == null) {
-			plane = new ChunkPlane(z);
-			planes.put(z, plane);
-		}
-		return plane;
+		return planes.computeIfAbsent(z, (h) -> new ChunkPlane(h));
 	}
 	
 	public Stream<Chunk> chunks(int z) {
@@ -430,13 +431,7 @@ public final class StaticChunkWorld extends World {
 	
 	@Override
 	public Stream<Tile> tiles() {
-		return chunks()
-				.flatMap(Chunk::tiles);
-	}
-	
-	@Override
-	public Stream<Tile> tiles(int z) {
-		return chunks(z)
+		return generatedChunks()
 				.flatMap(Chunk::tiles);
 	}
 	

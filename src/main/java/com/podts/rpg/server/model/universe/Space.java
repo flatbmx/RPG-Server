@@ -32,6 +32,11 @@ public abstract class Space {
 				.flatMap(Plane::tiles);
 	}
 	
+	public boolean hasTile(Location point) {
+		return tiles()
+				.anyMatch(t -> t.isAt(point));
+	}
+	
 	public Stream<Tile> tiles(int... z) {
 		return Arrays.stream(z)
 				.mapToObj(this::getPlane)

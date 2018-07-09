@@ -36,8 +36,10 @@ public final class RectangleTileSelction extends TileSelection {
 		return tiles[0][0].getLocation();
 	}
 	
+	@Override
 	public Stream<Tile> tiles() {
-		return Arrays.stream(tiles).flatMap(Arrays::stream);
+		return Arrays.stream(tiles)
+				.flatMap(Arrays::stream);
 	}
 	
 	public RectangleTileSelction(Tile[][] tiles) {

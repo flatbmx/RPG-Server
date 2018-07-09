@@ -19,7 +19,15 @@ public abstract class Plane extends IncompleteRegion implements HasSpace {
 		return getTiles().stream();
 	}
 	
-	public Location createLocation(int x, int y) {
+	public Tile getTile(Location point) {
+		if(!contains(point)) return null;
+		return tiles()
+				.filter(t -> t.isAt(point))
+				.findAny()
+				.orElse(null);
+	}
+	
+	public final Location createLocation(int x, int y) {
 		return getSpace().createLocation(x, y, getZ());
 	}
 	
