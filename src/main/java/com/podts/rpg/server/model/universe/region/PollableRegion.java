@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
+import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Plane;
 import com.podts.rpg.server.model.universe.Space;
@@ -24,8 +25,14 @@ public interface PollableRegion extends Region, Iterable<Location> {
 	 */
 	public Collection<Location> getPoints();
 	
-	public default Stream<Location> points() {
+	public default Stream<? extends Location> points() {
 		return getPoints().stream();
+	}
+	
+	@Override
+	public default boolean contains(Locatable l) {
+		return points()
+				.anyMatch(l::isAt);
 	}
 	
 	public default Stream<Space> spaces() {

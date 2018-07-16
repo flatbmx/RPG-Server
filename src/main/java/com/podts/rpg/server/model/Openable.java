@@ -1,6 +1,6 @@
 package com.podts.rpg.server.model;
 
-public interface Door {
+public interface Openable {
 	
 	public boolean isOpen();
 	
@@ -8,14 +8,14 @@ public interface Door {
 		return !isOpen();
 	}
 	
-	public Door setOpen(boolean open);
+	public Openable setOpen(boolean open);
 	
-	public default Door open() {
+	public default Openable open() {
 		if(isClosed()) setOpen(true);
 		return this;
 	}
 	
-	public default Door close() {
+	public default Openable close() {
 		if(isOpen()) setOpen(false);
 		return this;
 	}

@@ -22,7 +22,7 @@ public interface EllipticalRegion extends CenteredRegion, PollableRegion {
 		final Location center = getCenter();
 		for( int dy = -getYRadius(); dy <= getYRadius(); ++dy) {
 			for( int dx = -getXRadius(); dx <= getXRadius(); ++dx) {
-				final Location point = center.move(dx, dy, 0);
+				final Location point = center.shift(dx, dy, 0);
 				if(contains(point))
 					result.add(point);
 			}

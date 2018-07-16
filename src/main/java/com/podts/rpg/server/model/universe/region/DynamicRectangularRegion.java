@@ -41,11 +41,6 @@ class DynamicRectangularRegion extends SimpleRegion implements RectangularRegion
 		}
 		return result;
 	}
-	
-	@Override
-	public Location getCenter() {
-		return Regions.findCenter(corner1, corner2);
-	}
 
 	@Override
 	public List<Location> getCorners() {
@@ -53,9 +48,9 @@ class DynamicRectangularRegion extends SimpleRegion implements RectangularRegion
 		final List<Location> result = Arrays.asList(new Location[4]);
 		
 		result.set(0, twoCorners[0]);
-		result.set(1, twoCorners[0].move(findXWidth(twoCorners), 0, 0));
+		result.set(1, twoCorners[0].shift(findXWidth(twoCorners), 0, 0));
 		result.set(2, twoCorners[1]);
-		result.set(3, twoCorners[0].move(0, findYWidth(twoCorners), 0));
+		result.set(3, twoCorners[0].shift(0, findYWidth(twoCorners), 0));
 		
 		return result;
 	}

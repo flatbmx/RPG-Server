@@ -21,7 +21,7 @@ public abstract class TileSelection implements Iterable<Tile> {
 	
 	public boolean contains(Locatable point) {
 		return tiles()
-				.anyMatch(tile -> tile.isAt(point));
+				.anyMatch(point::isAt);
 	}
 	
 	public final TileSelection merge(final TileSelection other) {

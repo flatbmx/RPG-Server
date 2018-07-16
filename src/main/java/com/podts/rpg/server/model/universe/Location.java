@@ -32,7 +32,7 @@ public abstract class Location implements Locatable, Cloneable {
 		}
 		
 		public Location MoveFromLocation(Location origin) {
-			return origin.move(dx, dy, 0);
+			return origin.shift(dx, dy, 0);
 		}
 		
 		private Direction(int dx, int dy) {
@@ -49,18 +49,18 @@ public abstract class Location implements Locatable, Cloneable {
 	}
 	
 	@Override
-	public abstract Space getSpace();
-	
-	public Plane getPlane() {
-		return getSpace().getPlane(getZ());
-	}
+	public abstract Plane getPlane();
 	
 	public abstract int getX();
 	public abstract int getY();
 	public abstract int getZ();
 	
-	public Location move(int dx, int dy, int dz) {
+	public Location shift(final int dx, final int dy, final int dz) {
 		return getSpace().createLocation(getX() + dx, getY() + dy, getZ() + dz);
+	}
+	
+	public Location shift(final int dx, final int dy) {
+		return shift(dx, dy, 0);
 	}
 	
 	@Override

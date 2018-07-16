@@ -21,7 +21,7 @@ public interface TorusRegion extends CenteredRegion, PollableRegion {
 		final Set<Location> points = new HashSet<Location>();
 		for(int dy=-getOuterRadius(); dy <= getOuterRadius(); ++dy) {
 			for(int dx=-getOuterRadius(); dx <= getOuterRadius(); ++dx) {
-				final Location point = getCenter().move(dx, dy, 0);
+				final Location point = getCenter().shift(dx, dy, 0);
 				if(contains(point)) points.add(point);
 			}
 		}

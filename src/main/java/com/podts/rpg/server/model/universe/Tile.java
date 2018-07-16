@@ -39,6 +39,14 @@ public class Tile implements Registerable, Locatable {
 		return location;
 	}
 	
+	public final boolean isVoid() {
+		return TileType.VOID.equals(getType());
+	}
+	
+	public final boolean isNotVoid() {
+		return !isVoid();
+	}
+	
 	public final boolean isTraversable() {
 		return type.isTraversable();
 	}

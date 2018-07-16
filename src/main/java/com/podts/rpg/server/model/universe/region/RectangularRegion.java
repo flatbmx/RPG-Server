@@ -1,19 +1,38 @@
 package com.podts.rpg.server.model.universe.region;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 
-public interface RectangularRegion extends CenteredRegion, PolygonRegion {
+public interface RectangularRegion extends PolygonRegion {
 	
 	public static enum Corner {
-		TOP_LEFT(-1,-1),
-		TOP_RIGHT(1,-1),
+		TOP_LEFT(0,0),
+		TOP_RIGHT(1,0),
 		BOTTOM_RIGHT(1,1),
-		BOTTOM_LEFT(-1,1);
+		BOTTOM_LEFT(0,1);
 		
-		protected final int dx, dy;
+		private static final List<Corner> values;
+		private final int dx, dy;
+		
+		static {
+			values = Arrays.asList(Corner.values());
+		}
+		
+		public static final Stream<Corner> stream() {
+			return values.stream();
+		}
+		
+		public final int getX() {
+			return dx;
+		}
+		
+		public final int getY() {
+			return dy;
+		}
 		
 		private Corner(final int dx, final int dy) {
 			this.dx = dx;
@@ -25,12 +44,11 @@ public interface RectangularRegion extends CenteredRegion, PolygonRegion {
 	@Override
 	public default boolean contains(Locatable loc) {
 		Location l = loc.getLocation();
-		if(Math.abs(getCenter().getX() - l.getX()) > getXWidth()) return false;
-		if(Math.abs(getCenter().getY() - l.getY()) > getYWidth()) return false;
+		Location topLeft = getCorner(Corner.TOP_LEFT);
+		if(Math.abs(topLeft.getX() - l.getX()) > getXWidth()) return false;
+		if(Math.abs(topLeft.getY() - l.getY()) > getYWidth()) return false;
 		return true;
 	}
-	
-	public List<Location> getCorners();
 	
 	public default Location getCorner(Corner c) {
 		return getCorners().get(c.ordinal());

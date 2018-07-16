@@ -3,8 +3,9 @@ package com.podts.rpg.server.model.entity;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Location.Direction;
 
-public abstract class LivingHumanoid extends AnimalEntity implements Mammal, CanSee {
+public abstract class LivingHumanoid extends AnimalEntity implements Walkable, Mammal, CanSee {
 	
 	private double viewingDistance;
 	
@@ -23,9 +24,15 @@ public abstract class LivingHumanoid extends AnimalEntity implements Mammal, Can
 		return this;
 	}
 	
-	public boolean sees(Locatable loc) {
+	public boolean canSee(Locatable loc) {
 		if(!isInPlane(loc)) return false;
 		return isInRange(loc, getViewingDistance());
+	}
+	
+	@Override
+	public LivingHumanoid walk(Direction direction) {
+		move(direction);
+		return this;
 	}
 	
 	public LivingHumanoid(String name, EntityType type, Location loc, double viewingDistance) {

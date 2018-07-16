@@ -1,5 +1,6 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.MoveType;
@@ -11,6 +12,11 @@ public class Spaces {
 	private static class UnRegisterableSpace extends Space {
 		
 		private final Space space;
+		
+		@Override
+		public Collection<? extends Plane> getPlanes() {
+			return space.getPlanes();
+		}
 		
 		@Override
 		public Location createLocation(int x, int y, int z) {

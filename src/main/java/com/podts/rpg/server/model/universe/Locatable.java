@@ -1,12 +1,12 @@
 package com.podts.rpg.server.model.universe;
 
-public interface Locatable extends HasSpace {
+public interface Locatable extends HasPlane {
 	
 	public Location getLocation();
 	
 	@Override
-	public default Space getSpace() {
-		return getLocation().getSpace();
+	public default Plane getPlane() {
+		return getLocation().getPlane();
 	}
 	
 	public default double distance(Locatable o) {
@@ -43,13 +43,28 @@ public interface Locatable extends HasSpace {
 		return getLocation().getZ() == z;
 	}
 	
+	public default boolean isInPlane(Plane plane) {
+		return getPlane().equals(plane);
+	}
+	
 	public default boolean isInPlane(Locatable l) {
-		return isInPlane(l.getLocation().getZ());
+		return isInPlane(l.getLocation().getZ()) &&
+				isInSameSpace(l);
 	}
 	
 	public default boolean isBetweenPlanes(int minZ, int maxZ) {
+		if(minZ > maxZ) {
+			int tempZ = minZ;
+			minZ = maxZ;
+			maxZ = tempZ;
+		}
 		return getLocation().getZ() >= minZ &&
 				getLocation().getZ() <= maxZ;
 	}
 	
+	
+	public default boolean isBetweenPlanes(Plane a, Plane b) {
+		if(!a.isInSameSpace(b)) return false;
+		return isBetweenPlanes(a.getZ(), b.getZ());
+	}
 }

@@ -342,7 +342,7 @@ public abstract class World extends Space {
 	protected abstract World doMoveEntity(Entity entity, Location newLocation, MoveType type);
 	
 	final Location moveEntity(Entity entity, MoveType type, int dx, int dy, int dz) {
-		Location result = entity.getLocation().move(dx, dy, dz);
+		Location result = entity.getLocation().shift(dx, dy, dz);
 		moveEntity(entity, result, type);
 		return result;
 	}

@@ -64,11 +64,6 @@ public final class Regions {
 	private static final RectangularRegion emptyRectangularRegion = new RectangularRegion() {
 
 		@Override
-		public Location getCenter() {
-			return null;
-		}
-
-		@Override
 		public Collection<RegionListener> getRegionListeners() {
 			return null;
 		}
@@ -465,7 +460,7 @@ public final class Regions {
 			final Location point = pointQueue.poll();
 			for(int dy=-1; dy < 2; ++dy) {
 				for(int dx=-1; dx < 2; ++dx) {
-					final Location newPoint = point.move(dx, dy, 0);
+					final Location newPoint = point.shift(dx, dy, 0);
 					if(leftOverPoints.remove(newPoint)) {
 						pointQueue.add(newPoint);
 					}
@@ -512,7 +507,7 @@ public final class Regions {
 				island.add(point);
 				for(int dy=-1; dy < 2; ++dy) {
 					for(int dx=-1; dx < 2; ++dx) {
-						final Location newPoint = point.move(dx, dy, 0);
+						final Location newPoint = point.shift(dx, dy, 0);
 						if(leftOverPoints.remove(newPoint)) {
 							pointQueue.add(newPoint);
 						}
@@ -532,7 +527,7 @@ public final class Regions {
 			for(final Location point : island) {
 				for(int dx=-1; dx<=1; ++dx) {
 					for(int dy=-1; dy<=1; ++dy) {
-						final Location newPoint = point.move(dx, dy, 0);
+						final Location newPoint = point.shift(dx, dy, 0);
 						if(!points.contains(newPoint)) result.add(newPoint);
 					}
 				}
@@ -561,7 +556,7 @@ public final class Regions {
 			for(int dx=-1; dx<=1; ++dx) {
 				for(int dy=-1; dy<=1; ++dy) {
 					if(dx == 0 && dy == 0) continue;
-					final Location possiblePoint = point.move(dx, dy, 0);
+					final Location possiblePoint = point.shift(dx, dy, 0);
 					if(edges.contains(possiblePoint)) {
 						dirX = dx;
 						dirY = dy;
@@ -576,7 +571,7 @@ public final class Regions {
 			if(dirX == 0 && dirY == 0) return result;
 			
 			do{
-				point = point.move(dirX, dirY, 0);
+				point = point.shift(dirX, dirY, 0);
 				edges.remove(point);
 			} while(edges.contains(point));
 			result.add(point);
@@ -780,7 +775,9 @@ public final class Regions {
 	public static final RectangularRegion constructRectangularRegion(final Locatable a, final Locatable b, final boolean dynamic) {
 		if(a == null || b == null) return getEmptyRectangularRegion();
 		if(dynamic) return new DynamicRectangularRegion(a,b);
-		return new StaticRectangularRegion(a,b);
+		//TODO implement me
+		return null;
+		//return new StaticRectangularRegion(a,b);
 	}
 	
 	public static final SetRegion constructSetRegion(final Locatable... points) {

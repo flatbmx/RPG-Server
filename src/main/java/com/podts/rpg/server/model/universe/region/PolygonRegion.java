@@ -7,9 +7,9 @@ import com.podts.rpg.server.model.universe.Location;
 
 public interface PolygonRegion extends Region {
 	
-	public List<Location> getCorners();
+	public List<? extends Location> getCorners();
 	
-	public default Stream<Location> corners() {
+	public default Stream<? extends Location> corners() {
 		return getCorners().stream();
 	}
 	
