@@ -45,16 +45,16 @@ public final class StaticChunkWorld extends World {
 	private final int chunkSize;
 	private final int chunkDepth;
 	
-	private ChunkPlane bottom, top;
+	private ChunkPlane bottomPlane, topPlane;
 	
 	@Override
 	public ChunkPlane getTopPlane() {
-		return top;
+		return topPlane;
 	}
 	
 	@Override
 	public ChunkPlane getBottomPlane() {
-		return bottom;
+		return bottomPlane;
 	}
 	
 	private final static class ChunkCoordinate {
@@ -290,14 +290,6 @@ public final class StaticChunkWorld extends World {
 			return equals(loc.getChunk());
 		}
 		
-		protected Chunk(final ChunkPlane plane, final ChunkCoordinate coord) {
-			this.plane = plane;
-			this.coord = coord;
-			int x = coord.x * getChunkSize() - (getChunkSize()-1)/2;
-			int y = coord.y * getChunkSize() - (getChunkSize()-1)/2;
-			topLeft = new CLocation(this, x, y, coord.z);
-		}
-
 		@Override
 		public List<CLocation> getCorners() {
 			return corners()
@@ -314,6 +306,14 @@ public final class StaticChunkWorld extends World {
 		public CLocation getCorner(Corner c) {
 			if(Corner.TOP_LEFT.equals(c)) return topLeft;
 			return new CLocation(this, topLeft.getX() + chunkSize()*c.getX(), topLeft.getY() + chunkSize()*c.getY(), getZ());
+		}
+		
+		protected Chunk(final ChunkPlane plane, final ChunkCoordinate coord) {
+			this.plane = plane;
+			this.coord = coord;
+			int x = coord.x * getChunkSize() - (getChunkSize()-1)/2;
+			int y = coord.y * getChunkSize() - (getChunkSize()-1)/2;
+			topLeft = new CLocation(this, x, y, coord.z);
 		}
 		
 	}
@@ -336,12 +336,12 @@ public final class StaticChunkWorld extends World {
 		
 		@Override
 		public boolean isTop() {
-			return equals(getTopPlane());
+			return getZ() == getTopPlane().getZ();
 		}
 		
 		@Override
 		public boolean isBottom() {
-			return equals(getBottomPlane());
+			return getZ() == getBottomPlane().getZ();
 		}
 		
 		Chunk getOrCreateChunk(final ChunkCoordinate coord) {
@@ -554,12 +554,12 @@ public final class StaticChunkWorld extends World {
 	private ChunkPlane getOrCreatePlane(final int z) {
 		ChunkPlane result = planes.computeIfAbsent(z, ChunkPlane::new);
 		if(getTopPlane() == null) {
-			top = result;
-			bottom = result;
+			topPlane = result;
+			bottomPlane = result;
 		} else if(result.isAbove(getTopPlane())) {
-			top = result;
+			topPlane = result;
 		} else if(result.isBelow(getBottomPlane())) {
-			bottom = result;
+			bottomPlane = result;
 		}
 		return result;
 	}

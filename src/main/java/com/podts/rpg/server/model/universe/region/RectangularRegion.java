@@ -1,6 +1,7 @@
 package com.podts.rpg.server.model.universe.region;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -19,7 +20,11 @@ public interface RectangularRegion extends PolygonRegion {
 		private final int dx, dy;
 		
 		static {
-			values = Arrays.asList(Corner.values());
+			values = Collections.unmodifiableList(Arrays.asList(Corner.values()));
+		}
+		
+		public static final List<Corner> getValues() {
+			return values;
 		}
 		
 		public static final Stream<Corner> stream() {
