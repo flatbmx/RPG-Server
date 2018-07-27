@@ -1,5 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.Comparator;
+
 public interface Locatable extends HasPlane {
 	
 	public Location getLocation();
@@ -15,6 +17,14 @@ public interface Locatable extends HasPlane {
 	
 	public default int walkingDistance(Locatable o) {
 		return getLocation().WalkingDistance(o.getLocation());
+	}
+	
+	public default Comparator<Locatable> getDistanceComparator() {
+		return getLocation().getDistanceComparator();
+	}
+	
+	public default Comparator<Locatable> getWalkingDistanceComparator() {
+		return getLocation().getWalkingDistanceComparator();
 	}
 	
 	public default boolean isInRange(Locatable o, double distance) {

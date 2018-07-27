@@ -42,7 +42,7 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 		return equals(getSpace().getBottomPlane());
 	}
 	
-	public final Plane shift(int dz) {
+	public Plane shift(int dz) {
 		return getSpace().getPlane(getZ() + dz);
 	}
 	

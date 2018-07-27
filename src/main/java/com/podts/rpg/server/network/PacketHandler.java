@@ -62,7 +62,7 @@ public final class PacketHandler {
 					System.out.println("Far");
 					return;
 				}
-				Direction dir = Direction.getFromLocations(pE.getLocation(), newLocation);
+				Direction dir = Direction.get(pE.getLocation(), newLocation);
 				if(dir == null) {
 					System.out.println("Diag");
 					//TODO Diagonal, not valid.

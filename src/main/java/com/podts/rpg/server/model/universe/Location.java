@@ -1,5 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.Comparator;
+
 public abstract class Location implements Locatable, Cloneable {
 	
 	public enum Direction {
@@ -19,20 +21,28 @@ public abstract class Location implements Locatable, Cloneable {
 			return dy;
 		}
 		
-		public static final Direction getFromLocations(Location first, Location second) {
+		public static final Direction get(Locatable first, Locatable second) {
+			return get(first.getLocation(), second.getLocation());
+		}
+		
+		public static final Direction get(Location first, Location second) {
 			int dx = second.getX() - first.getX();
 			int dy = second.getY() - first.getY();
 			if(dx != 0) dx = dx/Math.abs(dx);
 			if(dy != 0) dy = dy/Math.abs(dy);
 			if(dx != 0 && dy != 0) return null;
 			for(Direction dir : vals) {
-				if(dir.dx == dx && dir.dy == dy) return dir;
+				if(dir.getX() == dx && dir.getY() == dy) return dir;
 			}
 			return null;
 		}
 		
-		public Location MoveFromLocation(Location origin) {
-			return origin.shift(dx, dy, 0);
+		public final Location MoveFromLocation(Location origin, int distance) {
+			return origin.shift(getX() * distance, getY() * distance);
+		}
+		
+		public final Location MoveFromLocation(Location origin) {
+			return origin.shift(getX(), getY());
 		}
 		
 		private Direction(int dx, int dy) {
@@ -46,6 +56,24 @@ public abstract class Location implements Locatable, Cloneable {
 		CREATE(),
 		UPDATE(),
 		DESTROY();
+	}
+	
+	private class DistanceComparator implements Comparator<Locatable> {
+		
+		@Override
+		public int compare(Locatable a, Locatable b) {
+			return (int) (Location.this.distance(a) - Location.this.distance(b));
+		}
+		
+	}
+	
+	private class WalkingDistanceComparator implements Comparator<Locatable> {
+		
+		@Override
+		public int compare(Locatable a, Locatable b) {
+			return Location.this.walkingDistance(a) - Location.this.walkingDistance(b);
+		}
+		
 	}
 	
 	@Override
@@ -86,6 +114,14 @@ public abstract class Location implements Locatable, Cloneable {
 	
 	final int walkingDistance(final Location otherPoint) {
 		return Math.abs(getX() - otherPoint.getX()) + Math.abs(getY() - otherPoint.getY());
+	}
+	
+	public Comparator<Locatable> getDistanceComparator() {
+		return new DistanceComparator();
+	}
+	
+	public Comparator<Locatable> getWalkingDistanceComparator() {
+		return new WalkingDistanceComparator();
 	}
 	
 	@Override

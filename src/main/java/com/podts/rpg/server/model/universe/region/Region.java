@@ -20,7 +20,7 @@ public interface Region {
 	 */
 	public Collection<? extends RegionListener> getRegionListeners();
 	
-	public default Stream<? extends RegionListener> listeners() {
+	public default Stream<? extends RegionListener> regionListeners() {
 		return getRegionListeners().stream();
 	}
 	

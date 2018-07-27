@@ -32,7 +32,7 @@ public class CompleteLocation extends SimpleLocation {
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public final boolean equals(Object o) {
 		if(o == null) return false;
 		if(o == this) return true;
 		if(o instanceof Location) {

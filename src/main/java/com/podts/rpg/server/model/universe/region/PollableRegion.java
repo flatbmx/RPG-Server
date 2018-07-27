@@ -2,6 +2,7 @@ package com.podts.rpg.server.model.universe.region;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
@@ -49,7 +50,8 @@ public interface PollableRegion extends Region, Iterable<Location> {
 	
 	public default Stream<Tile> tiles() {
 		return points()
-				.map(point -> point.getSpace().getTile(point));
+				.map(point -> point.getSpace().getTile(point))
+				.filter(Objects::nonNull);
 	}
 	
 	public default Stream<Entity> entities() {

@@ -1,10 +1,14 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.Objects;
+
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 
-public abstract class Entity implements Registerable, Locatable {
+public abstract class Entity implements Registerable, MovableFacable {
+	
+	public static final Direction DEFAULT_FACE = Direction.UP;
 	
 	private static int nextID;
 	
@@ -12,6 +16,7 @@ public abstract class Entity implements Registerable, Locatable {
 	private String name;
 	private final EntityType type;
 	private Location location;
+	private Direction face;
 	
 	public final int getID() {
 		return id;
@@ -30,18 +35,38 @@ public abstract class Entity implements Registerable, Locatable {
 		return location;
 	}
 	
-	public final Entity move(int dx, int dy, int dz) {
+	final Entity setLocation(Location newLocation) {
+		location = newLocation;
+		return this;
+	}
+	
+	@Override
+	public Direction getFacingDirection() {
+		return face;
+	}
+	
+	@Override
+	public Entity face(final Direction dir) {
+		Objects.requireNonNull(dir, "Cannot make Entity face null Direction!");
+		face = dir;
+		return this;
+	}
+	
+	@Override
+	public final Entity move(final int dx, final int dy, final int dz) {
 		getSpace().moveEntity(this, MoveType.UPDATE, dx, dy, dz);
 		return this;
 	}
 	
-	public final Entity move(Direction dir) {
-		getSpace().moveEntity(this, dir);
+	@Override
+	public final Entity move(final int dx, final int dy) {
+		MovableFacable.super.move(dx, dy);
 		return this;
 	}
 	
-	final Entity setLocation(Location newLocation) {
-		location = newLocation;
+	@Override
+	public final Entity move(final Direction dir) {
+		MovableFacable.super.move(dir);
 		return this;
 	}
 	
@@ -61,18 +86,24 @@ public abstract class Entity implements Registerable, Locatable {
 		getSpace().deRegister(this);
 	}
 	
-	public Entity(EntityType type, Location loc) {
-		id = nextID++;
-		name = type.name();
-		this.type = type;
-		location = loc;
-	}
-	
-	public Entity(String name, EntityType type, Location loc) {
+	public Entity(String name, EntityType type, Location loc, Direction face) {
 		id = nextID++;
 		this.name = name;
 		this.type = type;
 		this.location = loc;
+		this.face = face;
+	}
+	
+	public Entity(String name, EntityType type, Location loc) {
+		this(name, type, loc, DEFAULT_FACE);
+	}
+	
+	public Entity(EntityType type, Location loc, Direction face) {
+		this(type.name(), type, loc, face);
+	}
+	
+	public Entity(EntityType type, Location loc) {
+		this(type, loc, DEFAULT_FACE);
 	}
 	
 }
