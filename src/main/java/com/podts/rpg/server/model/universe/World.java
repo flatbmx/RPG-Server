@@ -292,6 +292,10 @@ public abstract class World extends Space {
 	
 	
 	protected final World moveEntity(final Entity entity, final Location newLoc, final MoveType type) {
+		
+		if(getTile(newLoc).isVoid())
+			return this;
+		
 		final Collection<Region>[] regionChanges = findRegionChanges(entity.getLocation(), newLoc);
 		
 		for(final Region r : regionChanges[0]) {

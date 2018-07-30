@@ -121,7 +121,11 @@ public abstract class Space implements HasSpace {
 				.orElse(null);
 	}
 	
-	public abstract Stream<PollableRegion> regions();
+	public Stream<PollableRegion> regions() {
+		return planes()
+				.flatMap(Plane::regions)
+				.distinct();
+	}
 	
 	public Stream<PollableRegion> regions(int z) {
 		Plane plane = getPlane(z);

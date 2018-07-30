@@ -1,16 +1,48 @@
 package com.podts.rpg.server.model.universe;
 
 import java.util.Comparator;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 public abstract class Location implements Locatable, Cloneable {
 	
 	public enum Direction {
 		UP(0,-1),
-		DOWN(0,1),
 		LEFT(-1,0),
+		DOWN(0,1),
 		RIGHT(1,0);
 		
 		private static final Direction[] vals = Direction.values();
+		
+		public static final Stream<Direction> stream() {
+			return Stream.of(vals);
+		}
+		
+		public static final Direction get(Locatable first, Locatable second) {
+			return get(first.getLocation(), second.getLocation());
+		}
+		
+		public static final Direction get(Location first, Location second) {
+			int dx = Integer.signum(second.getX() - first.getX());
+			int dy = Integer.signum(second.getY() - first.getY());
+			if((dx != 0 && dy != 0) ||
+					(dx == 0 && dy == 0)) return null;
+			for(Direction dir : vals) {
+				if(dir.getX() == dx && dir.getY() == dy) return dir;
+			}
+			return null;
+		}
+		
+		public static final Direction get(int dx, int dy) {
+			dx = Integer.signum(dx);
+			dy = Integer.signum(dy);
+			for(Direction d : vals) {
+				if(d.getX() == dx && d.getY() == dy)
+					return d;
+			}
+			return null;
+		}
+		
 		private final int dx, dy;
 		
 		public int getX() {
@@ -21,20 +53,8 @@ public abstract class Location implements Locatable, Cloneable {
 			return dy;
 		}
 		
-		public static final Direction get(Locatable first, Locatable second) {
-			return get(first.getLocation(), second.getLocation());
-		}
-		
-		public static final Direction get(Location first, Location second) {
-			int dx = second.getX() - first.getX();
-			int dy = second.getY() - first.getY();
-			if(dx != 0) dx = dx/Math.abs(dx);
-			if(dy != 0) dy = dy/Math.abs(dy);
-			if(dx != 0 && dy != 0) return null;
-			for(Direction dir : vals) {
-				if(dir.getX() == dx && dir.getY() == dy) return dir;
-			}
-			return null;
+		public final Direction convert(RelationalDirection d) {
+			return d.convert(this);
 		}
 		
 		public final Location MoveFromLocation(Location origin, int distance) {
@@ -48,6 +68,31 @@ public abstract class Location implements Locatable, Cloneable {
 		private Direction(int dx, int dy) {
 			this.dx = dx;
 			this.dy = dy;
+		}
+		
+	}
+	
+	public enum RelationalDirection {
+		
+		FORWARD(d -> d),
+		BACKWARD(d -> Direction.vals[(d.ordinal() + 2) % Direction.vals.length] ),
+		LEFT(d -> Direction.vals[(d.ordinal() + 1) % Direction.vals.length] ),
+		RIGHT(d -> Direction.vals[Math.floorMod(d.ordinal() - 1, Direction.vals.length)] );
+		
+		private static final RelationalDirection[] vals = RelationalDirection.values();
+		
+		public static final Stream<RelationalDirection> stream() {
+			return Stream.of(vals);
+		}
+		
+		private UnaryOperator<Direction> operator;
+		
+		public Direction convert(Direction d) {
+			return operator.apply(d);
+		}
+		
+		private RelationalDirection(UnaryOperator<Direction> operator) {
+			this.operator = operator;
 		}
 		
 	}
@@ -116,10 +161,12 @@ public abstract class Location implements Locatable, Cloneable {
 		return Math.abs(getX() - otherPoint.getX()) + Math.abs(getY() - otherPoint.getY());
 	}
 	
+	@Override
 	public Comparator<Locatable> getDistanceComparator() {
 		return new DistanceComparator();
 	}
 	
+	@Override
 	public Comparator<Locatable> getWalkingDistanceComparator() {
 		return new WalkingDistanceComparator();
 	}

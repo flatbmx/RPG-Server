@@ -1,6 +1,5 @@
 package com.podts.rpg.server.model.universe;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -209,8 +208,8 @@ public final class StaticChunkWorld extends World {
 		
 		public final Stream<Tile> allTiles() {
 			if(!isGenerated()) return Stream.empty();
-			return Arrays.stream(tiles)
-				.flatMap(Arrays::stream);
+			return Stream.of(tiles)
+				.flatMap(Stream::of);
 		}
 		
 		@Override
