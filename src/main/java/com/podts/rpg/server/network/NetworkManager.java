@@ -44,7 +44,7 @@ public abstract class NetworkManager {
 	
 	private NetworkStatus status;
 	private int port;
-	private final Set<BiConsumer<NetworkStatus,NetworkStatus>> statusHooks;
+	private final Set<NetworkStatusHook> statusHooks;
 	private final LinkedList<StreamListener> streamListeners = new LinkedList<>();
 	private final StreamListener veryLastStreamListener;
 	
@@ -81,7 +81,7 @@ public abstract class NetworkManager {
 		packet.setStream(networkStream);
 	}
 	
-	private final BiConsumer<ServerStatus,ServerStatus> serverOnlineHook = new BiConsumer<ServerStatus,ServerStatus>() {
+	private final Server.ServerStatusHook serverOnlineHook = new Server.ServerStatusHook() {
 		@Override
 		public void accept(ServerStatus oldStatus, ServerStatus newStatus) {
 			Server.get().removeStatusHook(this);
@@ -170,16 +170,14 @@ public abstract class NetworkManager {
 		if(veryLastStreamListener != null) veryLastStreamListener.onDisconnect(networkStream);
 	}
 	
-	public NetworkManager() {
-		status = NetworkStatus.OFFLINE;
-		statusHooks = new HashSet<BiConsumer<NetworkStatus,NetworkStatus>>();
-		veryLastStreamListener = null;
-	}
-	
 	public NetworkManager(StreamListener last) {
 		status = NetworkStatus.OFFLINE;
-		statusHooks = new HashSet<BiConsumer<NetworkStatus,NetworkStatus>>();
+		statusHooks = new HashSet<NetworkStatusHook>();
 		veryLastStreamListener = last;
+	}
+	
+	public NetworkManager() {
+		this(null);
 	}
 	
 }

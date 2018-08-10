@@ -1,5 +1,7 @@
 package com.podts.rpg.server;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -8,11 +10,11 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player.LogoutReason;
 import com.podts.rpg.server.account.AcceptingAccountLoader;
 import com.podts.rpg.server.command.CommandHandler;
-import com.podts.rpg.server.model.PlayerLoginListener;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.model.universe.Universe.WorldAlreadyExistsException;
 import com.podts.rpg.server.model.universe.generators.PerlinNoiseGenerator;
@@ -22,6 +24,11 @@ import com.podts.rpg.server.network.StreamListener;
 import com.podts.rpg.server.network.netty.NettyNetworkManager;
 
 public final class Server {
+	
+	@FunctionalInterface
+	public static interface ServerStatusHook extends BiConsumer<ServerStatus,ServerStatus> {
+		
+	}
 	
 	/**
 	 * Stores the instance of the server.
@@ -50,7 +57,7 @@ public final class Server {
 	private final Logger logger;
 	
 	private ServerStatus status;
-	private final Set<BiConsumer<ServerStatus,ServerStatus>> statusHooks;
+	private final Set<ServerStatusHook> statusHooks;
 	private final Set<PlayerLoginListener> playerLoginListeners = new HashSet<>();
 	private int networkListenPort;
 	
@@ -60,6 +67,7 @@ public final class Server {
 	
 	private final Player[] players;
 	private final Map<String,Player> playerNameMap = new HashMap<>();
+	private final Collection<Player> safePlayers = Collections.unmodifiableCollection(playerNameMap.values());
 	private final int MAX_PLAYERS = 100;
 	
 	private int currentPlayerID = 0;
@@ -89,23 +97,23 @@ public final class Server {
 		return status == ServerStatus.ONLINE;
 	}
 	
-	public boolean addStatusHook(BiConsumer<ServerStatus,ServerStatus> hook) {
+	public boolean addStatusHook(ServerStatusHook hook) {
 		if(hook == null) throw new IllegalArgumentException("Cannot add a null Shutdown Hook.");
 		return statusHooks.add(hook);
 	}
 	
-	public boolean removeStatusHook(BiConsumer<ServerStatus,ServerStatus> hook) {
+	public boolean removeStatusHook(ServerStatusHook hook) {
 		if(hook == null) throw new IllegalArgumentException("Cannot remove a null Shutdown Hook.");
 		return statusHooks.remove(hook);
 	}
 	
 	public boolean addPlayerLoginListener(PlayerLoginListener listener) {
-		if(listener == null) throw new IllegalArgumentException("Cannot add a null PlayerLoginListener.");
+		if(listener == null) throw new NullPointerException("Cannot add a null PlayerLoginListener.");
 		return playerLoginListeners.add(listener);
 	}
 	
 	public boolean removePlayerLoginListener(PlayerLoginListener listener) {
-		if(listener == null) throw new IllegalArgumentException("Cannot remove a null PlayerLoginListener.");
+		if(listener == null) throw new NullPointerException("Cannot remove a null PlayerLoginListener.");
 		return playerLoginListeners.remove(listener);
 	}
 	
@@ -135,14 +143,26 @@ public final class Server {
 		return null;
 	}
 	
+	public Collection<Player> getPlayers() {
+		return safePlayers;
+	}
+	
+	public Stream<Player> players() {
+		return getPlayers().stream();
+	}
+	
 	Player createPlayer(String username, String password) {
 		return new Player(getNewID(), username, password);
+	}
+	
+	void handleLogin(Player player) {
+		playerLoginListeners.forEach(l -> l.onLogin(player));
 	}
 	
 	public void logoutPlayer(Player player, LogoutReason reason) {
 		player.getEntity().deRegister();
 		for(PlayerLoginListener listener : playerLoginListeners) {
-			listener.onPlayerLogout(player, reason);
+			listener.onLogout(player, reason);
 		}
 		int id = player.getID();
 		players[id] = null;

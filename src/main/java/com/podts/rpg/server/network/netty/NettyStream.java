@@ -24,7 +24,7 @@ class NettyStream extends NioSocketChannel implements NetworkStream {
 			keyGenerator = KeyGenerator.getInstance("AES");
 			keyGenerator.init(128);
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			throw new AssertionError("JVM does not support AES!");
 		}
 	}
 	
@@ -46,7 +46,13 @@ class NettyStream extends NioSocketChannel implements NetworkStream {
 	
 	@Override
 	public void sendPacket(Packet p) {
-		this.writeAndFlush(p);
+		writeAndFlush(p);
+	}
+	
+	public void sendPacket(Packet... packets) {
+		for(Packet p : packets)
+			write(p);
+		flush();
 	}
 	
 	public final Channel getChannel() {

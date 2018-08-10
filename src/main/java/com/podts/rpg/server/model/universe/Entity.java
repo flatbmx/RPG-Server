@@ -6,7 +6,7 @@ import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 
-public abstract class Entity implements Registerable, MovableFacable {
+public abstract class Entity extends Spatial implements Registerable, MovableFacable {
 	
 	public static final Direction DEFAULT_FACE = Direction.UP;
 	
@@ -15,7 +15,6 @@ public abstract class Entity implements Registerable, MovableFacable {
 	private final int id;
 	private String name;
 	private final EntityType type;
-	private Location location;
 	private Direction face;
 	
 	public final int getID() {
@@ -28,16 +27,6 @@ public abstract class Entity implements Registerable, MovableFacable {
 	
 	public final String getName() {
 		return name;
-	}
-	
-	@Override
-	public final Location getLocation() {
-		return location;
-	}
-	
-	final Entity setLocation(Location newLocation) {
-		location = newLocation;
-		return this;
 	}
 	
 	@Override
@@ -87,10 +76,10 @@ public abstract class Entity implements Registerable, MovableFacable {
 	}
 	
 	public Entity(String name, EntityType type, Location loc, Direction face) {
+		super(loc);
 		id = nextID++;
 		this.name = name;
 		this.type = type;
-		this.location = loc;
 		this.face = face;
 	}
 	

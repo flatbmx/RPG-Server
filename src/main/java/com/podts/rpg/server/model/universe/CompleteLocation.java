@@ -17,13 +17,8 @@ public class CompleteLocation extends SimpleLocation {
 	}
 	
 	@Override
-	public CompleteLocation shift(final int dx, final int dy, final int dz) {
+	public CompleteLocation shift(int dx, int dy, int dz) {
 		return new CompleteLocation(space, x + dx, y + dy, z + dz);
-	}
-	
-	@Override
-	public CompleteLocation shift(final int dx, final int dy) {
-		return shift(dx, dy, 0);
 	}
 	
 	@Override
@@ -32,27 +27,13 @@ public class CompleteLocation extends SimpleLocation {
 	}
 	
 	@Override
-	public final boolean equals(Object o) {
-		if(o == null) return false;
-		if(o == this) return true;
-		if(o instanceof Location) {
-			Location other = (Location) o;
-			return isInSameSpace(other) &&
-					getX() == other.getX() &&
-					getY() == other.getY() &&
-					getZ() == other.getZ();
-		}
-		return false;
-	}
-	
-	@Override
 	public int hashCode() {
 		return Objects.hash(getSpace(), getX(), getY(), getZ());
 	}
 	
-	public CompleteLocation(final Space space, final int x, final int y, final int z) {
+	public CompleteLocation(Space space, int x, int y, int z) {
 		super(x, y, z);
-		this.space = space;
+		this.space = Objects.requireNonNull(space, "Cannot create CompleteLocation with a null Space!");
 	}
 	
 }

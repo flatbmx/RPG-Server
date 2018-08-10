@@ -5,19 +5,17 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import com.podts.rpg.server.AccountLoader;
-import com.podts.rpg.server.GameEngine;
-import com.podts.rpg.server.Player;
-import com.podts.rpg.server.Server;
 import com.podts.rpg.server.AccountLoader.AccountAlreadyExistsException;
 import com.podts.rpg.server.AccountLoader.AccountDoesNotExistException;
 import com.podts.rpg.server.AccountLoader.IncorrectPasswordException;
 import com.podts.rpg.server.AccountLoader.InvalidUsernameException;
-import com.podts.rpg.server.model.GameState;
+import com.podts.rpg.server.GameEngine;
+import com.podts.rpg.server.GameStates;
+import com.podts.rpg.server.Player;
+import com.podts.rpg.server.Server;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.Universe;
-import com.podts.rpg.server.model.universe.World;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.network.NetworkManager.NetworkStatus;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
@@ -25,27 +23,34 @@ import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
-import com.podts.rpg.server.network.packet.PlayerInitPacket;
+import com.podts.rpg.server.network.packet.MessagePacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
-import com.podts.rpg.server.network.packet.StatePacket;
 
 public final class PacketHandler {
 	
-	private static final Map<Class<? extends Packet>,BiConsumer<NetworkStream,Packet>> handlers;
+	@FunctionalInterface
+	public static interface PacketConsumer extends BiConsumer<NetworkStream,Packet> {}
+	
+	private static final Map<Class<? extends Packet>,PacketConsumer> handlers;
 	
 	static {
 		handlers = new HashMap<>();
 		
-		handlers.put(RSAHandShakePacket.class, new BiConsumer<NetworkStream,Packet>() {
-			@Override
-			public void accept(NetworkStream networkStream, Packet packet) {
-				RSAHandShakePacket rsaPacket = (RSAHandShakePacket) packet;				
-				AESReplyPacket reply = new AESReplyPacket(rsaPacket.getPublicKey(), networkStream.getSecretKey());
-				networkStream.sendPacket(reply);
+		handlers.put(RSAHandShakePacket.class, (stream, oldPacket) -> {
+				RSAHandShakePacket packet = (RSAHandShakePacket) oldPacket;
+				AESReplyPacket reply = new AESReplyPacket(packet.getPublicKey(), stream.getSecretKey());
+				stream.sendPacket(reply);
 			}
-		});
+		);
 		
-		handlers.put(EntityPacket.class, new BiConsumer<NetworkStream,Packet>() {
+		handlers.put(MessagePacket.class, (stream, oldPacket) -> {
+				MessagePacket packet = (MessagePacket) oldPacket;
+				if(packet.hasSender())
+					Server.get().getCommandHandler().execute(packet.getSender(), packet.getMessage());
+			}
+		);
+		
+		handlers.put(EntityPacket.class, new PacketConsumer() {
 			@Override
 			public void accept(NetworkStream s, Packet packet) {
 				EntityPacket p = (EntityPacket) packet;
@@ -72,7 +77,7 @@ public final class PacketHandler {
 			}
 		});
 		
-		handlers.put(LoginPacket.class, new BiConsumer<NetworkStream,Packet>() {
+		handlers.put(LoginPacket.class, new PacketConsumer() {
 			@Override
 			public void accept(NetworkStream networkStream, Packet oldPacket) {
 				LoginPacket packet = (LoginPacket) oldPacket;
@@ -90,7 +95,7 @@ public final class PacketHandler {
 				LoginResponseType responseType = null;
 				
 				
-				
+				//TODO do NOT use exceptions for program flow.
 				try {
 					
 					AccountLoader loader = Server.get().getAccountLoader();
@@ -120,17 +125,14 @@ public final class PacketHandler {
 				
 				networkStream.sendPacket(new LoginResponsePacket(responseType, response));
 
-				if(responseType.equals(LoginResponseType.DECLINE)) {
+				if(LoginResponseType.DECLINE.equals(responseType)) {
 					networkStream.closeStream();
 					return;
 				}
-
-				World world = Universe.get().getDefaultWorld();
-				player.setStream(networkStream);
-				player.sendPacket(new PlayerInitPacket(player));
-				world.register(player.getEntity());
 				
-				networkStream.sendPacket(new StatePacket(GameState.PLAYING));
+				//Login is accepted
+				player.setStream(networkStream);
+				player.changeGameState(GameStates.LOGGING_IN);
 				
 			}
 		});
@@ -139,7 +141,7 @@ public final class PacketHandler {
 	
 	public static void handlePacket(Packet packet) {
 		
-		BiConsumer<NetworkStream,Packet> handler = handlers.get(packet.getClass());
+		PacketConsumer handler = handlers.get(packet.getClass());
 		
 		final NetworkStream networkStream = packet.getOrigin();
 		
@@ -153,18 +155,22 @@ public final class PacketHandler {
 	}
 	
 	private static final class PacketRunner implements Runnable {
+		
 		private final Packet packet;
 		private final NetworkStream networkStream;
-		private final BiConsumer<NetworkStream,Packet> handler;
+		private final PacketConsumer handler;
+		
 		@Override
 		public void run() {
 			handler.accept(networkStream, packet);
 		}
-		PacketRunner(BiConsumer<NetworkStream,Packet> handler, Packet packet, NetworkStream networkStream) {
+		
+		private PacketRunner(PacketConsumer handler, Packet packet, NetworkStream networkStream) {
 			this.handler = handler;
 			this.packet = packet;
 			this.networkStream = networkStream;
 		}
+		
 	}
 	
 }

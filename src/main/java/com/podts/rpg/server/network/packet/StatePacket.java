@@ -1,6 +1,6 @@
 package com.podts.rpg.server.network.packet;
 
-import com.podts.rpg.server.model.GameState;
+import com.podts.rpg.server.GameState;
 import com.podts.rpg.server.network.Packet;
 
 public final class StatePacket extends Packet {

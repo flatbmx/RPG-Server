@@ -1,5 +1,7 @@
 package com.podts.rpg.server;
 
+import java.util.Objects;
+
 import com.podts.rpg.server.command.CommandSender;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.entity.PlayerEntity;
@@ -8,6 +10,7 @@ import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.MessagePacket;
+import com.podts.rpg.server.network.packet.StatePacket;
 
 public class Player implements CommandSender {
 	
@@ -31,6 +34,8 @@ public class Player implements CommandSender {
 	private final int id;
 	private String username, password;
 	private PlayerEntity entity;
+	
+	private GameState currentState;
 	private NetworkStream networkStream;
 	
 	public final int getID() {
@@ -40,6 +45,25 @@ public class Player implements CommandSender {
 	@Override
 	public final String getName() {
 		return username;
+	}
+	
+	public final GameState getGameState() {
+		return currentState;
+	}
+	
+	public final boolean isInGameState(GameState state) {
+		return getGameState().equals(state);
+	}
+	
+	public final Player changeGameState(final GameState newState) {
+		Objects.requireNonNull(newState, "Cannot switch player to a null GameState!");
+		if(currentState != null)
+			currentState.onLeave(this, newState);
+		final GameState oldState = currentState;
+		currentState = newState;
+		sendPacket(new StatePacket(newState));
+		newState.onEnter(this, oldState);
+		return this;
 	}
 	
 	public final NetworkStream getStream() {
@@ -96,18 +120,14 @@ public class Player implements CommandSender {
 	
 	@Override
 	public String toString() {
-		return "Player - " + username;
+		return getName();
 	}
 	
-	Player(int id, NetworkStream networkStream) {
-		this.id = id;
-		this.networkStream = networkStream;
-	}
-	
-	Player(int id, String username, String hashPassword) {
+	Player(int id, String username, String password) {
 		this.id = id;
 		this.username = username;
-		this.password = hashPassword;
+		this.password = password;
+		currentState = GameStates.NONE;
 	}
 	
 	public static enum LogoutReason {

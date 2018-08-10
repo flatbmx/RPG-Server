@@ -43,7 +43,7 @@ public abstract class WorldGenerator {
 	protected WorldGenerator doGenerateRectTiles(Tile[][] tiles, Location point) {
 		for(int dy=0; dy < tiles[0].length; ++dy) {
 			for(int dx=0; dx < tiles.length; ++dx) {
-				tiles[dx][dy] = doGenerateTile(point.shift(dx, dy, 0));
+				tiles[dx][dy] = doGenerateTile(point.shift(dx, dy));
 			}
 		}
 		

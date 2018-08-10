@@ -358,15 +358,6 @@ public abstract class World extends Space {
 	@Override
 	public abstract Location createLocation(int x, int y, int z);
 	
-	@Override
-	public final Tile createTile(final TileType type, final Location location) {
-		Utils.assertNullArg(type, "Cannot create Tile with null type!");
-		Utils.assertNullArg(location, "Cannot create Tile with null location!");
-		Utils.assertArg(!doContains(location), "Cannot create Tile with location in a different world.");
-		
-		return new Tile(type, location);
-	}
-	
 	public final Tile createTile(final TileType type, final int x, final int y, final int z) {
 		Utils.assertNullArg(type, "Cannot create Tile with null type!");
 		return new Tile(type, createLocation(x,y,z));
@@ -383,7 +374,7 @@ public abstract class World extends Space {
 	
 	@Override
 	public String toString() {
-		return "World - " + name;
+		return getName();
 	}
 	
 	private static final void fireRegionEnter(Region r, Entity entity, Location newLocation, MoveType type) {

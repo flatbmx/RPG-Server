@@ -19,7 +19,7 @@ public final class FillGenerator extends WorldGenerator {
 	
 	@Override
 	public Tile doGenerateTile(Location point) {
-		return point.getSpace().createTile(type, point);
+		return new Tile(type, point);
 	}
 	
 	public FillGenerator(TileType type) {

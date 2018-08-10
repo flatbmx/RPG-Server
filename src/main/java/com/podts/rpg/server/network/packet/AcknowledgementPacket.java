@@ -10,7 +10,7 @@ public abstract class AcknowledgementPacket extends Packet {
 		return ack;
 	}
 	
-	public AcknowledgementPacket(int ack) {
+	AcknowledgementPacket(int ack) {
 		this.ack = ack;
 	}
 	

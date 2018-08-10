@@ -24,6 +24,8 @@ public interface NetworkStream {
 	
 	public void sendPacket(Packet p);
 	
+	public void sendPacket(Packet... packets);
+	
 	public default void acknowledge(AcknowledgementPacket packet) {
 		sendPacket(new AcknowledgePacket(packet));
 	}

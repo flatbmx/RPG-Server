@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.MoveType;
-import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 
 public class Spaces {
@@ -30,22 +29,17 @@ public class Spaces {
 
 		@Override
 		public boolean register(Registerable r) {
-			throw new UnsupportedOperationException("");
+			return false;
 		}
 
 		@Override
 		public boolean deRegister(Registerable r) {
-			throw new UnsupportedOperationException("");
+			return false;
 		}
 		
 		@Override
 		public Stream<? extends Plane> planes() {
 			return space.planes();
-		}
-
-		@Override
-		public Tile createTile(TileType type, Location point) {
-			return space.createTile(type, point);
 		}
 		
 		@Override

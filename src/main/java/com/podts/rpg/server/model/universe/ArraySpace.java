@@ -75,7 +75,8 @@ public class ArraySpace extends Space {
 		}
 		
 		boolean isInBounds(Locatable l) {
-			return isInBounds(l.getLocation().getX(), l.getLocation().getY());
+			Location point = l.getLocation();
+			return isInBounds(point.getX(), point.getY());
 		}
 		
 		boolean isInBounds(int x, int y) {
@@ -91,16 +92,21 @@ public class ArraySpace extends Space {
 					.collect(Collectors.toSet());
 		}
 		
+		public Stream<Tile> allTiles() {
+			return Arrays.stream(tiles)
+					.flatMap(Arrays::stream);
+		}
+		
 		@Override
 		public Stream<Tile> tiles() {
-			return Arrays.stream(tiles)
-					.flatMap(Arrays::stream)
+			return allTiles()
 					.filter(Tile::isNotVoid);
 		}
 		
 		@Override
 		public Tile getTile(Locatable l) {
-			if(!contains(l) || isInBounds(l)) return null;
+			if(!contains(l)) throw new IllegalArgumentException("Cannot get Tile from another Space!");
+			if(isInBounds(l)) return new Tile(TileType.VOID, l.getLocation());
 			final Location point = l.getLocation();
 			return tiles[point.getX()][point.getY()];
 		}
@@ -128,7 +134,7 @@ public class ArraySpace extends Space {
 	}
 	
 	@Override
-	public Location createLocation(final int x, final int y, final int z) {
+	public ArrayLocation createLocation(final int x, final int y, final int z) {
 		return new ArrayLocation(x, y, z);
 	}
 	
@@ -186,11 +192,6 @@ public class ArraySpace extends Space {
 	public ArrayPlane getPlane(int z) {
 		if(z < 0 || z >= planes.length) return null;
 		return planes[z];
-	}
-	
-	@Override
-	public Tile createTile(TileType type, Location point) {
-		return new Tile(type, createLocation(point.getX(), point.getY(), point.getZ()));
 	}
 	
 	public Collection<PollableRegion> getRegions() {

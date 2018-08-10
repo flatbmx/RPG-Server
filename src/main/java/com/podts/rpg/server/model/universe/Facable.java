@@ -1,5 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.stream.Stream;
+
 import com.podts.rpg.server.model.universe.Location.Direction;
 
 public interface Facable extends Locatable {
@@ -16,6 +18,14 @@ public interface Facable extends Locatable {
 		if(dir != null)
 			face(dir);
 		return this;
+	}
+	
+	public default Stream<Location> traceFacingLocations() {
+		return getLocation().trace(getFacingDirection());
+	}
+	
+	public default Stream<Tile> traceFacingTiles() {
+		return getTile().trace(getFacingDirection());
 	}
 	
 	public default boolean isFacing(Locatable loc, double distance) {

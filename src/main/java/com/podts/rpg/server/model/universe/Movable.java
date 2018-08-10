@@ -11,7 +11,7 @@ public interface Movable extends Locatable {
 	}
 	
 	public default Movable move(Direction dir, int distance) {
-		return move(dir.getX() * distance, dir.getY() * distance);
+		return move(dir.getX(distance), dir.getY(distance));
 	}
 	
 	public default Movable move(Direction dir) {

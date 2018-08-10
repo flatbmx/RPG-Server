@@ -1,14 +1,50 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.stream.Stream;
+
+import com.podts.rpg.server.model.universe.Location.Direction;
 
 public interface Locatable extends HasPlane {
 	
 	public Location getLocation();
 	
+	public default boolean isNowhere() {
+		return Space.getNowhere().equals(getLocation());
+	}
+	
+	public default boolean isSomewhere() {
+		return !isNowhere();
+	}
+	
 	@Override
 	public default Plane getPlane() {
 		return getLocation().getPlane();
+	}
+	
+	public default Tile getTile() {
+		return getSpace().getTile(this);
+	}
+	
+	public default Direction getDirectionTo(Locatable other) {
+		return Direction.get(this, other);
+	}
+	
+	public default Collection<Tile> getSurroundingTiles() {
+		return getSpace().getSurroundingTiles(this);
+	}
+	
+	public default Stream<Tile> surroundingTiles() {
+		return getSpace().surroundingTiles(this);
+	}
+	
+	public default Stream<Tile> surroundingTiles(int distance) {
+		return getSpace().surroundingTiles(this, distance);
+	}
+	
+	public default Iterable<Tile> getSurroundingTilesIterable() {
+		return getSpace().getSurroundingTilesIterable(this);
 	}
 	
 	public default double distance(Locatable o) {
@@ -16,7 +52,7 @@ public interface Locatable extends HasPlane {
 	}
 	
 	public default int walkingDistance(Locatable o) {
-		return getLocation().WalkingDistance(o.getLocation());
+		return getLocation().walkingDistance(o.getLocation());
 	}
 	
 	public default Comparator<Locatable> getDistanceComparator() {
@@ -58,8 +94,7 @@ public interface Locatable extends HasPlane {
 	}
 	
 	public default boolean isInPlane(Locatable l) {
-		return isInPlane(l.getLocation().getZ()) &&
-				isInSameSpace(l);
+		return isInPlane(l.getPlane());
 	}
 	
 	public default boolean isBetweenPlanes(int minZ, int maxZ) {
@@ -74,7 +109,7 @@ public interface Locatable extends HasPlane {
 	
 	
 	public default boolean isBetweenPlanes(Plane a, Plane b) {
-		if(!a.isInSameSpace(b)) return false;
+		if(a.isInDifferentSpace(b)) return false;
 		return isBetweenPlanes(a.getZ(), b.getZ());
 	}
 }

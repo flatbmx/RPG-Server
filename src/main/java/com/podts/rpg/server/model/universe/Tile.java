@@ -1,8 +1,11 @@
 package com.podts.rpg.server.model.universe;
 
 import java.util.Objects;
+import java.util.stream.Stream;
 
-public class Tile implements Registerable, Locatable {
+import com.podts.rpg.server.model.universe.Location.Direction;
+
+public class Tile extends Spatial implements Registerable {
 	
 	public enum TileType {
 		VOID(false),
@@ -13,30 +16,29 @@ public class Tile implements Registerable, Locatable {
 		
 		private final boolean traversable;
 		
-		public boolean isTraversable() {
+		boolean isTraversable() {
 			return traversable;
-		}
-		
-		private TileType() {
-			traversable = true;
 		}
 		
 		private TileType(boolean travel) {
 			traversable = travel;
 		}
 		
+		private TileType() {
+			this(true);
+		}
+		
 	}
 	
 	private final TileType type;
-	private final Location location;
+	
+	@Override
+	public final Tile getTile() {
+		return this;
+	}
 	
 	public final TileType getType() {
 		return type;
-	}
-	
-	@Override
-	public final Location getLocation() {
-		return location;
 	}
 	
 	public final boolean isVoid() {
@@ -48,12 +50,44 @@ public class Tile implements Registerable, Locatable {
 	}
 	
 	public final boolean isTraversable() {
-		return type.isTraversable();
+		return getSpace().isTraversable(this);
+	}
+	
+	public Stream<Tile> traceTo(Locatable l) {
+		if(isInDifferentSpace(l)) return Stream.empty();
+		Direction dir = getDirectionTo(l);
+		if(dir == null) return Stream.empty();
+		return trace(dir)
+				.limit(walkingDistance(l) + 1);
+	}
+	
+	public Stream<Tile> traceEvery(Direction dir, int increment) {
+		return Stream.iterate(this, tile -> tile.shift(dir, increment));
+	}
+	
+	public Stream<Tile> trace(Direction dir) {
+		return traceEvery(dir, 1);
+	}
+	
+	public Tile shift(int dx, int dy, int dz) {
+		return getLocation().shift(dx, dy, dz).getTile();
+	}
+	
+	public Tile shift(int dx, int dy) {
+		return shift(dx, dy, 0);
+	}
+	
+	public Tile shift(Direction dir, int distance) {
+		return shift(dir.getX(distance), dir.getY(distance));
+	}
+	
+	public Tile shift(Direction dir) {
+		return shift(dir, 1);
 	}
 	
 	@Override
 	public String toString() {
-		return getType().toString() + " - " + getLocation();
+		return "[" + getType().toString() + " " + getLocation() + "]";
 	}
 	
 	@Override
@@ -73,9 +107,13 @@ public class Tile implements Registerable, Locatable {
 		return false;
 	}
 	
-	protected Tile(TileType type, Location location) {
+	public Tile(TileType type, Location location) {
+		super(location);
 		this.type = type;
-		this.location = location;
+	}
+	
+	public Tile(TileType type) {
+		this(type, null);
 	}
 	
 }

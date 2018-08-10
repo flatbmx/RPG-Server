@@ -1,13 +1,11 @@
 package com.podts.rpg.server.model.universe;
 
-import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.RelationalDirection;
 
 public interface MovableFacable extends Movable, Facable {
 	
 	public default MovableFacable move(RelationalDirection relDir, int distance) {
-		Direction dir = relDir.convert(getFacingDirection());
-		move(dir, distance);
+		move(relDir.convert(getFacingDirection()), distance);
 		return this;
 	}
 	

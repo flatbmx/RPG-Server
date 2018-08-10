@@ -48,8 +48,11 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 	
 	public abstract Collection<Tile> getTiles();
 	
+	abstract Stream<Tile> allTiles();
+	
 	public Stream<Tile> tiles() {
-		return getTiles().stream();
+		return allTiles()
+				.filter(Tile::isNotVoid);
 	}
 	
 	public Tile getTile(Locatable l) {
@@ -79,7 +82,7 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 		return getRegions().stream();
 	}
 	
-	public final Location createLocation(final int x, final int y) {
+	public Location createLocation(final int x, final int y) {
 		return getSpace().createLocation(x, y, getZ());
 	}
 	
@@ -101,7 +104,7 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 		if(o == this) return true;
 		if(!(o instanceof Plane)) return false;
 		Plane other = (Plane) o;
-		return getSpace().equals(other.getSpace()) &&
+		return isInSameSpace(other) &&
 				getZ() == other.getZ();
 	}
 	
@@ -112,7 +115,7 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 	
 	@Override
 	public String toString() {
-		return "[" + getSpace() + " - Plane " + getZ() + "]";
+		return "[" + getSpace() + " | Plane " + getZ() + "]";
 	}
 	
 	Plane(final int z) {

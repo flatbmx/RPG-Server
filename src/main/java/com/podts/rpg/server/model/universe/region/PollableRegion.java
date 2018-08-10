@@ -51,7 +51,8 @@ public interface PollableRegion extends Region, Iterable<Location> {
 	public default Stream<Tile> tiles() {
 		return points()
 				.map(point -> point.getSpace().getTile(point))
-				.filter(Objects::nonNull);
+				.filter(Objects::nonNull)
+				.filter(Tile::isNotVoid);
 	}
 	
 	public default Stream<Entity> entities() {
