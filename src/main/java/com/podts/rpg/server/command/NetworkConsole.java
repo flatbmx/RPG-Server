@@ -11,7 +11,7 @@ public class NetworkConsole extends Console {
 	}
 	
 	public static final NetworkConsole construct(NetworkStream networkStream) {
-		return new NetworkConsole(new NetworkLogger(networkStream,"bundle"), networkStream);
+		return new NetworkConsole(new NetworkLogger(networkStream), networkStream);
 	}
 	
 }

@@ -18,8 +18,8 @@ public class NetworkLogger extends GameLogger {
 		return new NetworkHandler();
 	}
 	
-	NetworkLogger(NetworkStream networkStream, String bundle) {
-		super(networkStream.getAddress().toString() + " - Logger", bundle);
+	NetworkLogger(NetworkStream networkStream) {
+		super(networkStream.getAddress().toString() + " - Logger");
 		this.networkStream = networkStream;
 		setUseParentHandlers(false);
 	}

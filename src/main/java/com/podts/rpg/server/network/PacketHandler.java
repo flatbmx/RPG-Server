@@ -3,6 +3,7 @@ package com.podts.rpg.server.network;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.logging.Logger;
 
 import com.podts.rpg.server.AccountLoader;
 import com.podts.rpg.server.AccountLoader.AccountAlreadyExistsException;
@@ -27,6 +28,10 @@ import com.podts.rpg.server.network.packet.MessagePacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 
 public final class PacketHandler {
+	
+	private static Logger getLogger() {
+		return Server.get().getLogger();
+	}
 	
 	@FunctionalInterface
 	public static interface PacketConsumer extends BiConsumer<NetworkStream,Packet> {}
@@ -57,19 +62,19 @@ public final class PacketHandler {
 				PlayerEntity pE = s.getPlayer().getEntity();
 				Entity e = p.getEntity();
 				if(!pE.equals(e)) {
-					System.out.println("Player sent wront move ID packet!");
+					getLogger().warning(pE.getPlayer() + " sent wront move ID packet!");
 					return;
 				}
 				Location newLocation = p.getNewLocation();
 				
 				if(pE.distance(newLocation) > 1) {
 					//TODO TOO FAR
-					System.out.println("Far");
+					getLogger().warning("Far");
 					return;
 				}
 				Direction dir = Direction.get(pE.getLocation(), newLocation);
 				if(dir == null) {
-					System.out.println("Diag");
+					getLogger().warning("Diag");
 					//TODO Diagonal, not valid.
 					return;
 				}
@@ -88,7 +93,7 @@ public final class PacketHandler {
 					return;
 				}
 				
-				System.out.println("Recieved login | username: "+ packet.getUsername() + " | password: " + packet.getPassword());
+				getLogger().info("Recieved login | username: "+ packet.getUsername() + " | password: " + packet.getPassword());
 				
 				Player player = null;
 				String response;
@@ -149,7 +154,7 @@ public final class PacketHandler {
 			//System.out.println("Recieved " + packet.getClass().getSimpleName());
 			GameEngine.get().submit(new PacketRunner(handler, packet, networkStream));
 		} else {
-			System.out.println("Recieved unhandled packet " + packet.getClass().getSimpleName());
+			getLogger().warning("Recieved unhandled packet " + packet.getClass().getSimpleName());
 		}
 		
 	}

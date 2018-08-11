@@ -3,7 +3,9 @@ package com.podts.rpg.server.command;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public abstract class Command {
 	
@@ -19,6 +21,10 @@ public abstract class Command {
 	
 	public final Collection<String> getAliases() {
 		return safeAliases;
+	}
+	
+	public Stream<String> aliases() {
+		return getAliases().stream();
 	}
 	
 	public final int getMinimumArguments() {
@@ -37,10 +43,13 @@ public abstract class Command {
 	protected abstract boolean doExecute(CommandSender sender, String original, String[] parameters);
 	
 	public Command(String name, int minArgs, int maxArgs, String... aliases) {
-		this.name = name;
+		this.name = Objects.requireNonNull(name, "Cannot construct Command with null name!");
+		if(name.isEmpty()) throw new IllegalArgumentException("Cannot construct Command with empty name!");
 		this.minArgs = minArgs;
 		this.maxArgs = maxArgs;
 		for(String a : aliases) {
+			if(Objects.requireNonNull(a, "Cannot construct Command with a null alias!").isEmpty())
+				throw new IllegalArgumentException("Cannot construct Command with empty alias!");
 			this.aliases.add(a);
 		}
 	}

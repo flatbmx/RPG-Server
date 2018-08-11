@@ -10,11 +10,15 @@ public class GameLogger extends Logger {
 		return new ConsoleHandler();
 	}
 	
-	protected GameLogger(String name, String bundle) {
+	public GameLogger(String name, String bundle) {
 		super(name, bundle);
 		Handler handler = createHandler();
 		handler.setFormatter(new LogFormatter());
 		addHandler(handler);
+	}
+	
+	public GameLogger(String name) {
+		this(name, null);
 	}
 	
 }

@@ -1,5 +1,6 @@
 package com.podts.rpg.server.command;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -19,6 +20,14 @@ public abstract class Console implements CommandSender {
 	
 	protected final Logger getLogger() {
 		return logger;
+	}
+	
+	public void sendMessage(Level level, String message) {
+		getLogger().log(level, message);
+	}
+	
+	public void sendMessage(Level level, CommandSender sender, String message) {
+		getLogger().log(level, sender + ": " + message);
 	}
 	
 	@Override

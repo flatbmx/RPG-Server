@@ -12,7 +12,7 @@ public final class LogFormatter extends Formatter {
 	
 	@Override
 	public final String format(final LogRecord record) {
-		return dateFormatter.format(new Date(record.getMillis())) + " [" + record.getLevel() + "]" + " " + record.getMessage();
+		return dateFormatter.format(new Date(record.getMillis())) + " [" + record.getLevel() + "]" + " " + record.getMessage() + "\n";
 	}
 	
 }

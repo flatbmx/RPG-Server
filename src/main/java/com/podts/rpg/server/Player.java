@@ -57,8 +57,6 @@ public class Player implements CommandSender {
 	
 	public final Player changeGameState(final GameState newState) {
 		Objects.requireNonNull(newState, "Cannot switch player to a null GameState!");
-		if(currentState != null)
-			currentState.onLeave(this, newState);
 		final GameState oldState = currentState;
 		currentState = newState;
 		sendPacket(new StatePacket(newState));

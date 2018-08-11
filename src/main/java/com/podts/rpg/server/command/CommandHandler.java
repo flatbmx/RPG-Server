@@ -28,9 +28,6 @@ public final class CommandHandler {
 	
 	private final boolean isValidCommand(Command command) {
 		if(command == null) return false;
-		if(command.getName() == null || command.getName().isEmpty()) return false;
-		for(String alias : command.getAliases())
-			if(alias == null || alias.isEmpty()) return false;
 		return true;
 	}
 	

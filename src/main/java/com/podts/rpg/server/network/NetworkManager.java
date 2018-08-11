@@ -44,7 +44,7 @@ public abstract class NetworkManager {
 	
 	private NetworkStatus status;
 	private int port;
-	private final Set<NetworkStatusHook> statusHooks;
+	private final Set<NetworkStatusHook> statusHooks = new HashSet<NetworkStatusHook>();;
 	private final LinkedList<StreamListener> streamListeners = new LinkedList<>();
 	private final StreamListener veryLastStreamListener;
 	
@@ -172,7 +172,6 @@ public abstract class NetworkManager {
 	
 	public NetworkManager(StreamListener last) {
 		status = NetworkStatus.OFFLINE;
-		statusHooks = new HashSet<NetworkStatusHook>();
 		veryLastStreamListener = last;
 	}
 	

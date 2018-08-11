@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import com.podts.rpg.server.Player.LogoutReason;
 import com.podts.rpg.server.account.AcceptingAccountLoader;
 import com.podts.rpg.server.command.CommandHandler;
+import com.podts.rpg.server.command.GameLogger;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.model.universe.Universe.WorldAlreadyExistsException;
 import com.podts.rpg.server.model.universe.generators.PerlinNoiseGenerator;
@@ -26,9 +27,7 @@ import com.podts.rpg.server.network.netty.NettyNetworkManager;
 public final class Server {
 	
 	@FunctionalInterface
-	public static interface ServerStatusHook extends BiConsumer<ServerStatus,ServerStatus> {
-		
-	}
+	public static interface ServerStatusHook extends BiConsumer<ServerStatus,ServerStatus> {}
 	
 	/**
 	 * Stores the instance of the server.
@@ -168,7 +167,7 @@ public final class Server {
 		players[id] = null;
 		playerNameMap.remove(player.getUsername());
 		recycledPlayerIDs.add(id);
-		System.out.println(player.getUsername() + " logged out.");
+		getLogger().info(player.getUsername() + " logged out.");
 	}
 	
 	/**
@@ -180,12 +179,12 @@ public final class Server {
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 		
 		if (!networkManager.bind(networkListenPort)) {
-			System.out.println("Server failed to bind to port " + networkManager.getPort());
+			getLogger().severe("Server failed to bind to port " + networkManager.getPort());
 			changeStatus(ServerStatus.OFFLINE);
 			return;
 		}
 		
-		System.out.println("Server bound to port " + networkManager.getPort());
+		getLogger().info("Server bound to port " + networkManager.getPort());
 		
 		GameEngine.create(4);
 		
@@ -196,7 +195,7 @@ public final class Server {
 		}
 		
 		changeStatus(ServerStatus.ONLINE);
-		System.out.println("Server is now online and can handle login requests.");
+		getLogger().info("Server is now online and can handle login requests.");
 		
 	}
 	
@@ -206,7 +205,7 @@ public final class Server {
 	public void stop() {
 		if(status != ServerStatus.ONLINE) return;
 		changeStatus(ServerStatus.UNLOADING);
-		System.out.println("Stopping Server.");
+		getLogger().info("Stopping Server.");
 		GameEngine.get().shutdown();
 		Runtime.getRuntime().removeShutdownHook(shutdownHook);
 		networkManager.unbind();
@@ -220,7 +219,7 @@ public final class Server {
 	private Server(int port) {
 		if(instance == null) instance = this;
 		status = ServerStatus.OFFLINE;
-		logger = Logger.getLogger("Server");
+		logger = new GameLogger("Server");
 		networkListenPort = port;
 		statusHooks = new HashSet<>();
 		commandHandler = new CommandHandler();
