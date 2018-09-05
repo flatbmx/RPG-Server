@@ -25,7 +25,7 @@ public abstract class Spatial implements Locatable {
 	}
 	
 	public Spatial() {
-		this(Space.getNowhere());
+		this.location = Space.getNowhere();
 	}
 	
 }

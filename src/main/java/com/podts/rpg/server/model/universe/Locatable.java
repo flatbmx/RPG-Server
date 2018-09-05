@@ -77,7 +77,7 @@ public interface Locatable extends HasPlane {
 	}
 	
 	public default boolean isWalkingBetween(Locatable o, int min, int max) {
-		double dist = distance(o);
+		int dist = walkingDistance(o);
 		return dist >= min && dist <= max;
 	}
 	
