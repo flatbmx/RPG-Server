@@ -9,7 +9,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public abstract class Location implements Spatial, Cloneable {
+public abstract class Location implements HasLocation, Cloneable {
 	
 	public enum Direction {
 		UP(0,-1),
@@ -178,7 +178,7 @@ public abstract class Location implements Spatial, Cloneable {
 	}
 	
 	@Override
-	public final boolean occupies(Spatial loc) {
+	public final boolean occupies(HasLocation loc) {
 		return getLocation().equals(loc.getLocation());
 	}
 	

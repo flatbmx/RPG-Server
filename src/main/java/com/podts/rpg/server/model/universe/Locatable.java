@@ -18,7 +18,7 @@ public interface Locatable extends HasPlane {
 				.orElse(Space.getNowhere());
 	}
 	
-	public default boolean occupies(Spatial loc) {
+	public default boolean occupies(HasLocation loc) {
 		return locations()
 				.anyMatch(loc::isAt);
 	}

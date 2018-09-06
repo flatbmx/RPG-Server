@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.Direction;
 
-public class Tile extends SimpleSpatial implements Registerable {
+public class Tile extends Spatial implements Registerable {
 	
 	public enum TileType {
 		VOID(false),

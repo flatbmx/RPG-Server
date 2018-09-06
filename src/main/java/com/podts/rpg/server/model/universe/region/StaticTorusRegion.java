@@ -1,7 +1,7 @@
 package com.podts.rpg.server.model.universe.region;
 
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.Spatial;
+import com.podts.rpg.server.model.universe.HasLocation;
 
 class StaticTorusRegion extends SimpleRegion implements TorusRegion {
 	
@@ -23,7 +23,7 @@ class StaticTorusRegion extends SimpleRegion implements TorusRegion {
 		return innerRadius;
 	}
 	
-	StaticTorusRegion(final Spatial center, final int outerRadius, final int innerRadius) {
+	StaticTorusRegion(final HasLocation center, final int outerRadius, final int innerRadius) {
 		this.center = center.getLocation();
 		this.outerRadius = outerRadius;
 		this.innerRadius = innerRadius;

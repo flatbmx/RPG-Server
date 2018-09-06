@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Space;
-import com.podts.rpg.server.model.universe.Spatial;
+import com.podts.rpg.server.model.universe.HasLocation;
 
 public final class Regions {
 	
@@ -612,12 +612,12 @@ public final class Regions {
 		}*/
 	}
 	
-	public static final Location findPlaneCenter(final Set<? extends Spatial> locs) {
+	public static final Location findPlaneCenter(final Set<? extends HasLocation> locs) {
 		Objects.requireNonNull(locs);
 		return computeFindPlaneCenter(locs);
 	}
 	
-	private static final <S extends Spatial> Location computeFindPlaneCenter(final Collection<S> locs) {
+	private static final <S extends HasLocation> Location computeFindPlaneCenter(final Collection<S> locs) {
 		long ax = 0, ay = 0;
 		int z;
 		final Iterator<S> it = locs.iterator();
@@ -641,17 +641,17 @@ public final class Regions {
 		return space.createLocation((int)ax/locs.size(), (int)ay/locs.size(), z);
 	}
 	
-	public static final Location findCenter(final Set<? extends Spatial> locs) {
+	public static final Location findCenter(final Set<? extends HasLocation> locs) {
 		Objects.requireNonNull(locs);
 		return computeFindCenter(locs);
 	}
 	
 	@SafeVarargs
-	public static final <S extends Spatial> Location findCenter(final Spatial... locs) {
+	public static final <S extends HasLocation> Location findCenter(final HasLocation... locs) {
 		Objects.requireNonNull(locs);
 		int ax = 0, ay = 0, az = 0, counter = 0;
 		Space space = null;
-		for(final Spatial loc : locs) {
+		for(final HasLocation loc : locs) {
 			if(loc == null) continue;
 			++counter;
 			final Location l = loc.getLocation();
@@ -664,11 +664,11 @@ public final class Regions {
 		return space.createLocation(ax/counter, ay/counter, az/counter);
 	}
 	
-	private static final Location computeFindCenter(final Set<? extends Spatial> locs) {
+	private static final Location computeFindCenter(final Set<? extends HasLocation> locs) {
 		long ax = 0, ay = 0, az = 0;
 		if(locs.isEmpty() || (locs.size() == 1) && locs.contains(null)) new IllegalArgumentException("Cannot find the center of null, empty or just null containing set.");
 		Space space = null;
-		for(final Spatial loc : locs) {
+		for(final HasLocation loc : locs) {
 			final Location point = loc.getLocation();
 			space = point.getSpace();
 			ax += point.getX();
@@ -719,19 +719,19 @@ public final class Regions {
 		return true;
 	}
 	
-	public static final Region constructRegion(final Iterable<? extends Spatial> locs) {
+	public static final Region constructRegion(final Iterable<? extends HasLocation> locs) {
 		if(!containsNonNullElements(locs)) return getEmptyRegion();
 		return constructRegion(locs, !isStaticLocatable(locs));
 	}
 	
-	public static final Region constructRegion(final Iterable<? extends Spatial> locs, final boolean dynamic) {
+	public static final Region constructRegion(final Iterable<? extends HasLocation> locs, final boolean dynamic) {
 		if(!containsNonNullElements(locs)) return getEmptyRegion();
 		//TODO implement
 		if(dynamic) {
 			return new DynamicSetRegion(locs);
 		} else {
 			final Set<Location> pointSet = new HashSet<Location>();
-			for(final Spatial loc : locs) {
+			for(final HasLocation loc : locs) {
 				pointSet.add(loc.getLocation());
 			}
 			Region r = constructCircularRegion(pointSet);
@@ -747,21 +747,21 @@ public final class Regions {
 		return new StaticCircularRegion(values.getKey(),values.getValue());
 	}
 	
-	public static final CircularRegion constructCircularRegion(final Spatial center, final int radius) {
+	public static final CircularRegion constructCircularRegion(final HasLocation center, final int radius) {
 		return constructCircularRegion(center, radius, !isStaticLocatable(center));
 	}
 	
-	public static final CircularRegion constructCircularRegion(final Spatial center, final int radius, final boolean dynamic) {
+	public static final CircularRegion constructCircularRegion(final HasLocation center, final int radius, final boolean dynamic) {
 		if(center == null || (radius == 0 && !dynamic)) return getEmptyCircularRegion();
 		if(dynamic) return new DynamicCircularRegion(center, radius);
 		return new StaticCircularRegion(center, radius);
 	}
 	
-	public static TorusRegion constructTorusRegion(final Spatial center, int outerRadius, int innerRadius) {
+	public static TorusRegion constructTorusRegion(final HasLocation center, int outerRadius, int innerRadius) {
 		return constructTorusRegion(center, outerRadius, innerRadius, !isStaticLocatable(center));
 	}
 	
-	public static final TorusRegion constructTorusRegion(final Spatial center, int outerRadius, int innerRadius, final boolean dynamic) {
+	public static final TorusRegion constructTorusRegion(final HasLocation center, int outerRadius, int innerRadius, final boolean dynamic) {
 		if(center == null || (!dynamic && outerRadius == 0)) return getEmptyTorusRegion();
 		if(dynamic) {
 			//TODO implement dynamic torus region.
@@ -769,11 +769,11 @@ public final class Regions {
 		return new StaticTorusRegion(center.getLocation(), outerRadius, innerRadius);
 	}
 	
-	public static final RectangularRegion constructRectangularRegion(final Spatial a, final Spatial b) {
+	public static final RectangularRegion constructRectangularRegion(final HasLocation a, final HasLocation b) {
 		return constructRectangularRegion(a, b, !isStaticLocatable(a,b));
 	}
 	
-	public static final RectangularRegion constructRectangularRegion(final Spatial a, final Spatial b, final boolean dynamic) {
+	public static final RectangularRegion constructRectangularRegion(final HasLocation a, final HasLocation b, final boolean dynamic) {
 		if(a == null || b == null) return getEmptyRectangularRegion();
 		if(dynamic) return new DynamicRectangularRegion(a,b);
 		//TODO implement me
@@ -781,15 +781,15 @@ public final class Regions {
 		//return new StaticRectangularRegion(a,b);
 	}
 	
-	public static final SetRegion constructSetRegion(final Spatial... points) {
+	public static final SetRegion constructSetRegion(final HasLocation... points) {
 		return constructSetRegion(!isStaticLocatable(points), points);
 	}
 	
-	public static final SetRegion constructSetRegion(final boolean dynamic, final Spatial... points) {
+	public static final SetRegion constructSetRegion(final boolean dynamic, final HasLocation... points) {
 		if(!containsNonNullElements(points) && !dynamic) return getEmptySetRegion();
 		if(dynamic) {
 			SetRegion result = new DynamicSetRegion();
-			for(Spatial loc : points) {
+			for(HasLocation loc : points) {
 				result.addPoint(loc);
 			}
 			return result;

@@ -126,29 +126,29 @@ public abstract class World extends Space {
 	 */
 	protected abstract void doSetTile(Tile newTile);
 	
-	public final Collection<Entity> getNearbyEntities(Spatial l, double distance) {
+	public final Collection<Entity> getNearbyEntities(HasLocation l, double distance) {
 		return nearbyEntities(l, distance)
 				.collect(Collectors.toSet());
 	}
 	
-	public abstract Stream<Entity> nearbyEntities(Spatial l);
+	public abstract Stream<Entity> nearbyEntities(HasLocation l);
 	
 	/**
 	 * This method is equivalent to calling {@link #getNearbyEntities(Locatable,Predicate) getNearbyEntities} with no condition.
 	 * @param l - The central point of all entities.
 	 * @return A Collection of entities within the given radius in this World.
 	 */
-	public final Collection<Entity> getNearbyEntities(Spatial l) {
+	public final Collection<Entity> getNearbyEntities(HasLocation l) {
 		return nearbyEntities(l)
 				.collect(Collectors.toSet());
 	}
 	
-	public final Collection<Player> getNearbyPlayers(Spatial l) {
+	public final Collection<Player> getNearbyPlayers(HasLocation l) {
 		return nearbyPlayers(l)
 				.collect(Collectors.toSet());
 	}
 	
-	public final Stream<Player> nearbyPlayers(Spatial l) {
+	public final Stream<Player> nearbyPlayers(HasLocation l) {
 		Utils.assertNull(l, "Cannot find nearby players from null locatable.");
 		Utils.assertNull(l.getLocation(), "Cannot find nearby players from null location.");
 		Utils.assertArg(!doContains(l), "Cannot find nearby players from location in another world.");
@@ -180,7 +180,7 @@ public abstract class World extends Space {
 				.filter(Objects::nonNull);
 	}
 	
-	public abstract Stream<Tile> nearbyTiles(Spatial l);
+	public abstract Stream<Tile> nearbyTiles(HasLocation l);
 	
 	/**
 	 * Registers an entity with this {@link World}.
@@ -271,7 +271,7 @@ public abstract class World extends Space {
 	 * @return A {@link Collection} of all the registered {@link PollableRegion}s that {@link Region#contains(Locatable) contains} the given point.
 	 * The Collection may be modifiable or not however any changes will not affect anything outside of the Collection returned.
 	 */
-	public Collection<PollableRegion> getRegions(Spatial loc) {
+	public Collection<PollableRegion> getRegions(HasLocation loc) {
 		return regions(loc)
 				.collect(Collectors.toSet());
 	}
@@ -363,12 +363,12 @@ public abstract class World extends Space {
 		return new Tile(type, createLocation(x,y,z));
 	}
 	
-	public final boolean contains(final Spatial loc) {
+	public final boolean contains(final HasLocation loc) {
 		Utils.assertNullArg(loc, "Cannot determine if null Locatable is in World.");
 		return doContains(loc);
 	}
 	
-	protected final boolean doContains(final Spatial loc) {
+	protected final boolean doContains(final HasLocation loc) {
 		return equals(loc.getSpace());
 	}
 	
@@ -420,7 +420,7 @@ public abstract class World extends Space {
 	
 	protected abstract void handleRegionChange(PollableRegion r);
 	
-	protected final void sendToNearbyPlayers(Spatial l, Packet... packets) {
+	protected final void sendToNearbyPlayers(HasLocation l, Packet... packets) {
 		nearbyPlayers(l)
 		.forEach(player -> {
 			for(Packet packet : packets)
@@ -428,7 +428,7 @@ public abstract class World extends Space {
 		});
 	}
 	
-	protected final void sendToNearbyPlayers(Spatial l, Player except, Packet... packets) {
+	protected final void sendToNearbyPlayers(HasLocation l, Player except, Packet... packets) {
 		nearbyPlayers(l)
 		.filter(p -> !p.equals(except))
 		.forEach(player -> {

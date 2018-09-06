@@ -1,38 +1,30 @@
 package com.podts.rpg.server.model.universe;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Stream;
-
-public interface Spatial extends Locatable {
+public abstract class Spatial implements HasLocation {
 	
-	public Location getLocation();
-	
-	public default Tile getTile() {
-		return getLocation().getTile();
+	public static final Location validate(Location location) {
+		if(location == null)
+			return Space.getNowhere();
+		return location;
 	}
 	
-	@Override
-	public default Collection<Location> getLocations() {
-		return Collections.singleton(getLocation());
+	private Location location;
+	
+	public final Location getLocation() {
+		return location;
 	}
 	
-	@Override
-	public default Stream<Location> locations() {
-		return Stream.of(getLocation());
+	final HasLocation setLocation(Location location) {
+		this.location = location;
+		return this;
 	}
 	
-	@Override
-	public default long getArea() {
-		return 1;
+	public Spatial(Location location) {
+		this.location = validate(location);
 	}
 	
-	public default Stream<Tile> surroundingTiles(int radius) {
-		return getSpace().surroundingTiles(this, radius);
-	}
-	
-	public default Stream<Tile> surroundTiles() {
-		return surroundingTiles(1);
+	public Spatial() {
+		this.location = Space.getNowhere();
 	}
 	
 }

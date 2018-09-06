@@ -5,13 +5,13 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 import com.podts.rpg.server.model.universe.Space;
-import com.podts.rpg.server.model.universe.Spatial;
+import com.podts.rpg.server.model.universe.HasLocation;
 import com.podts.rpg.server.model.universe.Tile;
 
 public class ReferencePathFinder implements PathFinder {
 	
 	@Override
-	public Path findPath(Spatial start, Spatial finish, PathDecider decider) {
+	public Path findPath(HasLocation start, HasLocation finish, PathDecider decider) {
 		if(start == null || finish == null)
 			return null;
 		if(start.isNowhere() || finish.isNowhere())

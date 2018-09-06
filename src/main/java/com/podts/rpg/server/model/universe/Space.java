@@ -95,7 +95,7 @@ public abstract class Space implements HasSpace {
 			return tile;
 		}
 		
-		SurroundingIterable(Spatial center, int distance) {
+		SurroundingIterable(HasLocation center, int distance) {
 			this.center = center.getLocation();
 			distance = Math.abs(distance);
 			this.distance = distance;
@@ -220,12 +220,12 @@ public abstract class Space implements HasSpace {
 		return plane.allTiles();
 	}
 	
-	public Stream<Tile> nearbyTiles(Spatial l, double distance) {
+	public Stream<Tile> nearbyTiles(HasLocation l, double distance) {
 		return tiles(getZ(l))
 				.filter(tile -> tile.isInRange(l, distance));
 	}
 	
-	public Stream<Tile> nearbyWalkingTiles(Spatial l, int distance) {
+	public Stream<Tile> nearbyWalkingTiles(HasLocation l, int distance) {
 		return tiles(getZ(l))
 				.filter(tile -> tile.isInWalkingRange(l, distance));
 	}
@@ -254,25 +254,25 @@ public abstract class Space implements HasSpace {
 		return tile.getType().isTraversable();
 	}
 	
-	public Collection<Tile> getSurroundingTiles(Spatial center) {
+	public Collection<Tile> getSurroundingTiles(HasLocation center) {
 		return surroundingTiles(center)
 				.collect(Collectors.toSet());
 	}
 	
-	public Iterable<Tile> getSurroundingTilesIterable(Spatial center, int distance) {
+	public Iterable<Tile> getSurroundingTilesIterable(HasLocation center, int distance) {
 		return new SurroundingIterable(center, distance);
 	}
 	
-	public Iterable<Tile> getSurroundingTilesIterable(Spatial center) {
+	public Iterable<Tile> getSurroundingTilesIterable(HasLocation center) {
 		return getSurroundingTilesIterable(center, 1);
 	}
 	
-	public Stream<Tile> surroundingTiles(Spatial center, int distance) {
+	public Stream<Tile> surroundingTiles(HasLocation center, int distance) {
 		if(isInDifferentSpace(center)) return Stream.empty();
 		return Streams.stream(getSurroundingTilesIterable(center, distance));
 	}
 	
-	public Stream<Tile> surroundingTiles(Spatial loc) {
+	public Stream<Tile> surroundingTiles(HasLocation loc) {
 		return surroundingTiles(loc, 1);
 	}
 	
@@ -292,7 +292,7 @@ public abstract class Space implements HasSpace {
 		return plane.regions();
 	}
 	
-	public Stream<PollableRegion> regions(Spatial l) {
+	public Stream<PollableRegion> regions(HasLocation l) {
 		if(isInDifferentSpace(l)) return Stream.empty();
 		return regions(getZ(l))
 				.filter(r -> r.contains(l));
@@ -303,7 +303,7 @@ public abstract class Space implements HasSpace {
 				.flatMap(Plane::entities);
 	}
 	
-	public Stream<Entity> entities(Spatial l) {
+	public Stream<Entity> entities(HasLocation l) {
 		if(isInDifferentSpace(l))
 			return Stream.empty();
 		return entities(getZ(l))
@@ -317,7 +317,7 @@ public abstract class Space implements HasSpace {
 				.flatMap(Plane::entities);
 	}
 	
-	public Stream<Entity> nearbyEntities(Spatial l, double distance) {
+	public Stream<Entity> nearbyEntities(HasLocation l, double distance) {
 		if(isInDifferentSpace(l)) return Stream.empty();
 		return entities(getZ(l))
 				.filter(e -> l.isInRange(e, distance));
@@ -335,7 +335,7 @@ public abstract class Space implements HasSpace {
 				.map(e -> ((PlayerEntity)e).getPlayer());
 	}
 	
-	public Stream<Player> nearbyPlayers(Spatial l, double distance) {
+	public Stream<Player> nearbyPlayers(HasLocation l, double distance) {
 		if(isInDifferentSpace(l)) return Stream.empty();
 		return nearbyEntities(l, distance)
 				.filter(Player::is)

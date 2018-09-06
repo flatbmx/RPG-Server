@@ -1,7 +1,7 @@
 package com.podts.rpg.server.model.universe.region;
 
 import com.podts.rpg.server.model.universe.Locatable;
-import com.podts.rpg.server.model.universe.Spatial;
+import com.podts.rpg.server.model.universe.HasLocation;
 
 class StaticSetRegion extends AbstractSetRegion {
 	
@@ -10,7 +10,7 @@ class StaticSetRegion extends AbstractSetRegion {
 	}
 	
 	@SafeVarargs
-	<S extends Spatial> StaticSetRegion(S... points) {
+	<S extends HasLocation> StaticSetRegion(S... points) {
 		super(false, points);
 	}
 	

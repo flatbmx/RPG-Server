@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.Spatial;
+import com.podts.rpg.server.model.universe.HasLocation;
 
 /**
  * A subset of the Universe.
@@ -50,7 +50,7 @@ public interface Region {
 	 */
 	public boolean contains(Location point);
 	
-	public default boolean contains(Spatial point) {
+	public default boolean contains(HasLocation point) {
 		return contains(point.getLocation());
 	}
 	

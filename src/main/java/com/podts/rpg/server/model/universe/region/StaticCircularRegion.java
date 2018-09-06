@@ -1,7 +1,7 @@
 package com.podts.rpg.server.model.universe.region;
 
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.Spatial;
+import com.podts.rpg.server.model.universe.HasLocation;
 
 class StaticCircularRegion extends SimpleRegion implements CircularRegion {
 	
@@ -17,7 +17,7 @@ class StaticCircularRegion extends SimpleRegion implements CircularRegion {
 		return radius;
 	}
 	
-	StaticCircularRegion(final Spatial center, int radius) {
+	StaticCircularRegion(final HasLocation center, int radius) {
 		this.center = center.getLocation();
 		this.radius = radius;
 	}

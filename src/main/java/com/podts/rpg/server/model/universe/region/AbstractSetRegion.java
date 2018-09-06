@@ -6,7 +6,7 @@ import java.util.Set;
 
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.Spatial;
+import com.podts.rpg.server.model.universe.HasLocation;
 
 public abstract class AbstractSetRegion extends SimpleRegion implements SetRegion {
 	
@@ -24,13 +24,13 @@ public abstract class AbstractSetRegion extends SimpleRegion implements SetRegio
 	}
 
 	@Override
-	public final SetRegion addPoint(Spatial point) {
+	public final SetRegion addPoint(HasLocation point) {
 		points.add(point.getLocation());
 		return this;
 	}
 
 	@Override
-	public final SetRegion removePoint(Spatial point) {
+	public final SetRegion removePoint(HasLocation point) {
 		points.remove(point.getLocation());
 		return this;
 	}
@@ -54,7 +54,7 @@ public abstract class AbstractSetRegion extends SimpleRegion implements SetRegio
 	}
 	
 	@SafeVarargs
-	<S extends Spatial> AbstractSetRegion(boolean dynamic, S... points) {
+	<S extends HasLocation> AbstractSetRegion(boolean dynamic, S... points) {
 		Set<Location> pSet = new HashSet<>();
 		for(S loc : points) {
 			pSet.add(loc.getLocation());
