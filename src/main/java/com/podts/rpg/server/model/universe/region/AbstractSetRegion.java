@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Spatial;
 
 public abstract class AbstractSetRegion extends SimpleRegion implements SetRegion {
 	
@@ -18,19 +19,19 @@ public abstract class AbstractSetRegion extends SimpleRegion implements SetRegio
 	}
 
 	@Override
-	public final boolean contains(Locatable point) {
-		return getPoints().contains(point.getLocation());
+	public final boolean contains(Location point) {
+		return getPoints().contains(point);
 	}
 
 	@Override
-	public final SetRegion addPoint(Locatable loc) {
-		points.add(loc.getLocation());
+	public final SetRegion addPoint(Spatial point) {
+		points.add(point.getLocation());
 		return this;
 	}
 
 	@Override
-	public final SetRegion removePoint(Locatable loc) {
-		points.remove(loc.getLocation());
+	public final SetRegion removePoint(Spatial point) {
+		points.remove(point.getLocation());
 		return this;
 	}
 	
@@ -41,7 +42,7 @@ public abstract class AbstractSetRegion extends SimpleRegion implements SetRegio
 	<L extends Locatable> AbstractSetRegion(boolean dynamic, Iterable<L> locs) {
 		Set<Location> pSet = new HashSet<>();
 		for(Locatable loc : locs) {
-			pSet.add(loc.getLocation());
+			pSet.addAll(loc.getLocations());
 		}
 		safePoints = Collections.unmodifiableSet(pSet);
 		if(dynamic) {
@@ -53,9 +54,9 @@ public abstract class AbstractSetRegion extends SimpleRegion implements SetRegio
 	}
 	
 	@SafeVarargs
-	<L extends Locatable> AbstractSetRegion(boolean dynamic, L... points) {
+	<S extends Spatial> AbstractSetRegion(boolean dynamic, S... points) {
 		Set<Location> pSet = new HashSet<>();
-		for(L loc : points) {
+		for(S loc : points) {
 			pSet.add(loc.getLocation());
 		}
 		safePoints = Collections.unmodifiableSet(pSet);

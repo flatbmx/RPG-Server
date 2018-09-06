@@ -1,11 +1,11 @@
 package com.podts.rpg.server.model.universe.region;
 
-import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Spatial;
 
 final class DynamicCircularRegion extends SimpleRegion implements CircularRegion {
 	
-	private Locatable center;
+	private Spatial center;
 	private int radius;
 	
 	@Override
@@ -13,7 +13,7 @@ final class DynamicCircularRegion extends SimpleRegion implements CircularRegion
 		return center.getLocation();
 	}
 	
-	public final DynamicCircularRegion setCenter(final Locatable newCenter) {
+	public final DynamicCircularRegion setCenter(final Spatial newCenter) {
 		center = newCenter;
 		return this;
 	}
@@ -28,7 +28,7 @@ final class DynamicCircularRegion extends SimpleRegion implements CircularRegion
 		return this;
 	}
 	
-	protected DynamicCircularRegion(final Locatable center, final int radius) {
+	protected DynamicCircularRegion(final Spatial center, final int radius) {
 		this.center = center;
 		this.radius = Math.abs(radius);
 	}

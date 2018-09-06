@@ -60,6 +60,12 @@ public class Spaces {
 		private UnRegisterableSpace(Space space) {
 			this.space = space;
 		}
+
+		@Override
+		public Tile getTile(Location point) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 		
 	}
 	

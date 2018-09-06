@@ -1,6 +1,7 @@
 package com.podts.rpg.server.model.universe.region;
 
 import com.podts.rpg.server.model.universe.Locatable;
+import com.podts.rpg.server.model.universe.Location;
 
 public class DynamicSetRegion extends AbstractSetRegion implements DynamicRegion {
 	

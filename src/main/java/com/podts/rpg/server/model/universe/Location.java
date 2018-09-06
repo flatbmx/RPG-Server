@@ -3,14 +3,13 @@ package com.podts.rpg.server.model.universe;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public abstract class Location implements Locatable, Cloneable {
+public abstract class Location implements Spatial, Cloneable {
 	
 	public enum Direction {
 		UP(0,-1),
@@ -27,10 +26,6 @@ public abstract class Location implements Locatable, Cloneable {
 		
 		public static final Stream<Direction> stream() {
 			return all().stream();
-		}
-		
-		public static final Direction get(Locatable first, Locatable second) {
-			return get(first.getLocation(), second.getLocation());
 		}
 		
 		public static final Direction get(Location first, Location second) {
@@ -115,6 +110,10 @@ public abstract class Location implements Locatable, Cloneable {
 			return operator.apply(d);
 		}
 		
+		public boolean turns() {
+			return ordinal() > 2;
+		}
+		
 		private RelationalDirection(UnaryOperator<Direction> operator) {
 			this.operator = operator;
 		}
@@ -127,26 +126,10 @@ public abstract class Location implements Locatable, Cloneable {
 		DESTROY();
 	}
 	
-	private class DistanceComparator implements Comparator<Locatable> {
-		
-		@Override
-		public int compare(Locatable a, Locatable b) {
-			return (int) (Location.this.distance(a) - Location.this.distance(b));
-		}
-		
-	}
-	
-	private class WalkingDistanceComparator implements Comparator<Locatable> {
-		
-		@Override
-		public int compare(Locatable a, Locatable b) {
-			return Location.this.walkingDistance(a) - Location.this.walkingDistance(b);
-		}
-		
-	}
-	
 	@Override
-	public abstract Plane getPlane();
+	public Location getLocation() {
+		return this;
+	}
 	
 	public final boolean planeExists() {
 		return getPlane() != null;
@@ -189,16 +172,35 @@ public abstract class Location implements Locatable, Cloneable {
 		return shift(dir, 1);
 	}
 	
+	@Override
+	public Tile getTile() {
+		return getSpace().getTile(this);
+	}
+	
+	@Override
+	public final boolean occupies(Spatial loc) {
+		return getLocation().equals(loc.getLocation());
+	}
+	
+	@Override
+	public Plane getPlane() {
+		return getLocation().getPlane();
+	}
+	
 	public Stream<Entity> entities() {
 		return getSpace().entities(this);
 	}
 	
-	public Stream<Location> traceTo(Locatable l) {
-		if(isInDifferentSpace(l)) return Stream.empty();
-		Direction dir = getDirectionTo(l);
-		if(dir == null) return Stream.empty();
+	public Stream<Location> traceTo(Location other) {
+		if(isInDifferentSpace(other))
+			return Stream.empty();
+		
+		Direction dir = Direction.get(this, other);
+		if(dir == null)
+			return Stream.empty();
+		
 		return trace(dir)
-				.limit(walkingDistance(l) + 1);
+				.limit(walkingDistance(other) + 1);
 	}
 	
 	public Stream<Location> trace(Direction dir, int distance) {
@@ -239,24 +241,6 @@ public abstract class Location implements Locatable, Cloneable {
 		return bitraceEvery(dir, 1);
 	}
 	
-	@Override
-	public final double distance(final Locatable other) {
-		if(other == null) throw new IllegalArgumentException("Cannot calculate distance between a null Location.");
-		if(!getSpace().equals(other.getSpace())) throw new IllegalArgumentException("Cannot calculate distance between points in different worlds.");
-		final Location otherPoint = other.getLocation();
-		if(getZ() != otherPoint.getZ()) throw new IllegalArgumentException("Cannot calculate distance between points in different Z planes.");
-		return distance(otherPoint);
-	}
-	
-	@Override
-	public final int walkingDistance(final Locatable other) {
-		if(other == null) throw new IllegalArgumentException("Cannot calculate walking distance between a null Location.");
-		if(!getSpace().equals(other.getSpace())) throw new IllegalArgumentException("Cannot calculate walking distance between points in different worlds.");
-		final Location otherPoint = other.getLocation();
-		if(getZ() != otherPoint.getZ()) throw new IllegalArgumentException("Cannot calculate walking distance between points in different Z planes.");
-		return walkingDistance(otherPoint);
-	}
-	
 	final double distance(final Location otherPoint) {
 		return Math.sqrt(Math.pow(getX() - otherPoint.getX(), 2) + Math.pow(getY() - otherPoint.getY(), 2));
 	}
@@ -265,19 +249,9 @@ public abstract class Location implements Locatable, Cloneable {
 		return Math.abs(getX() - otherPoint.getX()) + Math.abs(getY() - otherPoint.getY());
 	}
 	
-	@Override
-	public Comparator<Locatable> getDistanceComparator() {
-		return new DistanceComparator();
-	}
-	
-	@Override
-	public Comparator<Locatable> getWalkingDistanceComparator() {
-		return new WalkingDistanceComparator();
-	}
-	
-	@Override
-	public final Location getLocation() {
-		return this;
+	public final boolean isBetween(Location point, double innerRadius, double outerRadius) {
+		double d = distance(point);
+		return d >= innerRadius && d <= outerRadius;
 	}
 	
 	@Override

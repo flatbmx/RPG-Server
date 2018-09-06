@@ -26,6 +26,11 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 		return this;
 	}
 	
+	@Override
+	public boolean contains(Location point) {
+		return equals(point.getPlane());
+	}
+	
 	public final boolean isAbove(Plane other) {
 		return getZ() > other.getZ();
 	}
@@ -55,7 +60,7 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 				.filter(Tile::isNotVoid);
 	}
 	
-	public Tile getTile(Locatable l) {
+	public Tile getTile(Spatial l) {
 		if(!contains(l)) return null;
 		return tiles()
 				.filter(l::isAt)

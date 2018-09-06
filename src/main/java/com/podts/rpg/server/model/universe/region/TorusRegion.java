@@ -12,8 +12,8 @@ public interface TorusRegion extends CenteredRegion, PollableRegion {
 	public int getInnerRadius();
 	
 	@Override
-	public default boolean contains(Locatable loc) {
-		return getCenter().isBetween(loc, getInnerRadius(), getOuterRadius());
+	public default boolean contains(Location point) {
+		return getCenter().isBetween(point, getInnerRadius(), getOuterRadius());
 	}
 	
 	@Override

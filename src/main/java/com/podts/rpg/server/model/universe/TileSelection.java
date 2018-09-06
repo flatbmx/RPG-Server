@@ -16,7 +16,7 @@ public abstract class TileSelection implements Iterable<Tile> {
 	
 	public Stream<Location> points() {
 		return tiles()
-				.map(Locatable::getLocation);
+				.map(Spatial::getLocation);
 	}
 	
 	public boolean contains(Locatable point) {

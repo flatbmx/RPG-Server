@@ -4,14 +4,14 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Space;
+import com.podts.rpg.server.model.universe.Spatial;
 import com.podts.rpg.server.model.universe.Tile;
 
 public class ReferencePathFinder implements PathFinder {
 	
 	@Override
-	public Path findPath(Locatable start, Locatable finish, PathDecider decider) {
+	public Path findPath(Spatial start, Spatial finish, PathDecider decider) {
 		if(start == null || finish == null)
 			return null;
 		if(start.isNowhere() || finish.isNowhere())

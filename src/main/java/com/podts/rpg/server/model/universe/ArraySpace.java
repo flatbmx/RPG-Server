@@ -74,7 +74,7 @@ public class ArraySpace extends Space {
 			return getZ() == 0;
 		}
 		
-		boolean isInBounds(Locatable l) {
+		boolean isInBounds(Spatial l) {
 			Location point = l.getLocation();
 			return isInBounds(point.getX(), point.getY());
 		}
@@ -104,10 +104,10 @@ public class ArraySpace extends Space {
 		}
 		
 		@Override
-		public Tile getTile(Locatable l) {
+		public Tile getTile(Spatial l) {
 			if(!contains(l)) throw new IllegalArgumentException("Cannot get Tile from another Space!");
-			if(isInBounds(l)) return new Tile(TileType.VOID, l.getLocation());
-			final Location point = l.getLocation();
+			Location point = l.getLocation();
+			if(isInBounds(point)) return new Tile(TileType.VOID, point);
 			return tiles[point.getX()][point.getY()];
 		}
 		

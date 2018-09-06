@@ -3,7 +3,6 @@ package com.podts.rpg.server.model.universe.region;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 
 public interface EllipticalRegion extends CenteredRegion, PollableRegion {
@@ -12,8 +11,8 @@ public interface EllipticalRegion extends CenteredRegion, PollableRegion {
 	public int getYRadius();
 	
 	@Override
-	public default boolean contains(final Locatable loc) {
-		return Math.pow((getCenter().getX() - loc.getLocation().getX())/getXRadius(), 2) + Math.pow((getCenter().getY() - loc.getLocation().getY())/getYRadius(), 2) <= 1;
+	public default boolean contains(final Location point) {
+		return Math.pow((getCenter().getX() - point.getX())/getXRadius(), 2) + Math.pow((getCenter().getY() - point.getY())/getYRadius(), 2) <= 1;
 	}
 	
 	@Override
