@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Space;
-import com.podts.rpg.server.model.universe.World;
+import com.podts.rpg.server.model.universe.Spatial;
 
 public final class Regions {
 	
@@ -36,9 +36,10 @@ public final class Regions {
 	 * The Universal Set that contains all points except null;
 	 */
 	private static final Region universalRegion = new IncompleteRegion() {
+
 		@Override
-		public boolean contains(final Locatable loc) {
-			return loc != null;
+		public boolean contains(Location point) {
+			return point != null;
 		}
 	};
 	
@@ -48,7 +49,7 @@ public final class Regions {
 	
 	private static final Region emptyRegion = new IncompleteRegion() {
 		@Override
-		public boolean contains(final Locatable loc) {
+		public boolean contains(final Location point) {
 			return false;
 		}
 	};
@@ -611,16 +612,16 @@ public final class Regions {
 		}*/
 	}
 	
-	public static final Location findPlaneCenter(final Set<? extends Locatable> locs) {
+	public static final Location findPlaneCenter(final Set<? extends Spatial> locs) {
 		Objects.requireNonNull(locs);
 		return computeFindPlaneCenter(locs);
 	}
 	
-	private static final <L extends Locatable> Location computeFindPlaneCenter(final Collection<L> locs) {
+	private static final <S extends Spatial> Location computeFindPlaneCenter(final Collection<S> locs) {
 		long ax = 0, ay = 0;
 		int z;
-		final Iterator<L> it = locs.iterator();
-		final L first = it.next();
+		final Iterator<S> it = locs.iterator();
+		final S first = it.next();
 		Location point = first.getLocation();
 		Space space = point.getSpace();
 		ax = point.getX();
@@ -628,7 +629,7 @@ public final class Regions {
 		z = point.getZ();
 		
 		if(it.hasNext()) {
-			for(L loc = it.next(); it.hasNext(); loc = it.next()) {
+			for(S loc = it.next(); it.hasNext(); loc = it.next()) {
 				if(loc == null) continue;
 				point = loc.getLocation();
 				ax += point.getX();
@@ -640,17 +641,17 @@ public final class Regions {
 		return space.createLocation((int)ax/locs.size(), (int)ay/locs.size(), z);
 	}
 	
-	public static final Location findCenter(final Set<? extends Locatable> locs) {
+	public static final Location findCenter(final Set<? extends Spatial> locs) {
 		Objects.requireNonNull(locs);
 		return computeFindCenter(locs);
 	}
 	
 	@SafeVarargs
-	public static final <L extends Locatable> Location findCenter(final L... locs) {
+	public static final <S extends Spatial> Location findCenter(final Spatial... locs) {
 		Objects.requireNonNull(locs);
 		int ax = 0, ay = 0, az = 0, counter = 0;
 		Space space = null;
-		for(final L loc : locs) {
+		for(final Spatial loc : locs) {
 			if(loc == null) continue;
 			++counter;
 			final Location l = loc.getLocation();
@@ -663,11 +664,11 @@ public final class Regions {
 		return space.createLocation(ax/counter, ay/counter, az/counter);
 	}
 	
-	private static final Location computeFindCenter(final Set<? extends Locatable> locs) {
+	private static final Location computeFindCenter(final Set<? extends Spatial> locs) {
 		long ax = 0, ay = 0, az = 0;
 		if(locs.isEmpty() || (locs.size() == 1) && locs.contains(null)) new IllegalArgumentException("Cannot find the center of null, empty or just null containing set.");
 		Space space = null;
-		for(final Locatable loc : locs) {
+		for(final Spatial loc : locs) {
 			final Location point = loc.getLocation();
 			space = point.getSpace();
 			ax += point.getX();
@@ -718,19 +719,19 @@ public final class Regions {
 		return true;
 	}
 	
-	public static final Region constructRegion(final Iterable<? extends Locatable> locs) {
+	public static final Region constructRegion(final Iterable<? extends Spatial> locs) {
 		if(!containsNonNullElements(locs)) return getEmptyRegion();
 		return constructRegion(locs, !isStaticLocatable(locs));
 	}
 	
-	public static final Region constructRegion(final Iterable<? extends Locatable> locs, final boolean dynamic) {
+	public static final Region constructRegion(final Iterable<? extends Spatial> locs, final boolean dynamic) {
 		if(!containsNonNullElements(locs)) return getEmptyRegion();
 		//TODO implement
 		if(dynamic) {
 			return new DynamicSetRegion(locs);
 		} else {
 			final Set<Location> pointSet = new HashSet<Location>();
-			for(final Locatable loc : locs) {
+			for(final Spatial loc : locs) {
 				pointSet.add(loc.getLocation());
 			}
 			Region r = constructCircularRegion(pointSet);
@@ -746,33 +747,33 @@ public final class Regions {
 		return new StaticCircularRegion(values.getKey(),values.getValue());
 	}
 	
-	public static final CircularRegion constructCircularRegion(final Locatable center, final int radius) {
+	public static final CircularRegion constructCircularRegion(final Spatial center, final int radius) {
 		return constructCircularRegion(center, radius, !isStaticLocatable(center));
 	}
 	
-	public static final CircularRegion constructCircularRegion(final Locatable center, final int radius, final boolean dynamic) {
+	public static final CircularRegion constructCircularRegion(final Spatial center, final int radius, final boolean dynamic) {
 		if(center == null || (radius == 0 && !dynamic)) return getEmptyCircularRegion();
 		if(dynamic) return new DynamicCircularRegion(center, radius);
 		return new StaticCircularRegion(center, radius);
 	}
 	
-	public static TorusRegion constructTorusRegion(final Locatable center, int outerRadius, int innerRadius) {
+	public static TorusRegion constructTorusRegion(final Spatial center, int outerRadius, int innerRadius) {
 		return constructTorusRegion(center, outerRadius, innerRadius, !isStaticLocatable(center));
 	}
 	
-	public static final TorusRegion constructTorusRegion(final Locatable center, int outerRadius, int innerRadius, final boolean dynamic) {
+	public static final TorusRegion constructTorusRegion(final Spatial center, int outerRadius, int innerRadius, final boolean dynamic) {
 		if(center == null || (!dynamic && outerRadius == 0)) return getEmptyTorusRegion();
 		if(dynamic) {
 			//TODO implement dynamic torus region.
 		}
-		return new StaticTorusRegion(center, outerRadius, innerRadius);
+		return new StaticTorusRegion(center.getLocation(), outerRadius, innerRadius);
 	}
 	
-	public static final RectangularRegion constructRectangularRegion(final Locatable a, final Locatable b) {
+	public static final RectangularRegion constructRectangularRegion(final Spatial a, final Spatial b) {
 		return constructRectangularRegion(a, b, !isStaticLocatable(a,b));
 	}
 	
-	public static final RectangularRegion constructRectangularRegion(final Locatable a, final Locatable b, final boolean dynamic) {
+	public static final RectangularRegion constructRectangularRegion(final Spatial a, final Spatial b, final boolean dynamic) {
 		if(a == null || b == null) return getEmptyRectangularRegion();
 		if(dynamic) return new DynamicRectangularRegion(a,b);
 		//TODO implement me
@@ -780,15 +781,15 @@ public final class Regions {
 		//return new StaticRectangularRegion(a,b);
 	}
 	
-	public static final SetRegion constructSetRegion(final Locatable... points) {
+	public static final SetRegion constructSetRegion(final Spatial... points) {
 		return constructSetRegion(!isStaticLocatable(points), points);
 	}
 	
-	public static final SetRegion constructSetRegion(final boolean dynamic, final Locatable... points) {
+	public static final SetRegion constructSetRegion(final boolean dynamic, final Spatial... points) {
 		if(!containsNonNullElements(points) && !dynamic) return getEmptySetRegion();
 		if(dynamic) {
 			SetRegion result = new DynamicSetRegion();
-			for(Locatable loc : points) {
+			for(Spatial loc : points) {
 				result.addPoint(loc);
 			}
 			return result;
@@ -891,9 +892,9 @@ public final class Regions {
 	private static class IntersectRegion extends CompoundRegion<Region> {
 		
 		@Override
-		public boolean contains(final Locatable loc) {
+		public boolean contains(final Location point) {
 			for(final Region r : subRegions) {
-				if(!r.contains(loc)) return false;
+				if(!r.contains(point)) return false;
 			}
 			return true;
 		}
@@ -912,7 +913,7 @@ public final class Regions {
 	private static final class UnionRegion<R extends Region> extends CompoundRegion<R> {
 		
 		@Override
-		public final boolean contains(final Locatable loc) {
+		public final boolean contains(final Location loc) {
 			for(final Region r : subRegions) {
 				if(r.contains(loc)) return true;
 			}
@@ -965,7 +966,7 @@ public final class Regions {
 		private final Region initial;
 		
 		@Override
-		public boolean contains(final Locatable loc) {
+		public boolean contains(final Location loc) {
 			if(!initial.contains(loc)) return false;
 			for(final Region r : subRegions) {
 				if(r.contains(loc)) return false;
@@ -1055,7 +1056,8 @@ public final class Regions {
 	
 	private static final class ComplementRegion extends CompoundRegion<Region> {
 		
-		public boolean contains(Locatable loc) {
+		@Override
+		public boolean contains(Location loc) {
 			for(final Region r : subRegions) {
 				if(r.contains(loc)) return false;
 			}

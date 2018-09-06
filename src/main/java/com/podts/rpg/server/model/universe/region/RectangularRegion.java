@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 
 public interface RectangularRegion extends PolygonRegion {
@@ -47,11 +46,10 @@ public interface RectangularRegion extends PolygonRegion {
 	}
 	
 	@Override
-	public default boolean contains(Locatable loc) {
-		Location l = loc.getLocation();
-		Location topLeft = getCorner(Corner.TOP_LEFT);
-		if(Math.abs(topLeft.getX() - l.getX()) > getXWidth()) return false;
-		if(Math.abs(topLeft.getY() - l.getY()) > getYWidth()) return false;
+	public default boolean contains(Location point) {
+		final Location topLeft = getCorner(Corner.TOP_LEFT);
+		if(Math.abs(topLeft.getX() - point.getX()) > getXWidth()) return false;
+		if(Math.abs(topLeft.getY() - point.getY()) > getYWidth()) return false;
 		return true;
 	}
 	

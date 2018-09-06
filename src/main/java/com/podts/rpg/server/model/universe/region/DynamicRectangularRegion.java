@@ -6,10 +6,11 @@ import java.util.List;
 import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Space;
+import com.podts.rpg.server.model.universe.Spatial;
 
 class DynamicRectangularRegion extends SimpleRegion implements RectangularRegion {
 	
-	private final Locatable corner1, corner2;
+	private final Spatial corner1, corner2;
 	
 	final Space getSpace() {
 		return corner1.getSpace();
@@ -81,7 +82,7 @@ class DynamicRectangularRegion extends SimpleRegion implements RectangularRegion
 		return findXWidth(twoCorners) == findYWidth(twoCorners);
 	}
 	
-	DynamicRectangularRegion(final Locatable corner1, final Locatable corner2) {
+	DynamicRectangularRegion(final Spatial corner1, final Spatial corner2) {
 		this.corner1 = corner1;
 		this.corner2 = corner2;
 	}

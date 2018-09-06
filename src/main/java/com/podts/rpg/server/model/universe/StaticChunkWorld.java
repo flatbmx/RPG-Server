@@ -322,13 +322,6 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		@Override
-		public boolean contains(Locatable point) {
-			//TODO Should probably do mathematical comparison.
-			CLocation loc = (CLocation) point.getLocation();
-			return equals(loc.getChunk());
-		}
-		
-		@Override
 		public List<CLocation> getCorners() {
 			return corners()
 					.collect(Collectors.toList());
@@ -346,6 +339,11 @@ public final class StaticChunkWorld extends World {
 			return new CLocation(this, topLeft.getX() + chunkSize()*c.getX(), topLeft.getY() + chunkSize()*c.getY(), getZ());
 		}
 		
+		@Override
+		public boolean contains(Location point) {
+			return RectangularRegion.super.contains(point);
+		}
+
 		protected Chunk(final ChunkPlane plane, final ChunkCoordinate coord) {
 			this.plane = plane;
 			this.coord = coord;
@@ -601,7 +599,7 @@ public final class StaticChunkWorld extends World {
 		return chunkDepth;
 	}
 	
-	private Chunk chunk(Locatable l) {
+	private Chunk chunk(Spatial l) {
 		return chunk((CLocation) l.getLocation());
 	}
 	
@@ -687,14 +685,13 @@ public final class StaticChunkWorld extends World {
 				.flatMap(Chunk::tiles);
 	}
 	
-	@Override
-	public Stream<Tile> nearbyTiles(Locatable l) {
+	public Stream<Tile> nearbyTiles(Spatial l) {
 		return surroundingChunks(l)
 				.flatMap(Chunk::tiles);
 	}
 	
 	@Override
-	public Stream<Tile> nearbyTiles(Locatable l, double distance) {
+	public Stream<Tile> nearbyTiles(Spatial l, double distance) {
 		int depth = (int)Math.ceil(distance / getChunkSize());
 		return surroundingChunks(l, depth)
 				.peek(Chunk::generate)
@@ -703,7 +700,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Stream<Tile> nearbyWalkingTiles(Locatable l, int distance) {
+	public Stream<Tile> nearbyWalkingTiles(Spatial l, int distance) {
 		int depth = (int)Math.ceil(distance / getChunkSize()) + 1;
 		return surroundingChunks(l, depth)
 				.peek(Chunk::generate)
@@ -748,11 +745,11 @@ public final class StaticChunkWorld extends World {
 		return surroundingChunks(point, getChunkDepth());
 	}
 	
-	private Stream<Chunk> surroundingChunks(Locatable l, int depth) {
+	private Stream<Chunk> surroundingChunks(Spatial l, int depth) {
 		return surroundingChunks((CLocation)l.getLocation(), depth);
 	}
 	
-	private Stream<Chunk> surroundingChunks(Locatable l) {
+	private Stream<Chunk> surroundingChunks(Spatial l) {
 		return surroundingChunks((CLocation)l.getLocation());
 	}
 	
@@ -772,7 +769,7 @@ public final class StaticChunkWorld extends World {
 		return findChunk(coord).generate();
 	}
 	
-	private Chunk getGeneratedChunk(final Locatable point) {
+	private Chunk getGeneratedChunk(final Spatial point) {
 		return getGeneratedChunk(getCoordinate(point.getLocation()));
 	}
 	
@@ -875,14 +872,14 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Stream<Entity> nearbyEntities(Locatable l) {
+	public Stream<Entity> nearbyEntities(Spatial l) {
 		Utils.assertArg(!contains(l), "Cannot get nearby Entity Stream from location in another world.");
 		return surroundingChunks(l)
 				.flatMap(Chunk::entities);
 	}
 	
 	@Override
-	public Stream<Entity> nearbyEntities(Locatable l, double distance) {
+	public Stream<Entity> nearbyEntities(Spatial l, double distance) {
 		Utils.assertArg(!contains(l), "Cannot get nearby Entity Stream from location in another world.");
 		return nearbyEntities(l.getLocation(), distance);
 	}
@@ -933,7 +930,7 @@ public final class StaticChunkWorld extends World {
 		
 	}
 	
-	private Collection<Tile> getView(Locatable l) {
+	private Collection<Tile> getView(Spatial l) {
 		return nearbyTiles(l, 15)
 				.collect(Collectors.toSet());
 	}
@@ -984,7 +981,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Stream<PollableRegion> regions(Locatable l) {
+	public Stream<PollableRegion> regions(Spatial l) {
 		if(!contains(l)) throw new IllegalArgumentException("Cannot get Regions from a Location from another World.");
 		return chunk(l).regions()
 				.filter(s -> s.contains(l));
@@ -1001,7 +998,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Stream<Entity> entities(Locatable l) {
+	public Stream<Entity> entities(Spatial l) {
 		return chunk(l).entities()
 				.filter(l::isAt);
 	}

@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Locatable;
+import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Spatial;
 
 /**
  * A subset of the Universe.
@@ -46,6 +48,14 @@ public interface Region {
 	 * @param point - The given point in question.
 	 * @return True if the point is in this Region, false otherwise.
 	 */
-	public boolean contains(Locatable point);
+	public boolean contains(Location point);
+	
+	public default boolean contains(Spatial point) {
+		return contains(point.getLocation());
+	}
+	
+	public default boolean contains(Locatable l) {
+		return l.locations().anyMatch(point -> contains(point));
+	}
 	
 }

@@ -1,10 +1,10 @@
 package com.podts.rpg.server.model.universe.region;
 
-import com.podts.rpg.server.model.universe.Locatable;
+import com.podts.rpg.server.model.universe.Spatial;
 
 public interface SetRegion extends PollableRegion {
 	
-	public SetRegion addPoint(Locatable loc);
-	public SetRegion removePoint(Locatable loc);
+	public SetRegion addPoint(Spatial point);
+	public SetRegion removePoint(Spatial point);
 	
 }

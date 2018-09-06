@@ -14,7 +14,6 @@ import com.podts.rpg.server.Player;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
-import com.podts.rpg.server.model.universe.Tile.TileType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 
 public abstract class Space implements HasSpace {
@@ -55,6 +54,12 @@ public abstract class Space implements HasSpace {
 		public final String toString() {
 			return "Oblivion";
 		}
+
+		@Override
+		public Tile getTile(Location point) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 		
 	}
 	
@@ -90,8 +95,8 @@ public abstract class Space implements HasSpace {
 			return tile;
 		}
 		
-		SurroundingIterable(Locatable loc, int distance) {
-			center = loc.getLocation();
+		SurroundingIterable(Spatial center, int distance) {
+			this.center = center.getLocation();
 			distance = Math.abs(distance);
 			this.distance = distance;
 			dx = -1 * distance;
@@ -115,7 +120,7 @@ public abstract class Space implements HasSpace {
 	private final Location origin = createLocation(0, 0, 0);
 	
 	protected static final int getZ(Locatable l) {
-		return l.getLocation().getZ();
+		return l.getPlane().getZ();
 	}
 	
 	public abstract Location createLocation(int x, int y, int z);
@@ -215,14 +220,18 @@ public abstract class Space implements HasSpace {
 		return plane.allTiles();
 	}
 	
-	public Stream<Tile> nearbyTiles(Locatable l, double distance) {
+	public Stream<Tile> nearbyTiles(Spatial l, double distance) {
 		return tiles(getZ(l))
 				.filter(tile -> tile.isInRange(l, distance));
 	}
 	
-	public Stream<Tile> nearbyWalkingTiles(Locatable l, int distance) {
+	public Stream<Tile> nearbyWalkingTiles(Spatial l, int distance) {
 		return tiles(getZ(l))
 				.filter(tile -> tile.isInWalkingRange(l, distance));
+	}
+	
+	public Tile getTile(Location point) {
+		return point.getPlane().getTile(point);
 	}
 	
 	public Stream<Tile> tiles(PollableRegion r) {
@@ -239,40 +248,36 @@ public abstract class Space implements HasSpace {
 		return setTile(tile, createLocation(x, y, z));
 	}
 	
-	public Tile getTile(Locatable l) {
-		if(isInDifferentSpace(l)) throw new IllegalArgumentException("Cannot get Tile from a different Space!");
-		return allTiles(l)
-				.filter(l::isAt)
-				.findAny()
-				.orElse(new Tile(TileType.VOID, l.getLocation()));
-	}
-	
 	public boolean isTraversable(Tile tile) {
 		if(tile == null)
 			return false;
 		return tile.getType().isTraversable();
 	}
 	
-	public Collection<Tile> getSurroundingTiles(Locatable loc) {
-		return surroundingTiles(loc)
+	public Collection<Tile> getSurroundingTiles(Spatial center) {
+		return surroundingTiles(center)
 				.collect(Collectors.toSet());
 	}
 	
-	public Iterable<Tile> getSurroundingTilesIterable(Locatable loc, int distance) {
-		return new SurroundingIterable(loc, distance);
+	public Iterable<Tile> getSurroundingTilesIterable(Spatial center, int distance) {
+		return new SurroundingIterable(center, distance);
 	}
 	
-	public Iterable<Tile> getSurroundingTilesIterable(Locatable loc) {
-		return getSurroundingTilesIterable(loc, 1);
+	public Iterable<Tile> getSurroundingTilesIterable(Spatial center) {
+		return getSurroundingTilesIterable(center, 1);
 	}
 	
-	public Stream<Tile> surroundingTiles(Locatable loc, int distance) {
-		if(isInDifferentSpace(loc)) return Stream.empty();
-		return Streams.stream(getSurroundingTilesIterable(loc, distance));
+	public Stream<Tile> surroundingTiles(Spatial center, int distance) {
+		if(isInDifferentSpace(center)) return Stream.empty();
+		return Streams.stream(getSurroundingTilesIterable(center, distance));
 	}
 	
-	public Stream<Tile> surroundingTiles(Locatable loc) {
+	public Stream<Tile> surroundingTiles(Spatial loc) {
 		return surroundingTiles(loc, 1);
+	}
+	
+	public boolean contains(Locatable l) {
+		return equals(l.getSpace());
 	}
 	
 	public Stream<PollableRegion> regions() {
@@ -287,7 +292,7 @@ public abstract class Space implements HasSpace {
 		return plane.regions();
 	}
 	
-	public Stream<PollableRegion> regions(Locatable l) {
+	public Stream<PollableRegion> regions(Spatial l) {
 		if(isInDifferentSpace(l)) return Stream.empty();
 		return regions(getZ(l))
 				.filter(r -> r.contains(l));
@@ -298,8 +303,9 @@ public abstract class Space implements HasSpace {
 				.flatMap(Plane::entities);
 	}
 	
-	public Stream<Entity> entities(Locatable l) {
-		if(isInDifferentSpace(l)) return Stream.empty();
+	public Stream<Entity> entities(Spatial l) {
+		if(isInDifferentSpace(l))
+			return Stream.empty();
 		return entities(getZ(l))
 				.filter(l::isAt);
 	}
@@ -311,7 +317,7 @@ public abstract class Space implements HasSpace {
 				.flatMap(Plane::entities);
 	}
 	
-	public Stream<Entity> nearbyEntities(Locatable l, double distance) {
+	public Stream<Entity> nearbyEntities(Spatial l, double distance) {
 		if(isInDifferentSpace(l)) return Stream.empty();
 		return entities(getZ(l))
 				.filter(e -> l.isInRange(e, distance));
@@ -329,7 +335,7 @@ public abstract class Space implements HasSpace {
 				.map(e -> ((PlayerEntity)e).getPlayer());
 	}
 	
-	public Stream<Player> nearbyPlayers(Locatable l, double distance) {
+	public Stream<Player> nearbyPlayers(Spatial l, double distance) {
 		if(isInDifferentSpace(l)) return Stream.empty();
 		return nearbyEntities(l, distance)
 				.filter(Player::is)

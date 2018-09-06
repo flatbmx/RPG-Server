@@ -6,7 +6,7 @@ import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 
-public abstract class Entity extends Spatial implements Registerable, MovableFacable {
+public abstract class Entity extends SimpleSpatial implements Registerable, MovableFacable {
 	
 	public static final Direction DEFAULT_FACE = Direction.UP;
 	
@@ -57,10 +57,6 @@ public abstract class Entity extends Spatial implements Registerable, MovableFac
 	public final Entity move(final Direction dir) {
 		MovableFacable.super.move(dir);
 		return this;
-	}
-	
-	public final Tile getTile() {
-		return getSpace().getTile(this);
 	}
 	
 	public final boolean isRegistered() {

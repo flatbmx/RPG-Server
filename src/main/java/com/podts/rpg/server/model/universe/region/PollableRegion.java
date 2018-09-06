@@ -31,7 +31,7 @@ public interface PollableRegion extends Region, Iterable<Location> {
 	}
 	
 	@Override
-	public default boolean contains(Locatable l) {
+	public default boolean contains(Location l) {	
 		return points()
 				.anyMatch(l::isAt);
 	}

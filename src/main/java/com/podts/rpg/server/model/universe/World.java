@@ -70,10 +70,10 @@ public abstract class World extends Space {
 	 * @param point - The location of the Tile.
 	 * @return The Tile that is located at the given point.
 	 */
-	public final Tile getTile(Locatable loc) {
-		Utils.assertNullArg(loc, "Cannot get Tile for null location.");
-		Utils.assertArg(!doContains(loc), "Cannot get Tile that exists in a different World.");
-		return doGetTile(loc.getLocation());
+	public final Tile getTile(Location point) {
+		Utils.assertNullArg(point, "Cannot get Tile for null location.");
+		Utils.assertArg(!doContains(point), "Cannot get Tile that exists in a different World.");
+		return doGetTile(point);
 	}
 	
 	protected abstract Tile doGetTile(Location point);
@@ -126,29 +126,29 @@ public abstract class World extends Space {
 	 */
 	protected abstract void doSetTile(Tile newTile);
 	
-	public final Collection<Entity> getNearbyEntities(Locatable l, double distance) {
+	public final Collection<Entity> getNearbyEntities(Spatial l, double distance) {
 		return nearbyEntities(l, distance)
 				.collect(Collectors.toSet());
 	}
 	
-	public abstract Stream<Entity> nearbyEntities(Locatable l);
+	public abstract Stream<Entity> nearbyEntities(Spatial l);
 	
 	/**
 	 * This method is equivalent to calling {@link #getNearbyEntities(Locatable,Predicate) getNearbyEntities} with no condition.
 	 * @param l - The central point of all entities.
 	 * @return A Collection of entities within the given radius in this World.
 	 */
-	public final Collection<Entity> getNearbyEntities(Locatable l) {
+	public final Collection<Entity> getNearbyEntities(Spatial l) {
 		return nearbyEntities(l)
 				.collect(Collectors.toSet());
 	}
 	
-	public final Collection<Player> getNearbyPlayers(Locatable l) {
+	public final Collection<Player> getNearbyPlayers(Spatial l) {
 		return nearbyPlayers(l)
 				.collect(Collectors.toSet());
 	}
 	
-	public final Stream<Player> nearbyPlayers(Locatable l) {
+	public final Stream<Player> nearbyPlayers(Spatial l) {
 		Utils.assertNull(l, "Cannot find nearby players from null locatable.");
 		Utils.assertNull(l.getLocation(), "Cannot find nearby players from null location.");
 		Utils.assertArg(!doContains(l), "Cannot find nearby players from location in another world.");
@@ -180,7 +180,7 @@ public abstract class World extends Space {
 				.filter(Objects::nonNull);
 	}
 	
-	public abstract Stream<Tile> nearbyTiles(Locatable l);
+	public abstract Stream<Tile> nearbyTiles(Spatial l);
 	
 	/**
 	 * Registers an entity with this {@link World}.
@@ -271,7 +271,7 @@ public abstract class World extends Space {
 	 * @return A {@link Collection} of all the registered {@link PollableRegion}s that {@link Region#contains(Locatable) contains} the given point.
 	 * The Collection may be modifiable or not however any changes will not affect anything outside of the Collection returned.
 	 */
-	public Collection<PollableRegion> getRegions(Locatable loc) {
+	public Collection<PollableRegion> getRegions(Spatial loc) {
 		return regions(loc)
 				.collect(Collectors.toSet());
 	}
@@ -363,12 +363,12 @@ public abstract class World extends Space {
 		return new Tile(type, createLocation(x,y,z));
 	}
 	
-	public final boolean contains(final Locatable loc) {
+	public final boolean contains(final Spatial loc) {
 		Utils.assertNullArg(loc, "Cannot determine if null Locatable is in World.");
 		return doContains(loc);
 	}
 	
-	protected final boolean doContains(final Locatable loc) {
+	protected final boolean doContains(final Spatial loc) {
 		return equals(loc.getSpace());
 	}
 	
@@ -420,7 +420,7 @@ public abstract class World extends Space {
 	
 	protected abstract void handleRegionChange(PollableRegion r);
 	
-	protected final void sendToNearbyPlayers(Locatable l, Packet... packets) {
+	protected final void sendToNearbyPlayers(Spatial l, Packet... packets) {
 		nearbyPlayers(l)
 		.forEach(player -> {
 			for(Packet packet : packets)
@@ -428,7 +428,7 @@ public abstract class World extends Space {
 		});
 	}
 	
-	protected final void sendToNearbyPlayers(Locatable l, Player except, Packet... packets) {
+	protected final void sendToNearbyPlayers(Spatial l, Player except, Packet... packets) {
 		nearbyPlayers(l)
 		.filter(p -> !p.equals(except))
 		.forEach(player -> {

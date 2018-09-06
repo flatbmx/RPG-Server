@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.Direction;
 
-public class Tile extends Spatial implements Registerable {
+public class Tile extends SimpleSpatial implements Registerable {
 	
 	public enum TileType {
 		VOID(false),
@@ -32,7 +32,6 @@ public class Tile extends Spatial implements Registerable {
 	
 	private final TileType type;
 	
-	@Override
 	public final Tile getTile() {
 		return this;
 	}
@@ -53,12 +52,16 @@ public class Tile extends Spatial implements Registerable {
 		return getSpace().isTraversable(this);
 	}
 	
-	public Stream<Tile> traceTo(Locatable l) {
-		if(isInDifferentSpace(l)) return Stream.empty();
-		Direction dir = getDirectionTo(l);
-		if(dir == null) return Stream.empty();
+	public Stream<Tile> traceTo(Location point) {
+		if(isInDifferentSpace(point))
+			return Stream.empty();
+		
+		Direction dir = Direction.get(getLocation(), point);
+		if(dir == null)
+			return Stream.empty();
+		
 		return trace(dir)
-				.limit(walkingDistance(l) + 1);
+				.limit(walkingDistance(point) + 1);
 	}
 	
 	public Stream<Tile> traceEvery(Direction dir, int increment) {
