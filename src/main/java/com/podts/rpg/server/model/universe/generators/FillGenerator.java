@@ -1,8 +1,8 @@
 package com.podts.rpg.server.model.universe.generators;
 
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.Tile;
-import com.podts.rpg.server.model.universe.Tile.TileType;
+import com.podts.rpg.server.model.universe.TileElement;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.WorldGenerator;
 
 /**
@@ -18,8 +18,8 @@ public final class FillGenerator extends WorldGenerator {
 	}
 	
 	@Override
-	public Tile doGenerateTile(Location point) {
-		return new Tile(type, point);
+	public TileElement doGenerateTile(Location point) {
+		return constructElement(type);
 	}
 	
 	public FillGenerator(TileType type) {

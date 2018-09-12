@@ -5,6 +5,9 @@ public abstract class SimplePlaneLocation extends Location {
 	private final int x, y;
 	
 	@Override
+	public abstract Plane getPlane();
+	
+	@Override
 	public int getX() {
 		return x;
 	}

@@ -19,6 +19,8 @@ import com.podts.rpg.server.Utils;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
+import com.podts.rpg.server.model.universe.StaticChunkWorld.Chunk.ChunkTile;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.region.IncompleteRegion;
 import com.podts.rpg.server.model.universe.region.PollableMonitoringRegion;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
@@ -103,12 +105,12 @@ public final class StaticChunkWorld extends World {
 		public String toString() {
 			return "[ChkCrd : " + getX() + ", " + getY() + ", " + getZ() + "]";
 		}
-
+		
 		@Override
 		public int hashCode() {
 			return hash;
 		}
-
+		
 		@Override
 		public boolean equals(Object o) {
 			if(this == o) return true;
@@ -129,16 +131,37 @@ public final class StaticChunkWorld extends World {
 		}
 		
 	}
-
+	
 	final class Chunk extends IncompleteRegion implements RectangularRegion, PollableMonitoringRegion, HasPlane {
+		
+		final class ChunkTile extends Tile {
+			
+			@Override
+			public StaticChunkWorld getSpace() {
+				return StaticChunkWorld.this;
+			}
+			
+			final Chunk getChunk() {
+				return Chunk.this;
+			}
+			
+			public ChunkTile(CLocation location) {
+				super(location);
+			}
+			
+			public ChunkTile(TileType type, CLocation location) {
+				super(type, location);
+			}
+			
+		}
 		
 		private final ChunkPlane plane;
 		private final ChunkCoordinate coord;
 		private final CLocation topLeft;
 		
 		boolean generated = false;
-
-		private final Tile[][] tiles = new Tile[getChunkSize()][getChunkSize()];
+		
+		private final ChunkTile[][] tiles = new ChunkTile[getChunkSize()][getChunkSize()];
 		
 		private final Map<Direction,Chunk> neighbors = new EnumMap<Direction,Chunk>(Direction.class);
 		
@@ -178,7 +201,7 @@ public final class StaticChunkWorld extends World {
 		public int getXWidth() {
 			return chunkSize();
 		}
-
+		
 		@Override
 		public int getYWidth() {
 			return chunkSize();
@@ -209,6 +232,14 @@ public final class StaticChunkWorld extends World {
 			return regions.remove(r);
 		}
 		
+		private void initiateTiles() {
+			for(int i=0; i<tiles.length; ++i) {
+				for(int j=0; j<tiles[i].length; ++j) {
+					tiles[i][j] = new ChunkTile(topLeft.shift(i, j));
+				}
+			}
+		}
+		
 		@Override
 		public Collection<Location> getPoints() {
 			return points()
@@ -224,23 +255,24 @@ public final class StaticChunkWorld extends World {
 					.map(Tile::getLocation);
 		}
 		
-		Stream<CLocation> generatePoints() {
+		Stream<Location> generatePoints() {
 			return IntStream.range(0, chunkSize())
 					.mapToObj(Integer::valueOf)
 					.flatMap(j -> {
 						return IntStream.range(0, chunkSize())
-								.mapToObj(i -> new CLocation(this, topLeft.getX() + i, topLeft.getY() + j, getZ()));
+								.mapToObj(i -> new CompleteLocation(getSpace(), topLeft.getX() + i, topLeft.getY() + j, getZ()));
 					});
 		}
 		
-		final Stream<Tile> allTiles() {
-			if(!isGenerated()) return Stream.empty();
+		final Stream<ChunkTile> allTiles() {
+			if(!isGenerated())
+				return Stream.empty();
 			return Stream.of(tiles)
 					.flatMap(Stream::of);
 		}
 		
 		@Override
-		public final Stream<Tile> tiles() {
+		public final Stream<ChunkTile> tiles() {
 			return allTiles()
 					.filter(Tile::isNotVoid);
 		}
@@ -255,15 +287,15 @@ public final class StaticChunkWorld extends World {
 			return safePlayers.values().stream();
 		}
 		
-		private Tile getTile(CLocation point) {
+		private ChunkTile getTile(CLocation point) {
 			return getTile(topLeft.getXDifference(point) + (getChunkSize()-1)/2, topLeft.getYDifference(point) + (getChunkSize()-1)/2);
 		}
 		
-		Tile getTile(int x, int y) {
+		ChunkTile getTile(int x, int y) {
 			return tiles[x][y];
 		}
 		
-		void setTile(Tile newTile, int x, int y) {
+		void setTile(ChunkTile newTile, int x, int y) {
 			tiles[x][y] = newTile;
 		}
 		
@@ -322,34 +354,35 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		@Override
-		public List<CLocation> getCorners() {
+		public List<Location> getCorners() {
 			return corners()
 					.collect(Collectors.toList());
 		}
 		
 		@Override
-		public Stream<CLocation> corners() {
+		public Stream<Location> corners() {
 			return Corner.stream()
 					.map(this::getCorner);
 		}
 		
 		@Override
-		public CLocation getCorner(Corner c) {
+		public Location getCorner(Corner c) {
 			if(Corner.TOP_LEFT.equals(c)) return topLeft;
-			return new CLocation(this, topLeft.getX() + chunkSize()*c.getX(), topLeft.getY() + chunkSize()*c.getY(), getZ());
+			return topLeft.shift(chunkSize() * c.getX(), chunkSize() * c.getY());
 		}
 		
 		@Override
 		public boolean contains(Location point) {
 			return RectangularRegion.super.contains(point);
 		}
-
+		
 		protected Chunk(final ChunkPlane plane, final ChunkCoordinate coord) {
 			this.plane = plane;
 			this.coord = coord;
 			int x = coord.getX() * getChunkSize() - (getChunkSize()-1)/2;
 			int y = coord.getY() * getChunkSize() - (getChunkSize()-1)/2;
 			topLeft = new CLocation(this, x, y, coord.getZ());
+			initiateTiles();
 		}
 		
 	}
@@ -455,7 +488,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private final class MLocation extends Location {
-
+		
 		private int x, y, z;
 		
 		@Override
@@ -472,35 +505,35 @@ public final class StaticChunkWorld extends World {
 		public final int getX() {
 			return x;
 		}
-
+		
 		@Override
 		public final int getY() {
 			return y;
 		}
-
+		
 		@Override
 		public final int getZ() {
 			return z;
 		}
-
+		
 		@Override
 		public final MLocation shift(final int dx, final int dy, final int dz) {
 			return new MLocation(x + dx, y + dy, z + dz);
 		}
-
+		
 		private MLocation(int nx, int ny, int nz) {
 			x = nx;
 			y = ny;
 			z = nz;
 		}
-
+		
 	}
-
+	
 	final class CLocation extends SimpleLocation {
-
+		
 		private Chunk chunk;
 		private final int hash;
-
+		
 		@Override
 		public final StaticChunkWorld getSpace() {
 			return StaticChunkWorld.this;
@@ -511,6 +544,10 @@ public final class StaticChunkWorld extends World {
 			return getChunk().getPlane();
 		}
 		
+		public ChunkTile getTile() {
+			return getChunk().getTile(this);
+		}
+		
 		@Override
 		public Stream<Entity> entities() {
 			return getChunk().entities();
@@ -518,14 +555,14 @@ public final class StaticChunkWorld extends World {
 		
 		@Override
 		public final CLocation shift(final int dx, final int dy, final int dz) {
-			final CLocation sl = getChunk().topLeft;
+			final Location sl = getChunk().topLeft;
 			final int nX = x + dx, nY = y + dy, nZ = z + dz;
 			Chunk c = chunk;
 			if(nZ != z ||
-					nX < sl.x ||
-					nY < sl.y ||
-					nX - sl.x >= getChunkSize() ||
-					nY - sl.y >= getChunkSize()) {
+					nX < sl.getX() ||
+					nY < sl.getY() ||
+					nX - sl.getX() >= getChunkSize() ||
+					nY - sl.getY() >= getChunkSize()) {
 				ChunkCoordinate oldCoord = getChunk().getCoordinate();
 				ChunkCoordinate newCoord = getSpace().getCoordinateFromLocation(nX, nY, nZ);
 				if(oldCoord.distance(newCoord) == 1)
@@ -533,7 +570,7 @@ public final class StaticChunkWorld extends World {
 				else
 					c = null;
 			}
-				
+			
 			return new CLocation(c, nX, nY, nZ);
 		}
 		
@@ -584,11 +621,11 @@ public final class StaticChunkWorld extends World {
 			this.chunk = chunk;
 			hash = Objects.hash(x, y, z);
 		}
-
+		
 		private CLocation(final int x, final int y, final int z) {
 			this(null, x, y, z);
 		}
-
+		
 	}
 	
 	private int getChunkSize() {
@@ -614,7 +651,9 @@ public final class StaticChunkWorld extends World {
 	
 	public Stream<Chunk> chunks(final int z) {
 		ChunkPlane plane = getPlane(z);
-		if(plane == null) return Stream.empty();
+		if(plane == null)
+			return Stream.empty();
+		
 		return plane.chunks();
 	}
 	
@@ -625,7 +664,9 @@ public final class StaticChunkWorld extends World {
 	
 	public Stream<Chunk> generatedChunks(final int z) {
 		ChunkPlane plane = getPlane(z);
-		if(plane == null) return Stream.empty();
+		if(plane == null)
+			return Stream.empty();
+		
 		return plane.generatedChunks();
 	}
 	
@@ -691,7 +732,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Stream<Tile> nearbyTiles(HasLocation l, double distance) {
+	public Stream<ChunkTile> nearbyTiles(HasLocation l, double distance) {
 		int depth = (int)Math.ceil(distance / getChunkSize());
 		return surroundingChunks(l, depth)
 				.peek(Chunk::generate)
@@ -700,7 +741,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Stream<Tile> nearbyWalkingTiles(HasLocation l, int distance) {
+	public Stream<ChunkTile> nearbyWalkingTiles(HasLocation l, int distance) {
 		int depth = (int)Math.ceil(distance / getChunkSize()) + 1;
 		return surroundingChunks(l, depth)
 				.peek(Chunk::generate)
@@ -734,11 +775,11 @@ public final class StaticChunkWorld extends World {
 	private Stream<Chunk> surroundingChunks(final CLocation point, final int depth) {
 		ChunkCoordinate center = getCoordinate(point);
 		return IntStream.rangeClosed(-depth, depth)
-			.mapToObj(Integer::valueOf)
-			.flatMap(j -> {
-				return IntStream.rangeClosed(-depth, depth)
-						.mapToObj(i -> findChunk(center.shift(i, j)));
-			});
+				.mapToObj(Integer::valueOf)
+				.flatMap(j -> {
+					return IntStream.rangeClosed(-depth, depth)
+							.mapToObj(i -> findChunk(center.shift(i, j)));
+				});
 	}
 	
 	private Stream<Chunk> surroundingChunks(CLocation point) {
@@ -758,11 +799,13 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private Chunk findChunk(final ChunkCoordinate coord) {
-		return getOrCreatePlane(coord.z).getOrCreateChunk(coord);
+		return getOrCreatePlane(coord.z)
+				.getOrCreateChunk(coord);
 	}
 	
 	private Chunk findChunkSafely(final ChunkCoordinate coord) {
-		return getOrCreatePlane(coord.z).findChunk(coord);
+		return getOrCreatePlane(coord.z)
+				.findChunk(coord);
 	}
 	
 	private Chunk getGeneratedChunk(final ChunkCoordinate coord) {
@@ -853,8 +896,7 @@ public final class StaticChunkWorld extends World {
 		}
 	}
 	
-	@Override
-	protected void doSetTile(Tile newTile) {
+	protected void doSetTile(ChunkTile newTile) {
 		Location point = newTile.getLocation();
 		Chunk chunk = getGeneratedChunk(point);
 		Location topLeft = chunk.topLeft;
@@ -939,8 +981,8 @@ public final class StaticChunkWorld extends World {
 		chunk.generate();
 		sendCreateChunk(chunk,player);
 		chunk.entities()
-			.filter(e -> !e.equals(player.getEntity()))
-			.forEach(e -> sendCreateEntity(e, player));
+		.filter(e -> !e.equals(player.getEntity()))
+		.forEach(e -> sendCreateEntity(e, player));
 	}
 	
 	private void deSendEntireChunk(Chunk chunk, Player player) {
@@ -952,13 +994,13 @@ public final class StaticChunkWorld extends World {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+	
 	@Override
 	public boolean register(Registerable r) {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+	
 	@Override
 	public boolean deRegister(Registerable r) {
 		// TODO Auto-generated method stub
@@ -999,11 +1041,12 @@ public final class StaticChunkWorld extends World {
 	
 	@Override
 	public Stream<Entity> entities(HasLocation l) {
-		return chunk(l).entities()
+		return chunk(l)
+				.entities()
 				.filter(l::isAt);
 	}
 	
- 	public final boolean isRegistered(PollableRegion r) {
+	public final boolean isRegistered(PollableRegion r) {
 		return registeredRegions.contains(r);
 	}
 	
@@ -1052,18 +1095,13 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public CLocation createLocation(final int x, final int y, final int z) {
-		return new CLocation(x, y, z);
-	}
-	
-	@Override
 	protected World doMoveEntity(Entity entity, Location newLocation, MoveType type) {
 		CLocation newLoc = (CLocation) newLocation;
 		CLocation currentLoc = (CLocation) entity.getLocation();
-
+		
 		final Chunk oldChunk = currentLoc.getChunk();
 		final Chunk newChunk = newLoc.getChunk();
-
+		
 		if(!oldChunk.equals(newChunk)) {
 			newChunk.generate();
 			

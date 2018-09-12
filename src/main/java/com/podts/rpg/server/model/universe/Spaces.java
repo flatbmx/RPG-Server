@@ -66,6 +66,12 @@ public class Spaces {
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+		@Override
+		public Stream<Entity> nearbyEntities(HasLocation l) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 		
 	}
 	

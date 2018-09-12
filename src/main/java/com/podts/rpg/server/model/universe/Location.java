@@ -28,6 +28,10 @@ public abstract class Location implements HasLocation, Cloneable {
 			return all().stream();
 		}
 		
+		public static final Direction get(HasLocation first, HasLocation second) {
+			return get(first.getLocation(), second.getLocation());
+		}
+		
 		public static final Direction get(Location first, Location second) {
 			int dx = Integer.signum(second.getX() - first.getX());
 			int dy = Integer.signum(second.getY() - first.getY());
@@ -127,6 +131,11 @@ public abstract class Location implements HasLocation, Cloneable {
 	}
 	
 	@Override
+	public boolean isNowhere() {
+		return this == Space.NOWHERE;
+	}
+	
+	@Override
 	public Location getLocation() {
 		return this;
 	}
@@ -154,13 +163,13 @@ public abstract class Location implements HasLocation, Cloneable {
 		return getZ() - other.getZ();
 	}
 	
-	public Location shift(final int dx, final int dy, final int dz) {
+	public Location shift(int dx, int dy, int dz) {
 		if(dz == 0)
 			return shift(dx, dy);
 		return getSpace().createLocation(getX() + dx, getY() + dy, getZ() + dz);
 	}
 	
-	public Location shift(final int dx, final int dy) {
+	public Location shift(int dx, int dy) {
 		return getPlane().createLocation(getX() + dx, getY() + dy);
 	}
 	
@@ -209,7 +218,8 @@ public abstract class Location implements HasLocation, Cloneable {
 	}
 	
 	public Stream<Location> traceEvery(Direction dir, int increment) {
-		if(dir == null) return Stream.empty();
+		if(dir == null)
+			return Stream.empty();
 		return Stream.iterate(this, point -> point.shift(dir, increment));
 	}
 	
@@ -228,7 +238,8 @@ public abstract class Location implements HasLocation, Cloneable {
 	}
 	
 	public Stream<Location> bitraceEvery(Direction dir, int increment) {
-		if(dir == null) return Stream.empty();
+		if(dir == null)
+			return Stream.empty();
 		return IntStream.iterate(0, i -> {
 			i *= -1;
 			if(i >= 0)

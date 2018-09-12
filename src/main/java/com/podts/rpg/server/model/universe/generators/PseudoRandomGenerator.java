@@ -3,8 +3,8 @@ package com.podts.rpg.server.model.universe.generators;
 import java.util.Random;
 
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.Tile;
-import com.podts.rpg.server.model.universe.Tile.TileType;
+import com.podts.rpg.server.model.universe.TileElement;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.WorldGenerator;
 
 public final class PseudoRandomGenerator extends WorldGenerator {
@@ -15,7 +15,7 @@ public final class PseudoRandomGenerator extends WorldGenerator {
 	private final int totalWeight;
 	
 	@Override
-	public Tile doGenerateTile(final Location point) {
+	public TileElement doGenerateTile(final Location point) {
 		int choice = r.nextInt(totalWeight);
 		TileType type = null;
 		for(int i=0; i<weights.length; ++i) {
@@ -25,7 +25,7 @@ public final class PseudoRandomGenerator extends WorldGenerator {
 				break;
 			}
 		}
-		return new Tile(type, point);
+		return constructElement(type);
 	}
 	
 	public PseudoRandomGenerator(final Random r, final int[] weights, final TileType[] types) {

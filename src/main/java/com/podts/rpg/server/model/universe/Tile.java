@@ -1,43 +1,106 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.Direction;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 
 public class Tile extends Spatial implements Registerable {
 	
-	public enum TileType {
-		VOID(false),
-		GRASS(),
-		DIRT(),
-		SAND(),
-		WATER(false);
-		
-		private final boolean traversable;
-		
-		boolean isTraversable() {
-			return traversable;
-		}
-		
-		private TileType(boolean travel) {
-			traversable = travel;
-		}
-		
-		private TileType() {
-			this(true);
-		}
-		
+	private Set<TileHandler> handlers, safeHandlers;
+	TileElement element;
+	
+	final Collection<TileHandler> getHandlers() {
+		if(noHandlers())
+			return Collections.emptySet();
+		return safeHandlers;
 	}
 	
-	private final TileType type;
+	final Stream<TileHandler> handlers() {
+		if(noHandlers())
+			return Stream.empty();
+		return getHandlers().stream();
+	}
 	
+	final Iterator<TileHandler> handlerIterator() {
+		if(noHandlers())
+			return Collections.emptyIterator();
+		return handlers.iterator();
+	}
+	
+	public final Tile addHandler(TileHandler handler) {
+		Objects.requireNonNull(handler, "Cannot add null TileHandler to " + this);
+		return doAddHandler(handler);
+	}
+	
+	final Tile doAddHandler(TileHandler handler) {
+		onAdd();
+		if(handlers.add(handler))
+			handler.onAdd(this);
+		return this;
+	}
+	
+	public final Tile removeHandler(TileHandler handler) {
+		Objects.requireNonNull(handler, "Cannot remove a null TileHandler from " + this);
+		if(noHandlers())
+			return this;
+		return doRemoveHandler(handler);
+	}
+	
+	final Tile doRemoveHandler(TileHandler handler) {
+		if(handlers.remove(handler)) {
+			handler.onRemove(this);
+			onRemove();
+		}
+		return this;
+	}
+	
+	private boolean noHandlers() {
+		return handlers == null;
+	}
+	
+	private void onAdd() {
+		if(handlers == null) {
+			handlers = new HashSet<>();
+			safeHandlers = Collections.unmodifiableSet(handlers);
+		}
+	}
+	
+	private void onRemove() {
+		if(handlers.isEmpty()) {
+			handlers = null;
+			safeHandlers = null;
+		}
+	}
+	
+	public TileElement getElement() {
+		return element;
+	}
+	
+	final Tile update() {
+		getSpace().updateTile(this);
+		return this;
+	}
+	
+	@Override
 	public final Tile getTile() {
 		return this;
 	}
 	
+	public final boolean isGenerated() {
+		return getElement() != null;
+	}
+	
 	public final TileType getType() {
-		return type;
+		if(!isGenerated())
+			return TileType.VOID;
+		return getElement().getType();
 	}
 	
 	public final boolean isVoid() {
@@ -49,19 +112,19 @@ public class Tile extends Spatial implements Registerable {
 	}
 	
 	public final boolean isTraversable() {
-		return getSpace().isTraversable(this);
+		return getSpace().doIsTraversable(this);
 	}
 	
-	public Stream<Tile> traceTo(Location point) {
-		if(isInDifferentSpace(point))
+	public Stream<Tile> traceTo(HasLocation loc) {
+		if(isInDifferentSpace(loc))
 			return Stream.empty();
 		
-		Direction dir = Direction.get(getLocation(), point);
+		Direction dir = Direction.get(this, loc);
 		if(dir == null)
 			return Stream.empty();
 		
 		return trace(dir)
-				.limit(walkingDistance(point) + 1);
+				.limit(walkingDistance(loc) + 1);
 	}
 	
 	public Stream<Tile> traceEvery(Direction dir, int increment) {
@@ -72,12 +135,21 @@ public class Tile extends Spatial implements Registerable {
 		return traceEvery(dir, 1);
 	}
 	
+	public Stream<Tile> biTraceEvery(Direction dir, int increment) {
+		return getLocation().bitraceEvery(dir, increment)
+				.map(Location::getTile);
+	}
+	
+	public Stream<Tile> biTrace(Direction dir) {
+		return biTraceEvery(dir, 1);
+	}
+	
 	public Tile shift(int dx, int dy, int dz) {
 		return getLocation().shift(dx, dy, dz).getTile();
 	}
 	
 	public Tile shift(int dx, int dy) {
-		return shift(dx, dy, 0);
+		return getLocation().shift(dx, dy).getTile();
 	}
 	
 	public Tile shift(Direction dir, int distance) {
@@ -90,7 +162,7 @@ public class Tile extends Spatial implements Registerable {
 	
 	@Override
 	public String toString() {
-		return "[" + getType().toString() + " " + getLocation() + "]";
+		return "[" + getType() + " " + getLocation() + "]";
 	}
 	
 	@Override
@@ -104,19 +176,31 @@ public class Tile extends Spatial implements Registerable {
 		if(o == this) return true;
 		if(o instanceof Tile) {
 			Tile t = (Tile) o;
-			return getType().equals(t.getType()) &&
+			return getElement().equals(t.getElement()) &&
 					getLocation().equals(t.getLocation());
 		}
 		return false;
 	}
 	
-	public Tile(TileType type, Location location) {
+	Tile(TileElement element, Location location) {
 		super(location);
-		this.type = type;
+		this.element = element;
 	}
 	
-	public Tile(TileType type) {
-		this(type, null);
+	Tile(TileType type, Location location) {
+		this(new TileElement(type), location);
+	}
+	
+	Tile(TileElement element) {
+		this(element, null);
+	}
+	
+	Tile(TileType type) {
+		this(new TileElement(type), null);
+	}
+	
+	Tile(Location point) {
+		super(point);
 	}
 	
 }

@@ -2,15 +2,15 @@ package com.podts.rpg.server.model.universe;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.RelationalDirection;
 
-class TestDirections {
+public class TestDirections {
 	
 	@Test
-	void testRelationalDirections() {
+	public void testRelationalDirections() {
 		
 		for(Direction d : Direction.values())
 			assertEquals(d, d.convert(RelationalDirection.FORWARD));
