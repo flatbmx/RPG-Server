@@ -93,7 +93,8 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 	
 	@Override
 	public final boolean contains(final Locatable l) {
-		if(l == null) return false;
+		if(l == null)
+			return false;
 		return l.isInPlane(getZ()) &&
 				isInSameSpace(l);
 	}

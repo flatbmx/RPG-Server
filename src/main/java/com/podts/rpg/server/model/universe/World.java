@@ -15,7 +15,7 @@ import com.podts.rpg.server.Player;
 import com.podts.rpg.server.Utils;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
-import com.podts.rpg.server.model.universe.Tile.TileType;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.region.DynamicRegion;
 import com.podts.rpg.server.model.universe.region.DynamicRegionListener;
 import com.podts.rpg.server.model.universe.region.MonitoringRegion;
@@ -90,48 +90,10 @@ public abstract class World extends Space {
 	
 	protected abstract void doGetTiles(Tile[][] tiles, Location topLeft);
 	
-	/**
-	 * Set the the given Tile at the given point in this World.
-	 * @param newTile - The new Tile.
-	 * @param point - The location of the new Tile.
-	 * @return The World for chaining.
-	 */
-	public final World setTile(Tile newTile) {
-		Utils.assertNullArg(newTile, "Cannot set a Tile as null.");
-		Utils.assertArg(!doContains(newTile), "Cannot set a Tile that exists in another World.");
-		
-		doSetTile(newTile);
-		
-		sendToNearbyPlayers(newTile, TilePacket.constructCreate(newTile));
-		return this;
-	}
-	
-	public final World setTiles(Collection<Tile> tiles) {
-		Utils.assertNullArg(tiles, "Cannot set Tiles as null.");
-		if(tiles.isEmpty()) return this;
-		
-		for(Tile t : tiles) {
-			if(t == null) continue;
-			if(!doContains(t)) continue;
-			doSetTile(t);
-			sendToNearbyPlayers(t, TilePacket.constructCreate(t));
-		}
-		
-		return this;
-	}
-	
-	/**
-	 * This method saves this new Tile and nothing else.
-	 * @param newTile - The new tile that should be in the world.
-	 */
-	protected abstract void doSetTile(Tile newTile);
-	
 	public final Collection<Entity> getNearbyEntities(HasLocation l, double distance) {
 		return nearbyEntities(l, distance)
 				.collect(Collectors.toSet());
 	}
-	
-	public abstract Stream<Entity> nearbyEntities(HasLocation l);
 	
 	/**
 	 * This method is equivalent to calling {@link #getNearbyEntities(Locatable,Predicate) getNearbyEntities} with no condition.
@@ -141,31 +103,6 @@ public abstract class World extends Space {
 	public final Collection<Entity> getNearbyEntities(HasLocation l) {
 		return nearbyEntities(l)
 				.collect(Collectors.toSet());
-	}
-	
-	public final Collection<Player> getNearbyPlayers(HasLocation l) {
-		return nearbyPlayers(l)
-				.collect(Collectors.toSet());
-	}
-	
-	public final Stream<Player> nearbyPlayers(HasLocation l) {
-		Utils.assertNull(l, "Cannot find nearby players from null locatable.");
-		Utils.assertNull(l.getLocation(), "Cannot find nearby players from null location.");
-		Utils.assertArg(!doContains(l), "Cannot find nearby players from location in another world.");
-		return doNearbyPlayers(l.getLocation());
-	}
-	
-	/**
-	 * It is recommended to implement this method in the sub class that extends World.
-	 * Default Implementation filters nearby entities for PlayerEntitys.
-	 * @param point
-	 * @return
-	 */
-	protected Stream<Player> doNearbyPlayers(Location point) {
-		return nearbyEntities(point)
-				.filter(Player::is)
-				.map(PlayerEntity.class::cast)
-				.map(PlayerEntity::getPlayer);
 	}
 	
 	/**
@@ -356,7 +293,9 @@ public abstract class World extends Space {
 	}
 	
 	@Override
-	public abstract Location createLocation(int x, int y, int z);
+	public Location createLocation(int x, int y, int z) {
+		return new CompleteLocation(this, x, y, z);
+	}
 	
 	public final Tile createTile(final TileType type, final int x, final int y, final int z) {
 		Utils.assertNullArg(type, "Cannot create Tile with null type!");
@@ -419,23 +358,6 @@ public abstract class World extends Space {
 	}
 	
 	protected abstract void handleRegionChange(PollableRegion r);
-	
-	protected final void sendToNearbyPlayers(HasLocation l, Packet... packets) {
-		nearbyPlayers(l)
-		.forEach(player -> {
-			for(Packet packet : packets)
-				player.sendPacket(packet);
-		});
-	}
-	
-	protected final void sendToNearbyPlayers(HasLocation l, Player except, Packet... packets) {
-		nearbyPlayers(l)
-		.filter(p -> !p.equals(except))
-		.forEach(player -> {
-			for(Packet packet : packets)
-				player.sendPacket(packet);
-		});
-	}
 	
 	protected final void sendCreateEntity(Entity entity, Player... players) {
 		final Packet packet = EntityPacket.constructCreate(entity);

@@ -12,15 +12,19 @@ public interface Locatable extends HasPlane {
 		return getLocations().stream();
 	}
 	
+	/**
+	 * Returns any location that this Locatable occupies.
+	 * If this Locatable is nowhere it will return the nowhere Location.
+	 * @return
+	 */
 	public default Location anyLocation() {
 		return locations()
 				.findAny()
-				.orElse(Space.getNowhere());
+				.orElse(Space.NOWHERE);
 	}
 	
 	public default boolean occupies(HasLocation loc) {
-		return locations()
-				.anyMatch(loc::isAt);
+		return getLocations().contains(loc.getLocation());
 	}
 	
 	public default boolean isNowhere() {
@@ -31,16 +35,18 @@ public interface Locatable extends HasPlane {
 		return !isNowhere();
 	}
 	
-	public default long getArea() {
+	public default int getArea() {
 		return getLocations().size();
 	}
 	
 	@Override
+	public default Space getSpace() {
+		return anyLocation().getSpace();
+	}
+	
+	@Override
 	public default Plane getPlane() {
-		return locations()
-				.findAny()
-				.orElse(Space.getNowhere())
-				.getPlane();
+		return anyLocation().getPlane();
 	}
 	
 	public default Stream<Tile> tiles() {
@@ -53,15 +59,15 @@ public interface Locatable extends HasPlane {
 				.collect(Collectors.toSet());
 	}
 	
-	public default double distance(Locatable other, double range) {
-		range = Double.max(0d, range);
+	public default double distance(Locatable other, double cutoff) {
+		cutoff = Double.max(0d, cutoff);
 		Collection<? extends Location> points = getLocations();
 		Collection<? extends Location> otherPoints = other.getLocations();
 		double shortest = Double.MAX_VALUE;
 		for(Location p : points) {
 			for(Location o : otherPoints) {
 				double length = p.distance(o);
-				if(length <= range) return length;
+				if(length <= cutoff) return length;
 				if(length < shortest)
 					shortest = length;
 			}
@@ -101,37 +107,10 @@ public interface Locatable extends HasPlane {
 		return walkingDistance(o, distance) <= distance;
 	}
 	
-	public default boolean isAt(Locatable point) {
-		return locations()
-				.anyMatch(point::isAt);
-	}
-	
-	public default boolean isInPlane(int z) {
-		return getPlane().getZ() == z;
-	}
-	
-	public default boolean isInPlane(Plane plane) {
-		return getPlane().equals(plane);
-	}
-	
-	public default boolean isInPlane(Locatable l) {
-		return isInPlane(l.getPlane());
-	}
-	
-	public default boolean isBetweenPlanes(int minZ, int maxZ) {
-		if(minZ > maxZ) {
-			int tempZ = minZ;
-			minZ = maxZ;
-			maxZ = tempZ;
-		}
-		int z = getPlane().getZ();
-		return z >= minZ &&
-				z <= maxZ;
-	}
-	
-	public default boolean isBetweenPlanes(Plane a, Plane b) {
-		if(a.isInDifferentSpace(b)) return false;
-		return isBetweenPlanes(a.getZ(), b.getZ());
+	public default boolean isAt(Locatable loc) {
+		Collection<Location> points = getLocations();
+		return points.stream()
+				.anyMatch(loc::occupies);
 	}
 	
 }

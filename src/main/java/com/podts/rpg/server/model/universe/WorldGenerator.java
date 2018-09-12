@@ -1,6 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
 import com.podts.rpg.server.Utils;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 
 /**
  * A class that can generate Tiles based on a location.
@@ -8,20 +9,16 @@ import com.podts.rpg.server.Utils;
  */
 public abstract class WorldGenerator {
 	
-	public final Tile generateTile(Location point) {
+	protected static TileElement constructElement(TileType type) {
+		return new TileElement(type);
+	}
+	
+	public final TileElement generateTile(Location point) {
 		Utils.assertNull(point, "Cannot generate Tile with null location.");
 		return doGenerateTile(point);
 	}
 	
-	protected abstract Tile doGenerateTile(Location point);
-	
-	public final Tile[][] generateRectTiles(Location point, int width, int height) {
-		Utils.assertNull(point, "Cannot generate Tiles with null starting point.");
-		Utils.assertArg(width <= 0 || height <= 0, "Cannot generate Tiles with negative or 0 width/height.");
-		Tile[][] result = new Tile[width][height];
-		doGenerateRectTiles(result, point);
-		return result;
-	}
+	protected abstract TileElement doGenerateTile(Location point);
 	
 	/**
 	 * Generate tiles in a rectangular region and save them in the given array.
@@ -43,10 +40,9 @@ public abstract class WorldGenerator {
 	protected WorldGenerator doGenerateRectTiles(Tile[][] tiles, Location point) {
 		for(int dy=0; dy < tiles[0].length; ++dy) {
 			for(int dx=0; dx < tiles.length; ++dx) {
-				tiles[dx][dy] = doGenerateTile(point.shift(dx, dy));
+				tiles[dx][dy].element = doGenerateTile(point.shift(dx, dy));
 			}
 		}
-		
 		return this;
 	}
 	

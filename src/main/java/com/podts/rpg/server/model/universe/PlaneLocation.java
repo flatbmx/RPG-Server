@@ -6,17 +6,17 @@ public class PlaneLocation extends Location {
 	private final int x, y;
 	
 	@Override
-	public Plane getPlane() {
+	public final Plane getPlane() {
 		return plane;
 	}
 	
 	@Override
-	public int getX() {
+	public final int getX() {
 		return x;
 	}
 	
 	@Override
-	public int getY() {
+	public final int getY() {
 		return y;
 	}
 	

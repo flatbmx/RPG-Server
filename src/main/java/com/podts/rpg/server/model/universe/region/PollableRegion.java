@@ -8,7 +8,6 @@ import java.util.stream.Stream;
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
-import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Plane;
 import com.podts.rpg.server.model.universe.Space;
@@ -48,7 +47,7 @@ public interface PollableRegion extends Region, Iterable<Location> {
 				.distinct();
 	}
 	
-	public default Stream<Tile> tiles() {
+	public default Stream<? extends Tile> tiles() {
 		return points()
 				.map(point -> point.getSpace().getTile(point))
 				.filter(Objects::nonNull)

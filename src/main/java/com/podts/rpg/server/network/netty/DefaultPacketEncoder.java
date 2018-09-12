@@ -9,14 +9,12 @@ import java.util.Map;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
-import com.podts.rpg.server.GameState;
-import com.podts.rpg.server.GameStates;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.RectangleTileSelction;
 import com.podts.rpg.server.model.universe.Tile;
-import com.podts.rpg.server.model.universe.Tile.TileType;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.TileSelection;
 import com.podts.rpg.server.model.universe.TileSelection.SelectionType;
 import com.podts.rpg.server.network.NetworkStream;

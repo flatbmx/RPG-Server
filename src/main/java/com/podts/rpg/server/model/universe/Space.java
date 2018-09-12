@@ -9,12 +9,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.Streams;
 import com.podts.rpg.server.Player;
+import com.podts.rpg.server.Utils;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
+import com.podts.rpg.server.network.Packet;
+import com.podts.rpg.server.network.packet.TilePacket;
 
 public abstract class Space implements HasSpace {
 	
@@ -59,6 +61,11 @@ public abstract class Space implements HasSpace {
 		public Tile getTile(Location point) {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		@Override
+		public Stream<Entity> nearbyEntities(HasLocation l) {
+			return Stream.empty();
 		}
 		
 	}
@@ -105,17 +112,19 @@ public abstract class Space implements HasSpace {
 		
 	}
 	
-	private static final Oblivion oblivion = new Oblivion();
-	private static final Location nowhere = new CompleteLocation(oblivion, 0, 0, 0) {
-		@Override
-		public final String toString() {
-			return "Nowhere";
-		}
+	private static final Oblivion OBLIVION = new Oblivion();
+	public static final Location NOWHERE = new CompleteLocation(OBLIVION, 0, 0, 0) {
+		@Override public final boolean isNowhere() {return true;}
+		@Override public final Collection<Location> getLocations() {return Collections.emptySet();}
+		@Override public final Stream<Location> locations() {return Stream.empty();}
+		@Override public final boolean isAt(Locatable loc) {return loc.isNowhere();}
+		@Override public final boolean isAt(HasLocation loc) {return this == loc.getLocation();}
+		@Override public final CompleteLocation shift(int dx, int dy, int dz) {return this;}
+		@Override public final CompleteLocation shift(int dx, int dy) {return this;}
+		@Override public final Stream<Location> traceEvery(Direction dir, int increment) {return Stream.of(this);};
+		@Override public final Stream<Location> bitraceEvery(Direction dir, int increment) {return Stream.of(this);};
+		@Override public final String toString() {return "[Nowhere]";}
 	};
-	
-	public static final Location getNowhere() {
-		return nowhere;
-	}
 	
 	private final Location origin = createLocation(0, 0, 0);
 	
@@ -220,13 +229,13 @@ public abstract class Space implements HasSpace {
 		return plane.allTiles();
 	}
 	
-	public Stream<Tile> nearbyTiles(HasLocation l, double distance) {
-		return tiles(getZ(l))
-				.filter(tile -> tile.isInRange(l, distance));
+	public Stream<? extends Tile> nearbyTiles(HasLocation l, double distance) {
+		return InfiniteSurroundingTileSpliterator.surroundingTiles(l.getTile(), (int)distance)
+				.filter(t -> t.isInRange(l, distance));
 	}
 	
-	public Stream<Tile> nearbyWalkingTiles(HasLocation l, int distance) {
-		return tiles(getZ(l))
+	public Stream<? extends Tile> nearbyWalkingTiles(HasLocation l, int distance) {
+		return InfiniteSurroundingTileSpliterator.surroundingTiles(l.getTile(), distance)
 				.filter(tile -> tile.isInWalkingRange(l, distance));
 	}
 	
@@ -239,20 +248,126 @@ public abstract class Space implements HasSpace {
 				.map(this::getTile);
 	}
 	
-	public final Tile setTile(Tile tile, Location point) {
-		register(tile);
+	public Space setTile(Tile tile, TileElement element) {
+		Objects.requireNonNull(tile, "Cannot set TileElement of null Tile!");
+		Objects.requireNonNull(element, "Cannot set Tile with null TileElement!");
+		if(!contains(tile))
+			throw new IllegalArgumentException("Cannot set Tile from different space!");
+		if(element.isLinked())
+			throw new IllegalArgumentException("Cannot set a Tile with a TileElement that is already associated with a Tile!");
+		return doSetTile(tile, element);
+	}
+	
+	protected Space doSetTile(Tile tile, TileElement element) {
+		tile.getElement().onLeave();
+		handleTileChange(tile, element);
+		tile.element.tile = null;
+		tile.element = element;
+		element.tile = tile;
+		element.onEnter();
+		sendToNearbyPlayers(tile, TilePacket.constructCreate(tile));
+		return this;
+	}
+	
+	private void handleTileChange(Tile tile, TileElement element) {
+		Iterator<TileHandler> it = tile.handlerIterator();
+		while(it.hasNext()) {
+			TileHandler h = it.next();
+			if(h.onChange(tile, element)) {
+				it.remove();
+				h.onRemove(tile);
+			}
+		}
+	}
+	
+	Space updateTile(Tile tile) {
+		Iterator<TileHandler> it = tile.handlerIterator();
+		while(it.hasNext()) {
+			TileHandler h = it.next();
+			if(h.onUpdate(tile)) {
+				it.remove();
+				h.onRemove(tile);
+			}
+		}
+		return this;
+	}
+	
+	/**
+	 * Sets the tile located at the given point.
+	 * It is recommended to use {@link Space#setTile(Tile, TileElement)} instead of this method when able
+	 * due to possible tile lookup overhead.
+	 * @param element The new TileElement for the given point.
+	 * @param point The location of the tile to change.
+	 * @return
+	 */
+	public final Tile setTile(TileElement element, Location point) {
+		Objects.requireNonNull(element, "Cannot set Tile with null TileElement!");
+		Objects.requireNonNull(point, "Canot set Tile at null Location!");
+		if(!contains(point))
+			throw new IllegalArgumentException("Cannot set Tile from another Space!");
+		if(element.isLinked())
+			throw new IllegalArgumentException("Cannot set Tile with a TileElement that is already associated with another Tile!");
+		return doSetTile(element, point);
+	}
+	
+	protected Tile doSetTile(TileElement element, Location point) {
+		final Tile tile = getTile(point);
+		doSetTile(tile, element);
 		return tile;
 	}
 	
-	public final Tile setTile(Tile tile, int x, int y, int z) {
-		return setTile(tile, createLocation(x, y, z));
-	}
-	
-	public boolean isTraversable(Tile tile) {
+	public final boolean isTraversable(Tile tile) {
 		if(tile == null)
 			return false;
+		if(isInDifferentSpace(tile))
+			throw new IllegalArgumentException("Cannot determine if " + tile + " is traversable from another Space!");
+		return doIsTraversable(tile);
+	}
+	
+	boolean doIsTraversable(Tile tile) {
 		return tile.getType().isTraversable();
 	}
+	
+	protected final void sendToNearbyPlayers(HasLocation l, Player except, Packet... packets) {
+		nearbyPlayers(l)
+		.filter(p -> !p.equals(except))
+		.forEach(player -> {
+			player.sendPacket(packets);
+		});
+	}
+	
+	protected final void sendToNearbyPlayers(HasLocation l, Packet... packets) {
+		nearbyPlayers(l)
+		.forEach(player -> {
+			player.sendPacket(packets);
+		});
+	}
+	
+	public final Collection<Player> getNearbyPlayers(HasLocation l) {
+		return nearbyPlayers(l)
+				.collect(Collectors.toSet());
+	}
+	
+	public final Stream<Player> nearbyPlayers(HasLocation l) {
+		Utils.assertNull(l, "Cannot find nearby players from null locatable.");
+		Utils.assertArg(!contains(l), "Cannot find nearby players from location in another world.");
+		return doNearbyPlayers(l.getLocation());
+	}
+	
+	/**
+	 * It is recommended to implement this method in the sub class that extends World.
+	 * Default Implementation filters nearby entities for PlayerEntitys.
+	 * @param point
+	 * @return
+	 */
+	protected Stream<Player> doNearbyPlayers(Location point) {
+		return nearbyEntities(point)
+				.filter(Player::is)
+				.map(PlayerEntity.class::cast)
+				.map(PlayerEntity::getPlayer);
+	}
+	
+	public abstract Stream<Entity> nearbyEntities(HasLocation l);
 	
 	public Collection<Tile> getSurroundingTiles(HasLocation center) {
 		return surroundingTiles(center)
@@ -268,8 +383,9 @@ public abstract class Space implements HasSpace {
 	}
 	
 	public Stream<Tile> surroundingTiles(HasLocation center, int distance) {
-		if(isInDifferentSpace(center)) return Stream.empty();
-		return Streams.stream(getSurroundingTilesIterable(center, distance));
+		if(isInDifferentSpace(center))
+			return Stream.empty();
+		return InfiniteSurroundingTileSpliterator.surroundingTiles(center.getTile(), distance);
 	}
 	
 	public Stream<Tile> surroundingTiles(HasLocation loc) {

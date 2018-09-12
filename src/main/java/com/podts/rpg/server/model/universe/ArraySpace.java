@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.MoveType;
-import com.podts.rpg.server.model.universe.Tile.TileType;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 
 public class ArraySpace extends Space {
@@ -228,6 +228,12 @@ public class ArraySpace extends Space {
 		for(int p = 0; p < totalPlanes; ++p) {
 			planes[p] = new ArrayPlane(width, height, p);
 		}
+	}
+
+	@Override
+	public Stream<Entity> nearbyEntities(HasLocation l) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }
