@@ -132,6 +132,8 @@ public final class StaticChunkWorld extends World {
 		
 	}
 	
+	
+	
 	final class Chunk extends IncompleteRegion implements RectangularRegion, PollableMonitoringRegion, HasPlane {
 		
 		final class ChunkTile extends Tile {
@@ -288,7 +290,8 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		private ChunkTile getTile(CLocation point) {
-			return getTile(topLeft.getXDifference(point) + (getChunkSize()-1)/2, topLeft.getYDifference(point) + (getChunkSize()-1)/2);
+			return getTile(topLeft.getXDifference(point) + (getChunkSize()-1)
+					, topLeft.getYDifference(point) + (getChunkSize()-1));
 		}
 		
 		ChunkTile getTile(int x, int y) {

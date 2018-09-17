@@ -10,73 +10,142 @@ import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.TileElement.TileType;
+import com.podts.rpg.server.model.universe.region.Region;
+import com.podts.rpg.server.model.universe.region.RegionListener;
 
-public class Tile extends Spatial implements Registerable {
+public class Tile extends Spatial implements Region, Registerable {
 	
-	private Set<TileHandler> handlers, safeHandlers;
+	private Set<RegionListener> regionListeners, safeRegionListeners;
+	private Set<TileListener> tileListeners, safeTileListeners;
 	TileElement element;
 	
-	final Collection<TileHandler> getHandlers() {
-		if(noHandlers())
+	final Collection<TileListener> getTileListeners() {
+		if(noTileListeners())
 			return Collections.emptySet();
-		return safeHandlers;
+		return safeTileListeners;
 	}
 	
-	final Stream<TileHandler> handlers() {
-		if(noHandlers())
+	final Stream<TileListener> tileListeners() {
+		if(noTileListeners())
 			return Stream.empty();
-		return getHandlers().stream();
+		return getTileListeners().stream();
 	}
 	
-	final Iterator<TileHandler> handlerIterator() {
-		if(noHandlers())
+	final Iterator<TileListener> tileListenerIterator() {
+		if(noTileListeners())
 			return Collections.emptyIterator();
-		return handlers.iterator();
+		return tileListeners.iterator();
 	}
 	
-	public final Tile addHandler(TileHandler handler) {
-		Objects.requireNonNull(handler, "Cannot add null TileHandler to " + this);
-		return doAddHandler(handler);
+	public final Tile addTileListener(TileListener Listener) {
+		Objects.requireNonNull(Listener, "Cannot add null TileListener to " + this);
+		return doAddTileListener(Listener);
 	}
 	
-	final Tile doAddHandler(TileHandler handler) {
-		onAdd();
-		if(handlers.add(handler))
+	final Tile doAddTileListener(TileListener handler) {
+		onAddTileListener();
+		if(tileListeners.add(handler))
 			handler.onAdd(this);
 		return this;
 	}
 	
-	public final Tile removeHandler(TileHandler handler) {
-		Objects.requireNonNull(handler, "Cannot remove a null TileHandler from " + this);
-		if(noHandlers())
+	public final Tile removeTileHandler(TileListener listener) {
+		Objects.requireNonNull(listener, "Cannot remove a null TileListener from " + this);
+		if(noTileListeners())
 			return this;
-		return doRemoveHandler(handler);
+		return doRemoveTileListener(listener);
 	}
 	
-	final Tile doRemoveHandler(TileHandler handler) {
-		if(handlers.remove(handler)) {
-			handler.onRemove(this);
-			onRemove();
+	final Tile doRemoveTileListener(TileListener listener) {
+		if(tileListeners.remove(listener)) {
+			listener.onRemove(this);
+			onRemoveTileListener();
 		}
 		return this;
 	}
 	
-	private boolean noHandlers() {
-		return handlers == null;
+	private boolean noTileListeners() {
+		return tileListeners == null;
 	}
 	
-	private void onAdd() {
-		if(handlers == null) {
-			handlers = new HashSet<>();
-			safeHandlers = Collections.unmodifiableSet(handlers);
+	private void onAddTileListener() {
+		if(tileListeners == null) {
+			tileListeners = new HashSet<>();
+			safeTileListeners = Collections.unmodifiableSet(tileListeners);
 		}
 	}
 	
-	private void onRemove() {
-		if(handlers.isEmpty()) {
-			handlers = null;
-			safeHandlers = null;
+	private void onRemoveTileListener() {
+		if(tileListeners.isEmpty()) {
+			tileListeners = null;
+			safeTileListeners = null;
 		}
+	}
+	
+	@Override
+	public Collection<? extends RegionListener> getRegionListeners() {
+		if(noRegionListeners())
+			return Collections.emptySet();
+		return safeRegionListeners;
+	}
+	
+	Iterator<RegionListener> regionListenerIterator() {
+		return regionListeners.iterator();
+	}
+	
+	@Override
+	public Tile addRegionListeners(RegionListener... listeners) {
+		Objects.requireNonNull(listeners, "Cannot add null RegionListeners[] to " + this);
+		if(listeners.length == 0)
+			return this;
+		for(RegionListener l : listeners)
+			Objects.requireNonNull(l, "Cannot add null RegionListener to " + this);
+		return doAddRegionListeners(listeners);
+	}
+	
+	Tile doAddRegionListeners(RegionListener... listeners) {
+		onAddRegionListener();
+		for(RegionListener l : listeners)
+			regionListeners.add(l);
+		return this;
+	}
+	
+	@Override
+	public Tile removeRegionListeners(RegionListener... listeners) {
+		Objects.requireNonNull(listeners, "Cannot remove null RegionListeners[] from " + this);
+		if(listeners.length == 0)
+			return this;
+		return doRemoveRegionListeners(listeners);
+	}
+	
+	Tile doRemoveRegionListeners(RegionListener... listeners) {
+		for(RegionListener l : listeners)
+			regionListeners.remove(l);
+		onRemoveRegionListener();
+		return this;
+	}
+	
+	private boolean noRegionListeners() {
+		return regionListeners == null;
+	}
+	
+	private void onAddRegionListener() {
+		if(noRegionListeners()) {
+			regionListeners = new HashSet<>();
+			safeRegionListeners = Collections.unmodifiableSet(regionListeners);
+		}
+	}
+	
+	private void onRemoveRegionListener() {
+		if(regionListeners.isEmpty()) {
+			regionListeners = null;
+			safeRegionListeners = null;
+		}
+	}
+	
+	@Override
+	public boolean contains(Location point) {
+		return isAt(point);
 	}
 	
 	public TileElement getElement() {
@@ -93,13 +162,7 @@ public class Tile extends Spatial implements Registerable {
 		return this;
 	}
 	
-	public final boolean isGenerated() {
-		return getElement() != null;
-	}
-	
 	public final TileType getType() {
-		if(!isGenerated())
-			return TileType.VOID;
 		return getElement().getType();
 	}
 	

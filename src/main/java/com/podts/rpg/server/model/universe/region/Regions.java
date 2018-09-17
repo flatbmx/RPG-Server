@@ -70,12 +70,12 @@ public final class Regions {
 		}
 
 		@Override
-		public Region addRegionListener(RegionListener newRegionListener) {
+		public Region addRegionListeners(RegionListener... newRegionListener) {
 			return null;
 		}
 
 		@Override
-		public Region removeRegionListener(RegionListener regionListener) {
+		public Region removeRegionListeners(RegionListener... regionListener) {
 			return null;
 		}
 
@@ -114,12 +114,12 @@ public final class Regions {
 		}
 
 		@Override
-		public final Region addRegionListener(RegionListener newRegionListener) {
+		public final Region addRegionListeners(RegionListener... newRegionListener) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public final Region removeRegionListener(RegionListener regionListener) {
+		public final Region removeRegionListeners(RegionListener... regionListener) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -148,12 +148,12 @@ public final class Regions {
 		}
 
 		@Override
-		public final Region addRegionListener(RegionListener newRegionListener) {
+		public final Region addRegionListeners(RegionListener... newRegionListener) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public final Region removeRegionListener(RegionListener regionListener) {
+		public final Region removeRegionListeners(RegionListener... regionListener) {
 			throw new UnsupportedOperationException();
 		}
 

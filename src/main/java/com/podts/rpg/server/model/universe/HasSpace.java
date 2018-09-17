@@ -9,8 +9,7 @@ public interface HasSpace {
 	}
 	
 	public default boolean isInSameSpace(HasSpace s) {
-		if(s == null)
-			return false;
+		if(s == null) return false;
 		return isInSpace(s.getSpace());
 	}
 	

@@ -35,8 +35,8 @@ public class InfiniteSurroundingTileSpliterator implements Spliterator<Tile> {
 	
 	private Tile current;
 	private Direction dir = Direction.UP;
-	private RelationalDirection turnDir;
-	private int moved, moveTotal = 1;
+	private final RelationalDirection turnDir;
+	private int moved, strideLength = 1;
 	private byte moveCounter;
 	
 	@Override
@@ -44,13 +44,13 @@ public class InfiniteSurroundingTileSpliterator implements Spliterator<Tile> {
 		action.accept(current);
 		current = current.shift(dir);
 		++moved;
-		if(moved == moveTotal) {
+		if(moved == strideLength) {
 			turn();
 			moved = 0;
 			++moveCounter;
 			if(moveCounter == 2) {
 				moveCounter = 0;
-				++moveTotal;
+				++strideLength;
 			}
 		}
 		return true;

@@ -18,11 +18,10 @@ public class TestLocation {
 		
 		Location point = (Location) space.getOrigin();
 		Tile tile = point.getTile();
-		//tile.surroundingTiles(1000).forEach(t -> {});
 		
 		boolean b = tile.traceEvery(Direction.UP, 6)
 				.limit(10000)
-				.flatMap(t -> t.traceEvery(Direction.UP, 6).limit(100))
+				.flatMap(t -> t.traceEvery(Direction.RIGHT, 6).limit(100))
 				.map(Tile::getLocation)
 				.map(CLocation.class::cast)
 				.allMatch(p -> p.hasChunk() && p.getChunk().isGenerated());

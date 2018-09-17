@@ -32,7 +32,7 @@ public interface Region {
 	 * @param newRegionListener - The RegionListener to add to this Region.
 	 * @return The Region for chaining.
 	 */
-	public Region addRegionListener(RegionListener newRegionListener);
+	public Region addRegionListeners(RegionListener... newRegionListener);
 	
 	/**
 	 * Removes a given {@link RegionListener} from this Region.
@@ -40,7 +40,7 @@ public interface Region {
 	 * @param newRegionListener - The RegionListener to remove this Region.
 	 * @return The Region for chaining.
 	 */
-	public Region removeRegionListener(RegionListener regionListener);
+	public Region removeRegionListeners(RegionListener... regionListener);
 	
 	/**
 	 * Determines if a given point is in this Region.

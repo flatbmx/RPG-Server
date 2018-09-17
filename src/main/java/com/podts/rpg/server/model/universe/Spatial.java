@@ -15,7 +15,7 @@ public abstract class Spatial implements HasLocation {
 		return location;
 	}
 	
-	final Spatial setLocation(Location location) {
+	final HasLocation setLocation(Location location) {
 		this.location = location;
 		return this;
 	}

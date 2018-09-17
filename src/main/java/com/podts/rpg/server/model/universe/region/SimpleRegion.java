@@ -23,14 +23,16 @@ public abstract class SimpleRegion implements Region {
 	}
 
 	@Override
-	public final Region addRegionListener(RegionListener newRegionListener) {
-		regionListeners.add(newRegionListener);
+	public final SimpleRegion addRegionListeners(RegionListener... listeners) {
+		for(RegionListener l : listeners)
+			regionListeners.add(l);
 		return this;
 	}
 
 	@Override
-	public final Region removeRegionListener(RegionListener regionListener) {
-		regionListeners.remove(regionListener);
+	public final Region removeRegionListeners(RegionListener... listeners) {
+		for(RegionListener l : listeners)
+			regionListeners.remove(l);
 		return this;
 	}
 	

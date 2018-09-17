@@ -1,6 +1,6 @@
 package com.podts.rpg.server.model.universe;
 
-public interface TileHandler {
+public interface TileListener {
 	
 	public default void onAdd(Tile tile) {
 		

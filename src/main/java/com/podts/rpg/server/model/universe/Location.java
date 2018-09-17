@@ -151,12 +151,24 @@ public abstract class Location implements HasLocation, Cloneable {
 		return getPlane().getZ();
 	}
 	
+	public final int getAbsX() {
+		return Math.abs(getX());
+	}
+	
 	public final int getXDifference(Location other) {
 		return getX() - other.getX();
 	}
 	
+	public final int getAbsY() {
+		return Math.abs(getY());
+	}
+	
 	public final int getYDifference(Location other) {
 		return getY() - other.getY();
+	}
+	
+	public final int getAbsZ() {
+		return Math.abs(getZ());
 	}
 	
 	public final int getZDifference(Location other) {

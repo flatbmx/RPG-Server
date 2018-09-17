@@ -270,9 +270,9 @@ public abstract class Space implements HasSpace {
 	}
 	
 	private void handleTileChange(Tile tile, TileElement element) {
-		Iterator<TileHandler> it = tile.handlerIterator();
+		Iterator<TileListener> it = tile.tileListenerIterator();
 		while(it.hasNext()) {
-			TileHandler h = it.next();
+			TileListener h = it.next();
 			if(h.onChange(tile, element)) {
 				it.remove();
 				h.onRemove(tile);
@@ -281,9 +281,9 @@ public abstract class Space implements HasSpace {
 	}
 	
 	Space updateTile(Tile tile) {
-		Iterator<TileHandler> it = tile.handlerIterator();
+		Iterator<TileListener> it = tile.tileListenerIterator();
 		while(it.hasNext()) {
-			TileHandler h = it.next();
+			TileListener h = it.next();
 			if(h.onUpdate(tile)) {
 				it.remove();
 				h.onRemove(tile);
@@ -316,11 +316,9 @@ public abstract class Space implements HasSpace {
 		return tile;
 	}
 	
-	public final boolean isTraversable(Tile tile) {
+	public boolean isTraversable(Tile tile) {
 		if(tile == null)
 			return false;
-		if(isInDifferentSpace(tile))
-			throw new IllegalArgumentException("Cannot determine if " + tile + " is traversable from another Space!");
 		return doIsTraversable(tile);
 	}
 	

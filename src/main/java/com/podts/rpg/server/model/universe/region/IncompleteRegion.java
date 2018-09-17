@@ -10,12 +10,12 @@ public abstract class IncompleteRegion implements Region {
 	}
 
 	@Override
-	public final Region addRegionListener(RegionListener newRegionListener) {
+	public final Region addRegionListeners(RegionListener... newRegionListener) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public final Region removeRegionListener(RegionListener regionListener) {
+	public final Region removeRegionListeners(RegionListener... regionListener) {
 		throw new UnsupportedOperationException();
 	}
 

@@ -16,15 +16,17 @@ public abstract class ConcerningRegion implements Region {
 	}
 	
 	@Override
-	public ConcerningRegion addRegionListener(RegionListener listener) {
+	public ConcerningRegion addRegionListeners(RegionListener... listeners) {
 		checkCreate();
-		regionListeners.add(listener);
+		for(RegionListener l : listeners)
+			regionListeners.add(l);
 		return this;
 	}
 	
 	@Override
-	public ConcerningRegion removeRegionListener(RegionListener listener) {
-		regionListeners.remove(listener);
+	public ConcerningRegion removeRegionListeners(RegionListener... listeners) {
+		for(RegionListener l : listeners)
+			regionListeners.remove(l);
 		checkDelete();
 		return this;
 	}

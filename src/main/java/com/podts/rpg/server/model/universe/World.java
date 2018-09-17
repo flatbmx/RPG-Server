@@ -173,7 +173,7 @@ public abstract class World extends Space {
 			mR.addEntities(findEntitiesIn(region));
 		}
 		if(region instanceof DynamicRegion) {
-			region.addRegionListener(regionChangeHandler);
+			region.addRegionListeners(regionChangeHandler);
 		}
 		return this;
 	}
@@ -195,7 +195,7 @@ public abstract class World extends Space {
 	 */
 	public final World unRegister(PollableRegion region) {
 		if(region instanceof DynamicRegion) {
-			region.removeRegionListener(regionChangeHandler);
+			region.removeRegionListeners(regionChangeHandler);
 		}
 		return this;
 	}
@@ -350,11 +350,11 @@ public abstract class World extends Space {
 	private final RegionListener regionChangeHandler = new RegionChangeListener();
 	
 	private final void followRegion(DynamicRegion r) {
-		r.addRegionListener(regionChangeHandler);
+		r.addRegionListeners(regionChangeHandler);
 	}
 	
 	private final void unFollowRegion(DynamicRegion r) {
-		r.removeRegionListener(regionChangeHandler);
+		r.removeRegionListeners(regionChangeHandler);
 	}
 	
 	protected abstract void handleRegionChange(PollableRegion r);

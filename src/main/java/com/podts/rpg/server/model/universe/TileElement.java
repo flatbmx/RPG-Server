@@ -36,10 +36,6 @@ public class TileElement {
 		return type;
 	}
 	
-	/**
-	 * Triggers a tile update for this elements parent Tile.
-	 * @return This TileElement for chaining.
-	 */
 	protected final TileElement update() {
 		tile.update();
 		return this;
@@ -49,16 +45,10 @@ public class TileElement {
 		return getTile() != null;
 	}
 	
-	/**
-	 * Called when this TileElement is attached to a Tile.
-	 */
 	protected void onEnter() {
 		
 	}
 	
-	/**
-	 * Called when this TileElement is removed from a Tile.
-	 */
 	protected void onLeave() {
 		
 	}
