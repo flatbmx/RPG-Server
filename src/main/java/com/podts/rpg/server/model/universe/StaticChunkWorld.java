@@ -309,6 +309,9 @@ public final class StaticChunkWorld extends World {
 				addPlayer(pE.getPlayer());
 			}
 			entities.put(entity.getID(), entity);
+			if(!(entity.getLocation() instanceof CLocation)) {
+				entity.setLocation(new CLocation(entity.getLocation()));
+			}
 			((CLocation)entity.getLocation()).chunk = this;
 			return this;
 		}
@@ -628,6 +631,10 @@ public final class StaticChunkWorld extends World {
 		private CLocation(final int x, final int y, final int z) {
 			this(null, x, y, z);
 		}
+
+		public CLocation(Location location) {
+			this(location.getX(), location.getY(), location.getZ());
+		}
 		
 	}
 	
@@ -640,7 +647,10 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private Chunk chunk(HasLocation l) {
-		return chunk((CLocation) l.getLocation());
+		Location loc = l.getLocation();
+		if(loc instanceof CLocation)
+			return chunk((CLocation) l.getLocation());
+		return chunk(new CLocation(loc.getX(), loc.getY(), loc.getZ()));
 	}
 	
 	private Chunk chunk(CLocation point) {
