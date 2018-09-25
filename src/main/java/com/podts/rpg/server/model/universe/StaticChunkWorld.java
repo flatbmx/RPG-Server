@@ -986,7 +986,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private Collection<Tile> getView(HasLocation l) {
-		return nearbyTiles(l, 15)
+		return nearbyTiles(l, 20)
 				.collect(Collectors.toSet());
 	}
 	

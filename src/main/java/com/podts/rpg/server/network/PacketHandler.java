@@ -17,6 +17,7 @@ import com.podts.rpg.server.Server;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.network.NetworkManager.NetworkStatus;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
@@ -50,8 +51,10 @@ public final class PacketHandler {
 		
 		handlers.put(MessagePacket.class, (stream, oldPacket) -> {
 				MessagePacket packet = (MessagePacket) oldPacket;
-				if(packet.hasSender())
-					Server.get().getCommandHandler().execute(packet.getSender(), packet.getMessage());
+				getLogger().info("Got message -> " + packet.getMessage());
+				stream.getPlayer().getEntity().getSpace().players().forEach(p -> p.sendMessage(packet.getMessage() + " right back ach ya ;)"));
+				//if(packet.hasSender())
+				//	Server.get().getCommandHandler().execute(packet.getSender(), packet.getMessage());
 			}
 		);
 		

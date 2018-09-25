@@ -198,6 +198,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			public void encode(NettyStream stream, Packet op, ByteBuf buf) {
 				MessagePacket p = (MessagePacket) op;
 				writeEncryptedString(p.getMessage(), stream, buf);
+				System.out.println("wrote message "+ p.getMessage());
 			}
 		});
 		
@@ -267,7 +268,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	
 	private static void writeEncryptedString(String string, NetworkStream networkStream, ByteBuf buf) {
 		try {
-			ByteBuf plainBuf = Unpooled.copiedBuffer(new byte[0]);
+			ByteBuf plainBuf = Unpooled.buffer();
 			byte[] plain = string.getBytes("UTF-8");
 			plainBuf.writeInt(plain.length).writeBytes(plain);
 			byte[] encryptedBytes = encrypt(plainBuf.array(), networkStream.getSecretKey());

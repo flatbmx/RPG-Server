@@ -18,6 +18,7 @@ import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
+import com.podts.rpg.server.network.packet.MessagePacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 
 import io.netty.buffer.ByteBuf;
@@ -70,6 +71,14 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				Location newLocation = readLocation(buf);
 				return EntityPacket.constructMove(s.getPlayer().getEntity(), newLocation);
+			}
+		};
+		
+		packetConstructors[PID_MESSAGE] = new PacketConstructor() {
+			@Override
+			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
+				String message = readEncryptedString(s, buf);
+				return new MessagePacket(s.getPlayer(), message);
 			}
 		};
 		
