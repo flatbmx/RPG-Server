@@ -13,7 +13,7 @@ import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
 
-public class Tile extends Spatial implements Region, Registerable {
+public class Tile extends Spatial implements Shiftable, Region, Registerable {
 	
 	private Set<RegionListener> regionListeners, safeRegionListeners;
 	private Set<TileListener> tileListeners, safeTileListeners;
@@ -64,7 +64,7 @@ public class Tile extends Spatial implements Region, Registerable {
 		return this;
 	}
 	
-	private boolean noTileListeners() {
+	private final boolean noTileListeners() {
 		return tileListeners == null;
 	}
 	
@@ -144,11 +144,11 @@ public class Tile extends Spatial implements Region, Registerable {
 	}
 	
 	@Override
-	public boolean contains(Location point) {
+	public final boolean contains(Location point) {
 		return isAt(point);
 	}
 	
-	public TileElement getElement() {
+	public final TileElement getElement() {
 		return element;
 	}
 	
@@ -207,18 +207,22 @@ public class Tile extends Spatial implements Region, Registerable {
 		return biTraceEvery(dir, 1);
 	}
 	
+	@Override
 	public Tile shift(int dx, int dy, int dz) {
 		return getLocation().shift(dx, dy, dz).getTile();
 	}
 	
+	@Override
 	public Tile shift(int dx, int dy) {
 		return getLocation().shift(dx, dy).getTile();
 	}
 	
+	@Override
 	public Tile shift(Direction dir, int distance) {
 		return shift(dir.getX(distance), dir.getY(distance));
 	}
 	
+	@Override
 	public Tile shift(Direction dir) {
 		return shift(dir, 1);
 	}

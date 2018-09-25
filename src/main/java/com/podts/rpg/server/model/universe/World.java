@@ -24,7 +24,6 @@ import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.EntityPacket;
-import com.podts.rpg.server.network.packet.TilePacket;
 
 /**
  * A collection of Tiles that represent a world that entities such as NPCs, players, etc can inhabit and interact with

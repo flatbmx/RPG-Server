@@ -249,7 +249,7 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		@Override
-		public Stream<? extends Location> points() {
+		public Stream<Location> points() {
 			if(!isGenerated()) {
 				return generatePoints();
 			}

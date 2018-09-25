@@ -9,7 +9,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public abstract class Location implements HasLocation, Cloneable {
+public abstract class Location implements Shiftable, Cloneable {
 	
 	public enum Direction {
 		UP(0,-1),

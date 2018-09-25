@@ -11,7 +11,8 @@ public abstract class ConcerningRegion implements Region {
 	
 	@Override
 	public Collection<RegionListener> getRegionListeners() {
-		if(safeRegionListeners == null) return Collections.emptyList();
+		if(safeRegionListeners == null)
+			return Collections.emptyList();
 		return safeRegionListeners;
 	}
 	
