@@ -23,7 +23,9 @@ final class CommandParser {
 	
 	static final CommandEntry parse(String commandText) {
 		
-		if(commandText == null || commandText.isEmpty()) return null;
+		if(commandText == null) return null;
+		commandText = commandText.substring(1);
+		if(commandText.trim().isEmpty()) return null;
 		
 		List<String> list = new ArrayList<String>();
 		Matcher m = Pattern.compile("\"[^\"]+\"|[\\w]+").matcher(commandText);
