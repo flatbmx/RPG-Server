@@ -204,6 +204,7 @@ public class ArraySpace extends Space {
 	}
 	
 	@Override
+	public
 	Location moveEntity(Entity entity, MoveType update, int dx, int dy, int dz) {
 		// TODO Auto-generated method stub
 		return null;
@@ -232,6 +233,12 @@ public class ArraySpace extends Space {
 
 	@Override
 	public Stream<Entity> nearbyEntities(HasLocation l) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Space moveEntity(Entity entity, Location newLocation, MoveType update) {
 		// TODO Auto-generated method stub
 		return null;
 	}

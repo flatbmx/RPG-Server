@@ -5,10 +5,12 @@ import java.security.PublicKey;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
+import com.podts.rpg.server.Server;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
@@ -56,6 +58,12 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	private static final int PID_MESSAGE = 6;
 	private static final int PID_ACK = 7;
 	private static final int PID_TILESELECTION = 8;
+	
+	private static final String STRING_ENCODING = "UTF-8";
+	
+	private static Logger getLogger() {
+		return Server.get().getLogger();
+	}
 	
 	static {
 		addEncoder(AESReplyPacket.class, new PacketEncoder(PID_AESREPLY) {
@@ -198,7 +206,6 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			public void encode(NettyStream stream, Packet op, ByteBuf buf) {
 				MessagePacket p = (MessagePacket) op;
 				writeEncryptedString(p.getMessage(), stream, buf);
-				System.out.println("wrote message "+ p.getMessage());
 			}
 		});
 		
@@ -246,6 +253,8 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		if(encoder != null) {
 			buf.writeByte(encoder.getOpCode());
 			encoder.encode(s, p, buf);
+		} else {
+			getLogger().warning("No encoder found for " + p.getClass().getSimpleName() + ", packet not sent!");
 		}
 		
 	}
@@ -255,13 +264,13 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	}
 	
 	private static void writeLocation(Location loc, ByteBuf buf) {
-		buf.writeInt(loc.getX());
-		buf.writeInt(loc.getY());
-		buf.writeInt(loc.getZ());
+		buf.writeInt(loc.getX())
+		.writeInt(loc.getY())
+		.writeInt(loc.getZ());
 	}
 	
 	private static void writeEncryptedLocation(Location loc, NetworkStream networkStream, ByteBuf buf) {
-		ByteBuf plainBuf = Unpooled.copiedBuffer(new byte[0]);
+		ByteBuf plainBuf = Unpooled.buffer();
 		writeLocation(loc, plainBuf);
 		buf.writeBytes(encrypt(plainBuf.array(), networkStream.getSecretKey()));
 	}
@@ -269,19 +278,19 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	private static void writeEncryptedString(String string, NetworkStream networkStream, ByteBuf buf) {
 		try {
 			ByteBuf plainBuf = Unpooled.buffer();
-			byte[] plain = string.getBytes("UTF-8");
+			byte[] plain = string.getBytes(STRING_ENCODING);
 			plainBuf.writeInt(plain.length).writeBytes(plain);
 			byte[] encryptedBytes = encrypt(plainBuf.array(), networkStream.getSecretKey());
 			buf.writeInt(encryptedBytes.length).writeBytes(encryptedBytes);
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}	
+			throw new AssertionError("No string encoder for " + STRING_ENCODING + "!");
+		}
 	}
 	
 	private static void writeString(String string, ByteBuf buf) {
 		byte[] plain;
 		try {
-			plain = string.getBytes("UTF-8");
+			plain = string.getBytes(STRING_ENCODING);
 			buf.writeInt(plain.length);
 			buf.writeBytes(plain);
 		} catch (Exception e) {

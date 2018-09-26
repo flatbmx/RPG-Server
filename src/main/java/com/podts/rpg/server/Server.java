@@ -142,6 +142,10 @@ public final class Server {
 		return null;
 	}
 	
+	public Player getPlayer(String name) {
+		return playerNameMap.get(name);
+	}
+	
 	public Collection<Player> getPlayers() {
 		return safePlayers;
 	}
@@ -151,7 +155,10 @@ public final class Server {
 	}
 	
 	Player createPlayer(String username, String password) {
-		return new Player(getNewID(), username, password);
+		Player player = new Player(getNewID(), username, password);
+		players[player.getID()] = player;
+		playerNameMap.put(username, player);
+		return player;
 	}
 	
 	void handleLogin(Player player) {

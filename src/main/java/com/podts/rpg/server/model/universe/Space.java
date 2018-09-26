@@ -14,6 +14,7 @@ import com.podts.rpg.server.Utils;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.TilePacket;
@@ -48,6 +49,7 @@ public abstract class Space implements HasSpace {
 		}
 		
 		@Override
+		public
 		Location moveEntity(Entity entity, MoveType update, int dx, int dy, int dz) {
 			return null;
 		}
@@ -66,6 +68,12 @@ public abstract class Space implements HasSpace {
 		@Override
 		public Stream<Entity> nearbyEntities(HasLocation l) {
 			return Stream.empty();
+		}
+
+		@Override
+		public
+		Space moveEntity(Entity entity, Location newLocation, MoveType update) {
+			return this;
 		}
 		
 	}
@@ -256,6 +264,14 @@ public abstract class Space implements HasSpace {
 		if(element.isLinked())
 			throw new IllegalArgumentException("Cannot set a Tile with a TileElement that is already associated with a Tile!");
 		return doSetTile(tile, element);
+	}
+	
+	public Space setTile(Tile tile, TileType type) {
+		Objects.requireNonNull(tile, "Cannot set TileElement of null Tile!");
+		Objects.requireNonNull(type, "Cannot set Tile with null TileType!");
+		if(!contains(tile))
+			throw new IllegalArgumentException("Cannot set Tile from different space!");
+		return doSetTile(tile, new TileElement(type));
 	}
 	
 	protected Space doSetTile(Tile tile, TileElement element) {
@@ -456,9 +472,11 @@ public abstract class Space implements HasSpace {
 				.map(e -> ((PlayerEntity)e).getPlayer());
 	}
 	
-	abstract Location moveEntity(Entity entity, MoveType update, int dx, int dy, int dz);
+	public abstract Space moveEntity(Entity entity, Location newLocation, MoveType update);
+	
+	public abstract Location moveEntity(Entity entity, MoveType update, int dx, int dy, int dz);
 
-	final Location moveEntity(Entity entity, Direction dir) {
+	public final Location moveEntity(Entity entity, Direction dir) {
 		return moveEntity(entity, MoveType.UPDATE, dir.getX(), dir.getY(), 0);
 	}
 	

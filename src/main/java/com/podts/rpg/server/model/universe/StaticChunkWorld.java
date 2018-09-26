@@ -290,8 +290,8 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		private ChunkTile getTile(CLocation point) {
-			return getTile(topLeft.getXDifference(point) + (getChunkSize()-1)
-					, topLeft.getYDifference(point) + (getChunkSize()-1));
+			return getTile( ((getChunkSize()) - topLeft.getXDifference(point)) % getChunkSize()
+					, ((getChunkSize()) - topLeft.getYDifference(point)) % getChunkSize());
 		}
 		
 		ChunkTile getTile(int x, int y) {
@@ -804,7 +804,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private Stream<Chunk> surroundingChunks(HasLocation l) {
-		return surroundingChunks((CLocation)l.getLocation());
+		return surroundingChunks(cLoc(l.getLocation()));
 	}
 	
 	private Chunk findChunk(final CLocation point) {
@@ -980,13 +980,16 @@ public final class StaticChunkWorld extends World {
 		//surroundingChunks(pE)
 		//.forEach(chunk -> sendEntireChunk(chunk, player));
 		
-		nearbyTiles(pE, 15)
-		.forEach(t -> sendCreateTile(player, t));
+		view(pE).forEach(t -> sendCreateTile(player, t));
 		
 	}
 	
+	private Stream<? extends Tile> view(HasLocation l) {
+		return nearbyTiles(l, 20);
+	}
+	
 	private Collection<Tile> getView(HasLocation l) {
-		return nearbyTiles(l, 20)
+		return view(l)
 				.collect(Collectors.toSet());
 	}
 	
@@ -1107,10 +1110,16 @@ public final class StaticChunkWorld extends World {
 				.filter(r::contains);
 	}
 	
+	private CLocation cLoc(Location loc) {
+		if(loc instanceof CLocation)
+			return (CLocation) loc;
+		return new CLocation(loc.getX(), loc.getY(), loc.getZ());
+	}
+	
 	@Override
 	protected World doMoveEntity(Entity entity, Location newLocation, MoveType type) {
-		CLocation newLoc = (CLocation) newLocation;
-		CLocation currentLoc = (CLocation) entity.getLocation();
+		CLocation newLoc = cLoc(newLocation);
+		CLocation currentLoc = cLoc(entity.getLocation());
 		
 		final Chunk oldChunk = currentLoc.getChunk();
 		final Chunk newChunk = newLoc.getChunk();

@@ -1,7 +1,6 @@
 package com.podts.rpg.server.command;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,15 +38,9 @@ final class CommandParser {
 		result.fullEntry = commandText;
 		result.name = list.get(0);
 		list.remove(result.name);
-		result.parameters = list.toArray(new String[list.size()-1]);
+		result.parameters = list.toArray(new String[list.size()]);
 		
 		return result;
-	}
-	
-	public static void main(String[] args) {
-		
-		System.out.println(Arrays.asList(extractParameters("msg will2233 \"Hey bro\"")));
-		
 	}
 	
 }

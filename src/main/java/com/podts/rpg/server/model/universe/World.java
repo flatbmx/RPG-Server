@@ -226,8 +226,9 @@ public abstract class World extends Space {
 	
 	abstract Stream<Entity> doEntitiesIn(final PollableRegion region);
 	
-	
-	protected final World moveEntity(final Entity entity, final Location newLoc, final MoveType type) {
+	@Override
+	public
+	final World moveEntity(final Entity entity, final Location newLoc, final MoveType type) {
 		
 		if(getTile(newLoc).isVoid())
 			return this;
@@ -281,6 +282,8 @@ public abstract class World extends Space {
 	
 	protected abstract World doMoveEntity(Entity entity, Location newLocation, MoveType type);
 	
+	@Override
+	public
 	final Location moveEntity(Entity entity, MoveType type, int dx, int dy, int dz) {
 		Location result = entity.getLocation().shift(dx, dy, dz);
 		moveEntity(entity, result, type);

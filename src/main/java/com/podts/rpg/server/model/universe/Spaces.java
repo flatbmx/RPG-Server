@@ -53,6 +53,7 @@ public class Spaces {
 		}
 
 		@Override
+		public
 		Location moveEntity(Entity entity, MoveType update, int dx, int dy, int dz) {
 			return space.moveEntity(entity, update, dx, dy, dz);
 		}
@@ -69,6 +70,12 @@ public class Spaces {
 
 		@Override
 		public Stream<Entity> nearbyEntities(HasLocation l) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Space moveEntity(Entity entity, Location newLocation, MoveType update) {
 			// TODO Auto-generated method stub
 			return null;
 		}
