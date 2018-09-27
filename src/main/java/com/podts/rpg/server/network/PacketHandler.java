@@ -157,8 +157,7 @@ public final class PacketHandler {
 		
 		final NetworkStream networkStream = packet.getOrigin();
 		
-		if(handler != null) {
-			//System.out.println("Recieved " + packet.getClass().getSimpleName());
+		if(handler != null) {;
 			GameEngine.get().submit(new PacketRunner(handler, packet, networkStream));
 		} else {
 			getLogger().warning("Recieved unhandled packet " + packet.getClass().getSimpleName());
