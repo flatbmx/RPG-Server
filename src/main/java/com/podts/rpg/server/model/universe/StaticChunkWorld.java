@@ -800,7 +800,7 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	private Stream<Chunk> surroundingChunks(HasLocation l, int depth) {
-		return surroundingChunks((CLocation)l.getLocation(), depth);
+		return surroundingChunks(cLoc(l.getLocation()), depth);
 	}
 	
 	private Stream<Chunk> surroundingChunks(HasLocation l) {
@@ -949,11 +949,12 @@ public final class StaticChunkWorld extends World {
 	public boolean doRegister(Entity e) {
 		if(isRegistered(e)) return false;
 		
+		//If entity is player, add/setup the player.
+		if(Player.is(e))
+			initPlayer((PlayerEntity) e);
+		
 		//Add entity to chunk
 		chunk(e).generate().addEntity(e);
-		
-		//If entity is player, add/setup the player.
-		if(Player.is(e)) initPlayer((PlayerEntity) e);
 		
 		//Add entity to world-wide collection.
 		entities.put(e.getID(), e);
@@ -977,10 +978,9 @@ public final class StaticChunkWorld extends World {
 		addPlayer(player);
 		player.sendPacket(EntityPacket.constructCreate(pE));
 		
-		//surroundingChunks(pE)
-		//.forEach(chunk -> sendEntireChunk(chunk, player));
-		
 		view(pE).forEach(t -> sendCreateTile(player, t));
+		this.nearbyEntities(pE)
+		.forEach(e -> sendCreateEntity(e, player));
 		
 	}
 	
