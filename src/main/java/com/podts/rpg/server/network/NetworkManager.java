@@ -121,7 +121,7 @@ public abstract class NetworkManager {
 	}
 	
 	public final boolean bind(int port) {
-		return bind("localhost", port);
+		return bind("0.0.0.0", port);
 	}
 	
 	public final boolean bind(String address, int port) {

@@ -5,9 +5,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.podts.rpg.server.Server;
 import com.podts.rpg.server.network.NetworkManager;
-import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.NetworkStream;
+import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.StreamListener;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -18,7 +19,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
-import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -114,7 +114,7 @@ public final class NettyNetworkManager extends NetworkManager {
 			.childOption(ChannelOption.SO_KEEPALIVE, true);
 
 			// Bind and start to accept incoming connections.
-			ChannelFuture f = bootstrap.bind(address, port).sync();
+			ChannelFuture f = bootstrap.bind(port).sync();
 			
 			if(f.isSuccess()) {
 				manager = this;
