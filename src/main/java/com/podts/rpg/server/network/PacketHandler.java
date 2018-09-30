@@ -26,6 +26,7 @@ import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.MessagePacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
+import com.podts.rpg.server.network.packet.TileSelectionPacket;
 
 public final class PacketHandler {
 	
@@ -61,6 +62,15 @@ public final class PacketHandler {
 				}
 			}
 		);
+		
+		handlers.put(TileSelectionPacket.class, new PacketConsumer() {
+			@Override
+			public void accept(NetworkStream s, Packet op) {
+				TileSelectionPacket p = (TileSelectionPacket) op;
+				Player player = s.getPlayer();
+				player.setSelectedTiles(p.getSelections(), false);
+			}
+		});
 		
 		handlers.put(EntityPacket.class, new PacketConsumer() {
 			@Override

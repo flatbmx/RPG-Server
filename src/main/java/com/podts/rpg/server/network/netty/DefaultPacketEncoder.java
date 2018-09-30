@@ -2,6 +2,7 @@ package com.podts.rpg.server.network.netty;
 
 import java.io.UnsupportedEncodingException;
 import java.security.PublicKey;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,11 +15,8 @@ import com.podts.rpg.server.Server;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
-import com.podts.rpg.server.model.universe.RectangleTileSelction;
 import com.podts.rpg.server.model.universe.Tile;
 import com.podts.rpg.server.model.universe.TileElement.TileType;
-import com.podts.rpg.server.model.universe.TileSelection;
-import com.podts.rpg.server.model.universe.TileSelection.SelectionType;
 import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
@@ -61,7 +59,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	
 	private static final String STRING_ENCODING = "UTF-8";
 	
-	private static Logger getLogger() {
+	private static final Logger getLogger() {
 		return Server.get().getLogger();
 	}
 	
@@ -210,34 +208,14 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		});
 		
 		addEncoder(TileSelectionPacket.class, new PacketEncoder(PID_TILESELECTION) {
-			private final Map<SelectionType,Integer> typeMap = new HashMap<SelectionType, Integer>();
-			void init() {
-				typeMap.put(SelectionType.SET, 0);
-				typeMap.put(SelectionType.SQUARE, 1);
-			}
 			@Override
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {
 				TileSelectionPacket p = (TileSelectionPacket) op;
-				for(TileSelection sel : p.getSelections()) {
-					buf.writeByte(typeMap.get(sel.getSelectionType()));
-					
-					if(sel instanceof RectangleTileSelction) {
-						
-						RectangleTileSelction rectSel = (RectangleTileSelction) sel;
-						
-						buf.writeInt(rectSel.getWidth()).writeInt(rectSel.getHeight());
-						writeLocation(rectSel.getTopLeft(), buf);
-						
-					} else {
-						
-						buf.writeInt(sel.size());
-						for(Tile tile : sel) {
-							writeLocation(tile.getLocation(), buf);
-						}
-						
-					}
+				Collection<Tile> tiles = p.getSelections();
+				buf.writeInt(tiles.size());
+				for(Tile tile : tiles) {
+					writeLocation(tile.getLocation(), buf);
 				}
-				
 			}
 		});
 		
@@ -293,8 +271,8 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			plain = string.getBytes(STRING_ENCODING);
 			buf.writeInt(plain.length);
 			buf.writeBytes(plain);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			throw new AssertionError("No string encoder for " + STRING_ENCODING + "!");
 		}
 	}
 	

@@ -7,19 +7,23 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
 import com.podts.rpg.server.model.universe.Location;
+import com.podts.rpg.server.model.universe.Tile;
 import com.podts.rpg.server.model.universe.Universe;
-import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.NetworkStream;
+import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
 import com.podts.rpg.server.network.packet.MessagePacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
+import com.podts.rpg.server.network.packet.TileSelectionPacket;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -34,6 +38,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 	private static final int PID_LOGINREQUST = 1;
 	private static final int PID_MOVE = 2;
 	private static final int PID_MESSAGE = 3;
+	private static final int PID_TILESELECTION = 4;
 	
 	static {
 		packetConstructors = new PacketConstructor[128];
@@ -79,6 +84,18 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				String message = readEncryptedString(s, buf);
 				return new MessagePacket(s.getPlayer(), message);
+			}
+		};
+		
+		packetConstructors[PID_TILESELECTION] = new PacketConstructor() {
+			@Override
+			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
+				int totalTiles = buf.readInt();
+				Collection<Tile> tiles = new HashSet<>();
+				for(int i=0; i<totalTiles; ++i) {
+					tiles.add(readLocation(buf).getTile());
+				}
+				return new TileSelectionPacket(tiles);
 			}
 		};
 		

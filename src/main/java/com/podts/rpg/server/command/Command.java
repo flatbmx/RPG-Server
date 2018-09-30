@@ -15,6 +15,10 @@ public abstract class Command {
 	
 	private final int minArgs, maxArgs;
 	
+	public final String getSlashedName() {
+		return "/" + getName();
+	}
+	
 	public final String getName() {
 		return name;
 	}
@@ -36,7 +40,8 @@ public abstract class Command {
 	}
 	
 	public final boolean execute(CommandSender sender, String commandEntry) {
-		if(commandEntry == null || commandEntry.isEmpty()) return false;
+		if(commandEntry == null || commandEntry.isEmpty())
+			return false;
 		return doExecute(sender, commandEntry, new String[0]);
 	}
 	
@@ -55,7 +60,7 @@ public abstract class Command {
 	}
 	
 	public Command(String name) {
-		this(name, 0, 0);
+		this(name, 0, -1);
 	}
 	
 }

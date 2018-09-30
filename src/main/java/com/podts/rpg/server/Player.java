@@ -1,5 +1,8 @@
 package com.podts.rpg.server;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 
 import com.podts.rpg.server.command.CommandSender;
@@ -7,10 +10,12 @@ import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Locatable;
+import com.podts.rpg.server.model.universe.Tile;
 import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.MessagePacket;
 import com.podts.rpg.server.network.packet.StatePacket;
+import com.podts.rpg.server.network.packet.TileSelectionPacket;
 
 public class Player implements CommandSender {
 	
@@ -38,6 +43,9 @@ public class Player implements CommandSender {
 	private GameState currentState;
 	private NetworkStream networkStream;
 	
+	private final Collection<Tile> selectedTiles = new HashSet<>();
+	private final Collection<Tile> safeSelectedTiles = Collections.unmodifiableCollection(selectedTiles);
+	
 	public final int getID() {
 		return id;
 	}
@@ -45,6 +53,50 @@ public class Player implements CommandSender {
 	@Override
 	public final String getName() {
 		return username;
+	}
+	
+	public Collection<Tile> getSelectedTiles() {
+		return safeSelectedTiles;
+	}
+	
+	public Player setSelectedTiles(Collection<Tile> newTiles, boolean update) {
+		selectedTiles.clear();
+		selectedTiles.addAll(newTiles);
+		if(update)
+			sendSelectedTiles();
+		return this;
+	}
+	
+	public Player setSelectedTiles(Collection<Tile> newTiles) {
+		return setSelectedTiles(newTiles, true);
+	}
+	
+	public Player selectTile(Tile tile) {
+		selectedTiles.add(tile);
+		sendSelectedTiles();
+		return this;
+	}
+	
+	public Player deSelectTile(Tile tile) {
+		selectedTiles.remove(tile);
+		sendSelectedTiles();
+		return this;
+	}
+	
+	public Player clearSelectedTiles() {
+		if(selectedTiles.isEmpty()) {
+			selectedTiles.clear();
+			sendSelectedTiles();
+		}
+		return this;
+	}
+	
+	public boolean isSelected(Tile tile) {
+		return getSelectedTiles().contains(tile);
+	}
+	
+	private void sendSelectedTiles() {
+		sendPacket(new TileSelectionPacket(selectedTiles));
 	}
 	
 	public final GameState getGameState() {

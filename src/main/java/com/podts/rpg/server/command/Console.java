@@ -37,7 +37,7 @@ public abstract class Console implements CommandSender {
 
 	@Override
 	public void sendMessage(CommandSender sender, String message) {
-		getLogger().info(sender + ": " + message);
+		sendMessage(sender + ": " + message);
 	}
 	
 	public Console(Logger logger, String name) {
