@@ -157,6 +157,14 @@ public class Player implements CommandSender {
 		sendPacket(new MessagePacket(sender, message));
 	}
 	
+	public double getViewingDistance() {
+		return getEntity().getViewingDistance();
+	}
+	
+	public void setViewingDistance(double newSize) {
+		getEntity().setViewingDistance(newSize);
+	}
+	
 	@Override
 	public boolean equals(Object o) {
 		if(o == null) return false;

@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.Utils;
+import com.podts.rpg.server.model.entity.CanSee;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
@@ -926,6 +927,12 @@ public final class StaticChunkWorld extends World {
 				.filter(e -> e.isInRange(point, dist));
 	}
 	
+	public Stream<Entity> nearbyEntities(PlayerEntity p) {
+		return surroundingChunks(p)
+				.flatMap(c -> c.entities())
+				.filter(e -> e.isInRange(p, p.getViewingDistance()));
+	}
+	
 	@Override
 	public Stream<Entity> nearbyEntities(HasLocation l) {
 		Utils.assertArg(!contains(l), "Cannot get nearby Entity Stream from location in another world.");
@@ -979,17 +986,17 @@ public final class StaticChunkWorld extends World {
 		player.sendPacket(EntityPacket.constructCreate(pE));
 		
 		view(pE).forEach(t -> sendCreateTile(player, t));
-		this.nearbyEntities(pE)
+		nearbyEntities(pE)
 		.forEach(e -> sendCreateEntity(e, player));
 		
 	}
 	
-	private Stream<? extends Tile> view(HasLocation l) {
-		return nearbyTiles(l, 20);
+	private Stream<? extends Tile> view(PlayerEntity p) {
+		return nearbyTiles(p, p.getViewingDistance());
 	}
 	
-	private Collection<Tile> getView(HasLocation l) {
-		return view(l)
+	private Collection<Tile> getView(HasLocation l, double distance) {
+		return nearbyTiles(l, distance)
 				.collect(Collectors.toSet());
 	}
 	
@@ -1188,8 +1195,8 @@ public final class StaticChunkWorld extends World {
 		if(Player.is(entity)) {
 			PlayerEntity pE = (PlayerEntity) entity;
 			Player player = pE.getPlayer();
-			Collection<Tile> newTiles = getView(newLoc);
-			Collection<Tile> oldTiles = getView(currentLoc);
+			Collection<Tile> newTiles = getView(newLoc, pE.getViewingDistance());
+			Collection<Tile> oldTiles = getView(currentLoc, pE.getViewingDistance());
 			
 			Iterator<Tile> ni = newTiles.iterator();
 			while(ni.hasNext()) {

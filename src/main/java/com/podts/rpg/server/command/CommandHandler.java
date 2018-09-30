@@ -245,6 +245,24 @@ public final class CommandHandler {
 			}
 		});
 		
+		addCommand(new PlayerCommand("setview") {
+			@Override
+			protected boolean doExecute(Player player, String original, String[] parameters) {
+				try {
+					if(parameters.length != 1) {
+						player.sendMessage("Command requires one arugment for view size!");
+						return true;
+					}
+					int newSize = Integer.parseInt(parameters[0]);
+					player.setViewingDistance(newSize);
+					player.sendMessage("Set new viewing distance to " + newSize);
+				} catch(NumberFormatException e) {
+					player.sendMessage("First arugement must be an integer!");
+				}
+				return true;
+			}
+		});
+		
 		addCommand(new PlayerCommand("teleport", 1, 3, "tp") {
 			@Override
 			protected boolean doExecute(Player player, String original, String[] parameters) {

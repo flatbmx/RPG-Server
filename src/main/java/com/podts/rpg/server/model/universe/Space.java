@@ -357,6 +357,15 @@ public abstract class Space implements HasSpace {
 		});
 	}
 	
+	public final Collection<Player> getNearbyPlayers(final HasLocation l, double distance) {
+		return entities()
+				.filter(e -> e.isInRange(l, distance))
+				.filter(e -> Player.is(e))
+				.map(e -> PlayerEntity.class.cast(e))
+				.map(oe -> oe.getPlayer())
+				.collect(Collectors.toList());
+	}
+	
 	public final Collection<Player> getNearbyPlayers(HasLocation l) {
 		return nearbyPlayers(l)
 				.collect(Collectors.toSet());

@@ -19,8 +19,8 @@ public abstract class LivingHumanoid extends AnimalEntity implements Walkable, M
 		return viewingDistance;
 	}
 	
-	public LivingHumanoid setViewingDistance(double viewingDistance) {
-		this.viewingDistance = viewingDistance;
+	public LivingHumanoid setViewingDistance(double newSize) {
+		this.viewingDistance = newSize;
 		return this;
 	}
 	
@@ -35,7 +35,7 @@ public abstract class LivingHumanoid extends AnimalEntity implements Walkable, M
 		return this;
 	}
 	
-	public LivingHumanoid(String name, EntityType type, Location loc, double viewingDistance) {
+	public LivingHumanoid(String name, EntityType type, Location loc, int viewingDistance) {
 		super(name, type, loc);
 		this.viewingDistance = viewingDistance;
 	}

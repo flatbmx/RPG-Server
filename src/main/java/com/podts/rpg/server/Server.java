@@ -237,6 +237,7 @@ public final class Server {
 		networkManager = new NettyNetworkManager(new StreamListener() {
 			@Override
 			public void onDisconnect(NetworkStream networkStream) {
+				Server.logger().info(networkStream + "disconnected ");
 				logoutPlayer(networkStream.getPlayer(), LogoutReason.DISCONNECT);
 			}
 		});

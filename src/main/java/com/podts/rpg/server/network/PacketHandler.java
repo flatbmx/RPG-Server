@@ -77,21 +77,22 @@ public final class PacketHandler {
 			public void accept(NetworkStream s, Packet packet) {
 				EntityPacket p = (EntityPacket) packet;
 				PlayerEntity pE = s.getPlayer().getEntity();
+				Player player = pE.getPlayer();
 				Entity e = p.getEntity();
 				if(!pE.equals(e)) {
-					getLogger().warning(pE.getPlayer() + " sent wront move ID packet!");
+					getLogger().warning(player + " sent wront move ID packet!");
 					return;
 				}
 				Location newLocation = p.getNewLocation();
 				
-				if(pE.distance(newLocation) > 1) {
+				if(pE.walkingDistance(newLocation) > 1) {
 					//TODO TOO FAR
-					getLogger().warning("Far");
+					getLogger().warning(player + " moved too far, probabbly out of sync!");
 					return;
 				}
 				Direction dir = Direction.get(pE.getLocation(), newLocation);
 				if(dir == null) {
-					getLogger().warning("Diag");
+					getLogger().warning(player + " moved diagnaly!");
 					//TODO Diagonal, not valid.
 					return;
 				}
@@ -109,8 +110,6 @@ public final class PacketHandler {
 					networkStream.sendPacket(new LoginResponsePacket(LoginResponseType.WAIT, "Server is loading, please wait."));
 					return;
 				}
-				
-				getLogger().info("Recieved login | username: "+ packet.getUsername() + " | password: " + packet.getPassword());
 				
 				Player player = null;
 				String response;
@@ -154,6 +153,7 @@ public final class PacketHandler {
 				
 				//Login is accepted
 				player.setStream(networkStream);
+				Server.logger().info(player + " logged in.");
 				player.changeGameState(GameStates.LOGGING_IN);
 				
 			}
@@ -166,7 +166,7 @@ public final class PacketHandler {
 		final PacketConsumer handler = handlers.get(packet.getClass());
 		final NetworkStream networkStream = packet.getOrigin();
 		
-		Server.get().getLogger().info("Recieved " + packet.getClass().getSimpleName() + " from " + packet.getOrigin().getPlayer());
+		//sServer.get().getLogger().info("Recieved " + packet.getClass().getSimpleName() + " from " + packet.getOrigin().getPlayer());
 		
 		if(handler != null) {;
 			GameEngine.get().submit(new PacketRunner(handler, packet, networkStream));

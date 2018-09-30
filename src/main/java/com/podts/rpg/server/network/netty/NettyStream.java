@@ -68,6 +68,11 @@ class NettyStream extends NioSocketChannel implements NetworkStream {
 		close();
 	}
 	
+	@Override
+	public String toString() {
+		return "[" + getAddress() + "]";
+	}
+	
 	NettyStream(ServerChannel sc, SocketChannel c) {
 		super(sc, c);
 		secret = keyGenerator.generateKey();

@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.podts.rpg.server.Server;
 import com.podts.rpg.server.network.NetworkManager;
 import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.Packet;
@@ -76,8 +75,6 @@ public final class NettyNetworkManager extends NetworkManager {
 	
 	private final void closeChannel(Channel channel) {
 		NettyStream stream = (NettyStream) channel;
-		
-		Server.logger().info("handling logout of " + stream.getPlayer());
 		
 		stream.getPlayer().getEntity().deRegister();
 		streams.remove(stream);
