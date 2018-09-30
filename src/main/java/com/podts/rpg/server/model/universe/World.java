@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
+import com.podts.rpg.server.Server;
 import com.podts.rpg.server.Utils;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.MoveType;
@@ -147,6 +148,7 @@ public abstract class World extends Space {
 	 * @return The World for chaining.
 	 */
 	public final World deRegister(Entity e) {
+		Server.get().getLogger().info("deregestering " + e);
 		if(doDeRegister(e)) {
 			sendToNearbyPlayers(e, EntityPacket.constructDestroy(e));
 		}

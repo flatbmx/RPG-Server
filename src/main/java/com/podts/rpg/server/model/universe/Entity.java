@@ -71,6 +71,11 @@ public abstract class Entity extends Spatial implements Registerable, MovableFac
 		getSpace().deRegister(this);
 	}
 	
+	@Override
+	public String toString() {
+		return "[" + name + " | " + getLocation() + "]";
+	}
+	
 	public Entity(String name, EntityType type, Location loc, Direction face) {
 		super(loc);
 		id = nextID++;
