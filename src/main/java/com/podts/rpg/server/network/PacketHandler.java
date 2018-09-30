@@ -163,9 +163,10 @@ public final class PacketHandler {
 	
 	public static void handlePacket(Packet packet) {
 		
-		PacketConsumer handler = handlers.get(packet.getClass());
-		
+		final PacketConsumer handler = handlers.get(packet.getClass());
 		final NetworkStream networkStream = packet.getOrigin();
+		
+		Server.get().getLogger().info("Recieved " + packet.getClass().getSimpleName() + " from " + packet.getOrigin().getPlayer());
 		
 		if(handler != null) {;
 			GameEngine.get().submit(new PacketRunner(handler, packet, networkStream));

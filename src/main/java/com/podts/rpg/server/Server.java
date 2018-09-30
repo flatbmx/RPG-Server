@@ -38,8 +38,12 @@ public final class Server {
 	 * Get the current instance of the server running in this JVM.
 	 * @return The current server instance.
 	 */
-	public static Server get() {
+	public static final Server get() {
 		return instance;
+	}
+	
+	public static final Logger logger() {
+		return get().getLogger();
 	}
 	
 	/**

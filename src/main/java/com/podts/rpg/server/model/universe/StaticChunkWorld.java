@@ -1019,13 +1019,16 @@ public final class StaticChunkWorld extends World {
 	
 	@Override
 	public boolean deRegister(Registerable r) {
-		// TODO Auto-generated method stub
+		if(r instanceof Entity) {
+			doDeRegister((Entity)r);
+		}
 		return false;
 	}
 	
 	@Override
 	public boolean doDeRegister(Entity e) {
-		if(entities.remove(e.getID()) == null) return false;
+		if(entities.remove(e.getID()) == null)
+			return false;
 		final Chunk chunk = ((CLocation)e.getLocation()).getChunk();
 		synchronized(chunk) {
 			chunk.removeEntity(e);
@@ -1035,6 +1038,7 @@ public final class StaticChunkWorld extends World {
 				removePlayer(pE.getPlayer());
 			}
 		}
+		nearbyPlayers(e).forEach(p -> p.sendPacket(EntityPacket.constructDestroy(e)));
 		return true;
 	}
 	

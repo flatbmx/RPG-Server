@@ -76,6 +76,9 @@ public final class NettyNetworkManager extends NetworkManager {
 	
 	private final void closeChannel(Channel channel) {
 		NettyStream stream = (NettyStream) channel;
+		
+		Server.logger().info("handling logout of " + stream.getPlayer());
+		
 		stream.getPlayer().getEntity().deRegister();
 		streams.remove(stream);
         NettyNetworkManager.this.onPlayerDisconnect(stream);
