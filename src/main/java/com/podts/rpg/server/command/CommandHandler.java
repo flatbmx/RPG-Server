@@ -46,7 +46,7 @@ public final class CommandHandler {
 		lock();
 		Command result = doGetCommand(name);
 		unlock();
-		return Optional.of(result);
+		return Optional.ofNullable(result);
 	}
 	
 	private final Command doGetCommand(String name) {
@@ -92,7 +92,10 @@ public final class CommandHandler {
 		CommandEntry entry = CommandParser.parse(commandText);
 		if(entry == null) return;
 		Optional<Command> command = getCommand(entry.name);
-		if(!command.isPresent()) return;
+		if(!command.isPresent()) {
+			sender.sendMessage("No command called \"" + entry.name + "\" found.");
+			return;
+		}
 		
 		Server.get().getLogger().info(sender + " executing  " + commandText);
 		command.get().doExecute(sender, commandText, entry.parameters);
@@ -212,18 +215,20 @@ public final class CommandHandler {
 						player.sendMessage("argument must be an integer!");
 						return false;
 					}
-					Collection<Tile> newTiles = new HashSet<>();
-					for(Tile tile : player.getSelectedTiles()) {
-						Location topLeft = tile.getLocation().shift(-size, -size);
-						size *= 2 + 1;
-						for(int j=0; j<=size; ++j) {
-							for(int i=0; i<=size; ++i) {
-								newTiles.add(topLeft.shift(i, j).getTile());
-							}
+				}
+				Collection<Tile> newTiles = new HashSet<>();
+				int oldSize = size;
+				for(Tile tile : player.getSelectedTiles()) {
+					Location topLeft = tile.getLocation().shift(-size, -size);
+					size *= 2 + 1;
+					for(int j=0; j<size; ++j) {
+						for(int i=0; i<size; ++i) {
+							newTiles.add(topLeft.shift(i, j).getTile());
 						}
 					}
-					player.setSelectedTiles(newTiles);
+					size = oldSize;
 				}
+				player.setSelectedTiles(newTiles);
 				return false;
 			}
 		});

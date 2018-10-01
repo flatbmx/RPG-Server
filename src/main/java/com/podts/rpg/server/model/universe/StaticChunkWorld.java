@@ -296,7 +296,21 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		ChunkTile getTile(int x, int y) {
+			if(!isSet())
+				set();
 			return tiles[x][y];
+		}
+		
+		private boolean isSet() {
+			return tiles[0][0].getElement() != null;
+		}
+		
+		private void set() {
+			for(int j=0; j<getChunkSize(); ++j) {
+				for(int i=0; i<getChunkSize(); ++i) {
+					
+				}
+			}
 		}
 		
 		void setTile(ChunkTile newTile, int x, int y) {
@@ -426,7 +440,9 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		Chunk getOrCreateChunk(final ChunkCoordinate coord) {
-			return chunks.computeIfAbsent(coord, this::createChunk);
+			synchronized(chunks) {
+				return chunks.computeIfAbsent(coord, this::createChunk);
+			}
 		}
 		
 		private Chunk createChunk(ChunkCoordinate coord) {
@@ -552,7 +568,7 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		public ChunkTile getTile() {
-			return getChunk().getTile(this);
+			return getGeneratedChunk().getTile(this);
 		}
 		
 		@Override
@@ -621,6 +637,10 @@ public final class StaticChunkWorld extends World {
 				chunk = StaticChunkWorld.this.findChunk(this);
 			}
 			return chunk;
+		}
+		
+		final Chunk getGeneratedChunk() {
+			return getChunk().generate();
 		}
 		
 		private CLocation(final Chunk chunk, final int x, final int y, final int z) {

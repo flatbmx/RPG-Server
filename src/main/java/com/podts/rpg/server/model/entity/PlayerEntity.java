@@ -6,7 +6,7 @@ import com.podts.rpg.server.model.universe.Location;
 
 public class PlayerEntity extends LivingHumanoid {
 	
-	public static int DEFAULT_VIEW_DISTANCE = 15;
+	public static int DEFAULT_VIEW_DISTANCE = 100;
 	
 	private final Player player;
 	
