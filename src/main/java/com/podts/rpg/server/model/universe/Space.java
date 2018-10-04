@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,6 +16,9 @@ import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
 import com.podts.rpg.server.model.universe.TileElement.TileType;
+import com.podts.rpg.server.model.universe.path.Path;
+import com.podts.rpg.server.model.universe.path.PathFinder;
+import com.podts.rpg.server.model.universe.path.ReferencePathFinder;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.TilePacket;
@@ -122,7 +126,6 @@ public abstract class Space implements HasSpace {
 	
 	private static final Oblivion OBLIVION = new Oblivion();
 	public static final Location NOWHERE = new CompleteLocation(OBLIVION, 0, 0, 0) {
-		@Override public final boolean isNowhere() {return true;}
 		@Override public final Collection<Location> getLocations() {return Collections.emptySet();}
 		@Override public final Stream<Location> locations() {return Stream.empty();}
 		@Override public final boolean isAt(Locatable loc) {return loc.isNowhere();}
@@ -135,9 +138,14 @@ public abstract class Space implements HasSpace {
 	};
 	
 	private final Location origin = createLocation(0, 0, 0);
+	private final PathFinder pathFinder;
 	
 	protected static final int getZ(Locatable l) {
 		return l.getPlane().getZ();
+	}
+	
+	protected PathFinder getPathFinder() {
+		return pathFinder;
 	}
 	
 	public abstract Location createLocation(int x, int y, int z);
@@ -489,8 +497,20 @@ public abstract class Space implements HasSpace {
 		return moveEntity(entity, MoveType.UPDATE, dir.getX(), dir.getY(), 0);
 	}
 	
+	public Optional<Path> findPath(HasLocation start, HasLocation finish, int maxLength) {
+		return getPathFinder().findPath(start, finish, maxLength);
+	}
+	
+	public Optional<Path> findPath(HasLocation start, HasLocation finish) {
+		return getPathFinder().findPath(start, finish);
+	}
+	
+	Space(PathFinder pathFinder) {
+		this.pathFinder = pathFinder;
+	}
+	
 	Space() {
-		
+		this(new ReferencePathFinder());
 	}
 	
 }

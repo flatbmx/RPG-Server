@@ -108,8 +108,7 @@ public interface Locatable extends HasPlane {
 	}
 	
 	public default boolean isAt(Locatable loc) {
-		Collection<Location> points = getLocations();
-		return points.stream()
+		return locations()
 				.anyMatch(loc::occupies);
 	}
 	

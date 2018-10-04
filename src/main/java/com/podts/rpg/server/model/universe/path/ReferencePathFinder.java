@@ -3,30 +3,34 @@ package com.podts.rpg.server.model.universe.path;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Optional;
 
-import com.podts.rpg.server.model.universe.Space;
 import com.podts.rpg.server.model.universe.HasLocation;
+import com.podts.rpg.server.model.universe.Space;
 import com.podts.rpg.server.model.universe.Tile;
 
 public class ReferencePathFinder implements PathFinder {
 	
 	@Override
-	public Path findPath(HasLocation start, HasLocation finish, PathDecider decider) {
+	public Optional<Path> findPath(HasLocation start, HasLocation finish, PathDecider decider) {
 		if(start == null || finish == null)
-			return null;
+			return Optional.empty();
 		if(start.isNowhere() || finish.isNowhere())
-			return null;
+			return Optional.empty();
+		
+		if(!start.isInPlane(finish))
+			return Optional.empty();
 		
 		Tile startTile = start.getTile();
 		if(!startTile.isTraversable())
-			return null;
+			return Optional.empty();
 		
 		Tile finishTile = finish.getTile();
 		if(!finishTile.isTraversable())
-			return null;
+			return Optional.empty();
 		
 		if(start.isAt(finish))
-			return new GeneralListPath(start.getTile());
+			return Optional.of(new GeneralListPath(start.getTile()));
 		
 		Space space = startTile.getSpace();
 		LinkedList<ReferencePath> paths = new OrderedList<ReferencePath>(decider);
@@ -44,7 +48,7 @@ public class ReferencePathFinder implements PathFinder {
 				
 				if(decider.test(newPath)) {
 					if(newTile.isAt(finish))
-						return newPath.finalizePath();
+						return Optional.of(newPath.finalizePath());
 					paths.add(newPath);
 				}
 					
@@ -52,7 +56,7 @@ public class ReferencePathFinder implements PathFinder {
 			
 		}
 		
-		return null;
+		return Optional.empty();
 	}
 	
 	private class OrderedList<T> extends LinkedList<T> {

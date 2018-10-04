@@ -1,5 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.Collection;
+
 public interface HasPlane extends HasSpace {
 	
 	public Plane getPlane();
@@ -19,6 +21,25 @@ public interface HasPlane extends HasSpace {
 	
 	public default boolean isInPlane(Locatable l) {
 		return isInPlane(l.getPlane());
+	}
+	
+	@SuppressWarnings("unchecked")
+	public default <P extends HasPlane> boolean isInPlane(P... planes) {
+		Plane plane = getPlane();
+		for(P p : planes) {
+			if(!plane.equals(p.getPlane()))
+				return false;
+		}
+		return true;
+	}
+	
+	public default <P extends HasPlane> boolean isInPlane(Collection<P> planes) {
+		Plane plane = getPlane();
+		for(P p : planes) {
+			if(!plane.equals(p.getPlane()))
+				return false;
+		}
+		return true;
 	}
 	
 	public default boolean isBetweenPlanes(int minZ, int maxZ) {

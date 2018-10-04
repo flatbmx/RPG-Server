@@ -36,8 +36,6 @@ public abstract class World extends Space {
 	private final WorldGenerator generator;
 	private String name;
 	
-	protected static final Collection<Entity> EMPTY_ENTITIES = Collections.unmodifiableList(Collections.emptyList());
-	
 	/**
 	 * Returns the name of the World.
 	 * @return The Worlds name.

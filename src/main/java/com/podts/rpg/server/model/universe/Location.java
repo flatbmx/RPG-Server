@@ -3,8 +3,10 @@ package com.podts.rpg.server.model.universe;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -36,9 +38,11 @@ public abstract class Location implements Shiftable, Cloneable {
 			int dx = Integer.signum(second.getX() - first.getX());
 			int dy = Integer.signum(second.getY() - first.getY());
 			if((dx != 0 && dy != 0) ||
-					(dx == 0 && dy == 0)) return null;
+					(dx == 0 && dy == 0))
+				return null;
 			for(Direction dir : vals) {
-				if(dir.getX() == dx && dir.getY() == dy) return dir;
+				if(dir.getX() == dx && dir.getY() == dy)
+					return dir;
 			}
 			return null;
 		}
@@ -130,8 +134,47 @@ public abstract class Location implements Shiftable, Cloneable {
 		DESTROY();
 	}
 	
+	private static final BiFunction<Location,Location,Direction> safePointsToDirection = (previous,next) -> {
+		if(!previous.isInPlane(next))
+			throw new IllegalArgumentException("Cannot convert points that are in different planes into Directions!");
+		Direction dir = Direction.get(previous, next);
+		if(dir == null)
+			throw new IllegalArgumentException("Cannot convert non-close points into Directions!");
+		return dir;
+	};
+	
+	static final Collection<Direction> mapDirections(Collection<? extends HasLocation> points
+			, BiFunction<Location,Location,Direction> dirFunction) {
+		if(points.size() < 2)
+			return Collections.emptyList();
+		final Direction[] dirs = new Direction[points.size() - 1];
+		int i = 0;
+		final Iterator<? extends HasLocation> it = points.iterator();
+		Location previous = it.next().getLocation();
+		while(it.hasNext()) {
+			Location next = it.next().getLocation();
+			Direction dir = dirFunction.apply(previous,next);
+			dirs[i++] = dir;
+			previous = next;
+		}
+		return Arrays.asList(dirs);
+	}
+	
+	static final Collection<Direction> doMapDirections(Collection<? extends HasLocation> points) {
+		return mapDirections(points, Direction::get);
+	}
+	
+	public static final Collection<Direction> mapDirections(Collection<? extends HasLocation> points) {
+		return mapDirections(points, safePointsToDirection);
+	}
+	
+	@SafeVarargs
+	public static final <L extends HasLocation> Collection<Direction> mapDirections(L... points) {
+		return mapDirections(Arrays.asList(points));
+	}
+	
 	@Override
-	public boolean isNowhere() {
+	public final boolean isNowhere() {
 		return this == Space.NOWHERE;
 	}
 	

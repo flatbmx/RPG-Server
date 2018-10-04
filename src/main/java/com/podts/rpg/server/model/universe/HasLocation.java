@@ -32,6 +32,11 @@ public interface HasLocation extends Locatable {
 	}
 	
 	@Override
+	public default boolean occupies(HasLocation loc) {
+		return isAt(loc);
+	}
+	
+	@Override
 	public default Space getSpace() {
 		return getLocation().getSpace();
 	}

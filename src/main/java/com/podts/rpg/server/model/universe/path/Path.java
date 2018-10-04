@@ -8,6 +8,8 @@ import com.podts.rpg.server.model.universe.Tile;
 
 public abstract class Path implements Iterable<Tile> {
 	
+	
+	
 	static final boolean isValid(Path path) {
 		if(path.length() == 1) return true;
 		Iterator<Tile> it = path.getTiles().iterator();
