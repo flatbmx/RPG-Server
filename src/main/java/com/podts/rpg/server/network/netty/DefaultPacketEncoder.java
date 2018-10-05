@@ -5,6 +5,7 @@ import java.security.PublicKey;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -14,6 +15,7 @@ import javax.crypto.SecretKey;
 import com.podts.rpg.server.Server;
 import com.podts.rpg.server.model.EntityType;
 import com.podts.rpg.server.model.universe.Entity;
+import com.podts.rpg.server.model.universe.HasLocation;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Tile;
 import com.podts.rpg.server.model.universe.TileElement.TileType;
@@ -64,6 +66,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	}
 	
 	static {
+		
 		addEncoder(AESReplyPacket.class, new PacketEncoder(PID_AESREPLY) {
 			@Override
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {
@@ -212,10 +215,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {
 				TileSelectionPacket p = (TileSelectionPacket) op;
 				Collection<Tile> tiles = p.getSelections();
-				buf.writeInt(tiles.size());
-				for(Tile tile : tiles) {
-					writeLocation(tile.getLocation(), buf);
-				}
+				writePlaneLocations(tiles, buf);
 			}
 		});
 		
@@ -241,10 +241,32 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		
 	}
 	
+	private static void writeLocation(HasLocation loc, ByteBuf buf) {
+		writeLocation(loc.getLocation(), buf);
+	}
+	
 	private static void writeLocation(Location loc, ByteBuf buf) {
 		buf.writeInt(loc.getX())
 		.writeInt(loc.getY())
 		.writeInt(loc.getZ());
+	}
+	
+	private static void writePlaneLocations(Collection<? extends HasLocation> locs, ByteBuf buf) {
+		Iterator<? extends HasLocation> it = locs.iterator();
+		buf.writeInt(locs.size());
+		writeLocation(it.next(), buf);
+		while(it.hasNext()) {
+			writePlaneLocation(it.next(), buf);
+		}
+	}
+	
+	private static void writePlaneLocation(HasLocation loc, ByteBuf buf) {
+		writePlaneLocation(loc.getLocation(), buf);
+	}
+	
+	private static void writePlaneLocation(Location loc, ByteBuf buf) {
+		buf.writeInt(loc.getX())
+		.writeInt(loc.getY());
 	}
 	
 	private static void writeEncryptedLocation(Location loc, NetworkStream networkStream, ByteBuf buf) {
@@ -266,9 +288,8 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	}
 	
 	private static void writeString(String string, ByteBuf buf) {
-		byte[] plain;
 		try {
-			plain = string.getBytes(STRING_ENCODING);
+			byte[] plain = string.getBytes(STRING_ENCODING);
 			buf.writeInt(plain.length);
 			buf.writeBytes(plain);
 		} catch (UnsupportedEncodingException e) {

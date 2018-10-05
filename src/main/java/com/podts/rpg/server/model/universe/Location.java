@@ -218,20 +218,24 @@ public abstract class Location implements Shiftable, Cloneable {
 		return getZ() - other.getZ();
 	}
 	
+	@Override
 	public Location shift(int dx, int dy, int dz) {
 		if(dz == 0)
 			return shift(dx, dy);
 		return getSpace().createLocation(getX() + dx, getY() + dy, getZ() + dz);
 	}
 	
+	@Override
 	public Location shift(int dx, int dy) {
 		return getPlane().createLocation(getX() + dx, getY() + dy);
 	}
 	
+	@Override
 	public Location shift(Direction dir, int distance) {
 		return shift(dir.getX(distance), dir.getY(distance));
 	}
 	
+	@Override
 	public Location shift(Direction dir) {
 		return shift(dir, 1);
 	}
@@ -243,7 +247,7 @@ public abstract class Location implements Shiftable, Cloneable {
 	
 	@Override
 	public final boolean occupies(HasLocation loc) {
-		return getLocation().equals(loc.getLocation());
+		return equals(loc.getLocation());
 	}
 	
 	@Override
@@ -255,7 +259,7 @@ public abstract class Location implements Shiftable, Cloneable {
 		return getSpace().entities(this);
 	}
 	
-	public Stream<Location> traceTo(Location other) {
+	public Stream<? extends Location> traceTo(Location other) {
 		if(isInDifferentSpace(other))
 			return Stream.empty();
 		
@@ -267,12 +271,12 @@ public abstract class Location implements Shiftable, Cloneable {
 				.limit(walkingDistance(other) + 1);
 	}
 	
-	public Stream<Location> trace(Direction dir, int distance) {
+	public Stream<? extends Location> trace(Direction dir, int distance) {
 		return trace(dir)
 				.limit(distance + 1);
 	}
 	
-	public Stream<Location> traceEvery(Direction dir, int increment) {
+	public Stream<? extends Location> traceEvery(Direction dir, int increment) {
 		if(dir == null)
 			return Stream.empty();
 		return Stream.iterate(this, point -> point.shift(dir, increment));
@@ -283,16 +287,16 @@ public abstract class Location implements Shiftable, Cloneable {
 	 * @param dir - The direction to shift this point.
 	 * @return infinite Stream consisting of this point and all points in the given direction from closest to farthest in order
 	 */
-	public Stream<Location> trace(Direction dir) {
+	public Stream<? extends Location> trace(Direction dir) {
 		return traceEvery(dir, 1);
 	}
 	
-	public Stream<Location> bitrace(Direction dir, int distance) {
+	public Stream<? extends Location> bitrace(Direction dir, int distance) {
 		return bitrace(dir)
 				.limit(distance * 2 + 1);
 	}
 	
-	public Stream<Location> bitraceEvery(Direction dir, int increment) {
+	public Stream<? extends Location> bitraceEvery(Direction dir, int increment) {
 		if(dir == null)
 			return Stream.empty();
 		return IntStream.iterate(0, i -> {
@@ -303,7 +307,7 @@ public abstract class Location implements Shiftable, Cloneable {
 		}).mapToObj(i -> shift(dir, i));
 	}
 	
-	public Stream<Location> bitrace(Direction dir) {
+	public Stream<? extends Location> bitrace(Direction dir) {
 		return bitraceEvery(dir, 1);
 	}
 	
@@ -336,10 +340,10 @@ public abstract class Location implements Shiftable, Cloneable {
 		if(o == this) return true;
 		if(o instanceof Location) {
 			Location other = (Location) o;
-			return isInSameSpace(other) &&
-					getX() == other.getX() &&
-					getY() == other.getY() &&
-					getZ() == other.getZ();
+			return isInSameSpace(other)
+					&& getX() == other.getX()
+					&& getY() == other.getY()
+					&& getZ() == other.getZ();
 		}
 		return false;
 	}

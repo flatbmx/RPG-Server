@@ -18,12 +18,12 @@ public class CompleteLocation extends SimpleLocation {
 	
 	@Override
 	public CompleteLocation shift(int dx, int dy, int dz) {
-		return new CompleteLocation(space, x + dx, y + dy, z + dz);
+		return new CompleteLocation(getSpace(), getX() + dx, getY() + dy, getZ() + dz);
 	}
 	
 	@Override
 	public CompleteLocation clone() {
-		return new CompleteLocation(space, x, y, z);
+		return new CompleteLocation(getSpace(), getX(), getY(), getZ());
 	}
 	
 	@Override

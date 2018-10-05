@@ -132,8 +132,9 @@ public abstract class Space implements HasSpace {
 		@Override public final boolean isAt(HasLocation loc) {return this == loc.getLocation();}
 		@Override public final CompleteLocation shift(int dx, int dy, int dz) {return this;}
 		@Override public final CompleteLocation shift(int dx, int dy) {return this;}
-		@Override public final Stream<Location> traceEvery(Direction dir, int increment) {return Stream.of(this);};
-		@Override public final Stream<Location> bitraceEvery(Direction dir, int increment) {return Stream.of(this);};
+		@Override public final Stream<Location> traceEvery(Direction dir, int increment) {return Stream.of(this);}
+		@Override public final Stream<Location> bitraceEvery(Direction dir, int increment) {return Stream.of(this);}
+		@Override public final CompleteLocation clone() {return this;}
 		@Override public final String toString() {return "[Nowhere]";}
 	};
 	
