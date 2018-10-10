@@ -56,8 +56,6 @@ public final class NettyNetworkManager extends NetworkManager {
 			.addLast(new DefaultPacketHandler());
 			
 			streams.add((NettyStream)ch);
-			
-			System.out.println("Connected: " + ch.remoteAddress());
 		}
 	};
 	
@@ -114,7 +112,7 @@ public final class NettyNetworkManager extends NetworkManager {
 			.childOption(ChannelOption.SO_KEEPALIVE, true);
 
 			// Bind and start to accept incoming connections.
-			ChannelFuture f = bootstrap.bind(port).sync();
+			ChannelFuture f = bootstrap.bind(address, port).sync();
 			
 			if(f.isSuccess()) {
 				manager = this;
@@ -129,6 +127,7 @@ public final class NettyNetworkManager extends NetworkManager {
 		return false;
 	}
 	
+	@Override
 	protected void doUnbind() {
 		shutdownAndWaitGroups();
 	}
@@ -155,6 +154,7 @@ public final class NettyNetworkManager extends NetworkManager {
 		return f1.isSuccess() && f2.isSuccess();
 	}
 	
+	@Override
 	public Collection<NettyStream> getStreams() {
 		return safeStreams;
 	}

@@ -190,12 +190,12 @@ public final class Server {
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 		
 		if (!networkManager.bind(networkListenPort)) {
-			getLogger().severe("Server failed to bind to port " + networkManager.getPort());
+			getLogger().severe("Server failed to bind to " + networkManager.getPort());
 			changeStatus(ServerStatus.OFFLINE);
 			return;
 		}
 		
-		getLogger().info("Server bound to port " + networkManager.getPort());
+		getLogger().info("Server bound to " + networkManager.getBoundAddressWithPort());
 		
 		GameEngine.create(4);
 		
@@ -237,7 +237,7 @@ public final class Server {
 		networkManager = new NettyNetworkManager(new StreamListener() {
 			@Override
 			public void onDisconnect(NetworkStream networkStream) {
-				Server.logger().info(networkStream + "disconnected ");
+				Server.logger().info(networkStream + " disconnected ");
 				logoutPlayer(networkStream.getPlayer(), LogoutReason.DISCONNECT);
 			}
 		});

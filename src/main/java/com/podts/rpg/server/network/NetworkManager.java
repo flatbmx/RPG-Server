@@ -14,6 +14,8 @@ import com.podts.rpg.server.network.packet.LoginPacket;
 
 public abstract class NetworkManager {
 	
+	public static final String DEFAULT_BIND_ADDRESS = "0.0.0.0";
+	
 	public enum NetworkStatus {
 		OFFLINE(false, false),
 		BINDING(false, false),
@@ -43,6 +45,7 @@ public abstract class NetworkManager {
 	protected static NetworkManager networkManager;
 	
 	private NetworkStatus status;
+	private String address;
 	private int port;
 	private final Set<NetworkStatusHook> statusHooks = new HashSet<NetworkStatusHook>();;
 	private final LinkedList<StreamListener> streamListeners = new LinkedList<>();
@@ -103,7 +106,10 @@ public abstract class NetworkManager {
 			final NetworkStatus oldStatus = status;
 			status = newStatus;
 			
-			if(newStatus == NetworkStatus.OFFLINE) port = -1;
+			if(newStatus == NetworkStatus.OFFLINE) {
+				address = null;
+				port = -1;
+			}
 			
 			notifyAll();
 			for(BiConsumer<NetworkStatus,NetworkStatus> hook : statusHooks) {
@@ -112,8 +118,16 @@ public abstract class NetworkManager {
 		}
 	}
 	
-	public int getPort() {
+	public final String getBoundAddress() {
+		return address;
+	}
+	
+	public final int getPort() {
 		return port;
+	}
+	
+	public final String getBoundAddressWithPort() {
+		return getBoundAddress() + ":" + getPort();
 	}
 	
 	public final boolean isBound() {
@@ -121,7 +135,7 @@ public abstract class NetworkManager {
 	}
 	
 	public final boolean bind(int port) {
-		return bind("0.0.0.0", port);
+		return bind(DEFAULT_BIND_ADDRESS, port);
 	}
 	
 	public final boolean bind(String address, int port) {
@@ -129,6 +143,7 @@ public abstract class NetworkManager {
 		final boolean boundSuccessful = doBind(address, port);
 		
 		if(boundSuccessful) {
+			this.address = address;
 			this.port = port;
 			Server.get().addStatusHook(serverOnlineHook);
 			networkManager = this;
@@ -167,7 +182,8 @@ public abstract class NetworkManager {
 		for(StreamListener listener : streamListeners) {
 			listener.onDisconnect(networkStream);
 		}
-		if(veryLastStreamListener != null) veryLastStreamListener.onDisconnect(networkStream);
+		if(veryLastStreamListener != null)
+			veryLastStreamListener.onDisconnect(networkStream);
 	}
 	
 	public NetworkManager(StreamListener last) {
