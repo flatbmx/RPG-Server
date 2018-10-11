@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -182,11 +183,11 @@ public class Tile extends Spatial implements Shiftable, Region, Registerable {
 		if(isInDifferentSpace(loc))
 			return Stream.empty();
 		
-		Direction dir = Direction.get(this, loc);
-		if(dir == null)
+		Optional<Direction> dir = Direction.get(this, loc);
+		if(!dir.isPresent())
 			return Stream.empty();
 		
-		return trace(dir)
+		return trace(dir.get())
 				.limit(walkingDistance(loc) + 1);
 	}
 	

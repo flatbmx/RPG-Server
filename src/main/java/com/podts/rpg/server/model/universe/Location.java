@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
@@ -15,36 +16,66 @@ public abstract class Location implements Shiftable, Cloneable {
 	
 	public enum Direction {
 		UP(0,-1),
+		TOP_LEFT(1,-1),
 		LEFT(-1,0),
+		BOTTOM_LEFT(-1,-1),
 		DOWN(0,1),
-		RIGHT(1,0);
+		BOTTOM_RIGHT(1,-1),
+		RIGHT(1,0),
+		TOP_RIGHT(-1,1);
 		
 		private static final Direction[] vals = Direction.values();
+		private static final Direction[] diagVals;
 		private static final List<Direction> all = Collections.unmodifiableList(Arrays.asList(vals));
+		private static final List<Direction> diagAll;
 		
-		public static Collection<Direction> all() {
+		static {
+			diagVals = new Direction[4];
+			diagAll = Collections.unmodifiableList(Arrays.asList(diagVals));
+			int i = 0;
+			for(Direction d : vals) {
+				if(d.isDiagonal())
+					diagVals[i++] = d;
+			}
+		}
+		
+		public static Collection<Direction> getAll() {
 			return all;
 		}
 		
-		public static final Stream<Direction> stream() {
-			return all().stream();
+		public static Collection<Direction> getDiagonals() {
+			return diagAll;
 		}
 		
-		public static final Direction get(HasLocation first, HasLocation second) {
+		public static final Stream<Direction> all() {
+			return getAll().stream();
+		}
+		
+		public static final Stream<Direction> diagonals() {
+			return getDiagonals().stream();
+		}
+		
+		public static final Optional<Direction> get(HasLocation first, HasLocation second) {
 			return get(first.getLocation(), second.getLocation());
 		}
 		
-		public static final Direction get(Location first, Location second) {
-			int dx = Integer.signum(second.getX() - first.getX());
-			int dy = Integer.signum(second.getY() - first.getY());
-			if((dx != 0 && dy != 0) ||
-					(dx == 0 && dy == 0))
-				return null;
+		public static final Optional<Direction> get(Location first, Location second) {
+			int dx = second.getX() - first.getX();
+			int dy = second.getY() - first.getY();
+			
+			if((Math.abs(dx) > 0 || Math.abs(dy) > 0)) {
+				if(Math.abs(dx) != Math.abs(dy))
+					return Optional.empty();
+			}
+			
+			dx = Integer.signum(dx);
+			dy = Integer.signum(dy);
+			
 			for(Direction dir : vals) {
 				if(dir.getX() == dx && dir.getY() == dy)
-					return dir;
+					return Optional.of(dir);
 			}
-			return null;
+			throw new AssertionError("No direction found after filter! Method should be re-evaluated!");
 		}
 		
 		public static final Direction get(int dx, int dy) {
@@ -59,6 +90,7 @@ public abstract class Location implements Shiftable, Cloneable {
 		}
 		
 		private final int dx, dy;
+		private final boolean isDiagonal;
 		
 		public int getX(int distance) {
 			return dx * distance;
@@ -74,6 +106,10 @@ public abstract class Location implements Shiftable, Cloneable {
 		
 		public int getY() {
 			return dy;
+		}
+		
+		public final boolean isDiagonal() {
+			return isDiagonal;
 		}
 		
 		public final Direction opposite() {
@@ -95,6 +131,7 @@ public abstract class Location implements Shiftable, Cloneable {
 		private Direction(int dx, int dy) {
 			this.dx = dx;
 			this.dy = dy;
+			isDiagonal = dx != 0 && dy != 0;
 		}
 		
 	}
@@ -102,7 +139,7 @@ public abstract class Location implements Shiftable, Cloneable {
 	public enum RelationalDirection {
 		
 		FORWARD(d -> d),
-		BACKWARD(d -> Direction.vals[(d.ordinal() + 2) % Direction.vals.length] ),
+		BACKWARD(d -> Direction.vals[(d.ordinal() + 4) % Direction.vals.length] ),
 		LEFT(d -> Direction.vals[(d.ordinal() + 1) % Direction.vals.length] ),
 		RIGHT(d -> Direction.vals[Math.floorMod(d.ordinal() - 1, Direction.vals.length)] );
 		
@@ -134,17 +171,17 @@ public abstract class Location implements Shiftable, Cloneable {
 		DESTROY();
 	}
 	
-	private static final BiFunction<Location,Location,Direction> safePointsToDirection = (previous,next) -> {
+	private static final BiFunction<Location,Location,Optional<Direction>> safePointsToDirection = (previous,next) -> {
 		if(!previous.isInPlane(next))
 			throw new IllegalArgumentException("Cannot convert points that are in different planes into Directions!");
-		Direction dir = Direction.get(previous, next);
-		if(dir == null)
+		Optional<Direction> dir = Direction.get(previous, next);
+		if(!dir.isPresent())
 			throw new IllegalArgumentException("Cannot convert non-close points into Directions!");
 		return dir;
 	};
 	
 	static final Collection<Direction> mapDirections(Collection<? extends HasLocation> points
-			, BiFunction<Location,Location,Direction> dirFunction) {
+			, BiFunction<Location,Location,Optional<Direction>> dirFunction) {
 		if(points.size() < 2)
 			return Collections.emptyList();
 		final Direction[] dirs = new Direction[points.size() - 1];
@@ -153,7 +190,7 @@ public abstract class Location implements Shiftable, Cloneable {
 		Location previous = it.next().getLocation();
 		while(it.hasNext()) {
 			Location next = it.next().getLocation();
-			Direction dir = dirFunction.apply(previous,next);
+			Direction dir = dirFunction.apply(previous,next).get();
 			dirs[i++] = dir;
 			previous = next;
 		}
@@ -263,11 +300,11 @@ public abstract class Location implements Shiftable, Cloneable {
 		if(isInDifferentSpace(other))
 			return Stream.empty();
 		
-		Direction dir = Direction.get(this, other);
-		if(dir == null)
+		Optional<Direction> dir = Direction.get(this, other);
+		if(!dir.isPresent())
 			return Stream.empty();
 		
-		return trace(dir)
+		return trace(dir.get())
 				.limit(walkingDistance(other) + 1);
 	}
 	

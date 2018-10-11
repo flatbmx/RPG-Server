@@ -2,6 +2,7 @@ package com.podts.rpg.server.network;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
@@ -90,13 +91,12 @@ public final class PacketHandler {
 					getLogger().warning(player + " moved too far, probabbly out of sync!");
 					return;
 				}
-				Direction dir = Direction.get(pE.getLocation(), newLocation);
-				if(dir == null) {
-					getLogger().warning(player + " moved diagnaly!");
-					//TODO Diagonal, not valid.
+				Optional<Direction> dir = Direction.get(pE.getLocation(), newLocation);
+				if(!dir.isPresent()) {
+					getLogger().warning(player + " moved not in a single direction!");
 					return;
 				}
-				pE.move(dir);
+				pE.move(dir.get());
 			}
 		});
 		

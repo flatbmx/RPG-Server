@@ -447,7 +447,7 @@ public final class StaticChunkWorld extends World {
 		
 		private Chunk createChunk(ChunkCoordinate coord) {
 			Chunk chunk = new Chunk(this, coord);
-			for(Direction dir : Direction.all()) {
+			for(Direction dir : Direction.getAll()) {
 				Chunk other = findChunk(coord.shift(dir));
 				if(other == null) continue;
 				chunk.neighbors.put(dir, other);

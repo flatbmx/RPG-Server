@@ -20,15 +20,19 @@ public class TestDirections {
 		assertEquals(Direction.UP, Direction.DOWN.convert(RelationalDirection.BACKWARD));
 		assertEquals(Direction.RIGHT, Direction.LEFT.convert(RelationalDirection.BACKWARD));
 		assertEquals(Direction.LEFT, Direction.RIGHT.convert(RelationalDirection.BACKWARD));
+		assertEquals(Direction.BOTTOM_RIGHT, Direction.TOP_LEFT.convert(RelationalDirection.BACKWARD));
+		assertEquals(Direction.BOTTOM_LEFT, Direction.TOP_RIGHT.convert(RelationalDirection.BACKWARD));
+		assertEquals(Direction.TOP_LEFT, Direction.BOTTOM_RIGHT.convert(RelationalDirection.BACKWARD));
+		assertEquals(Direction.TOP_RIGHT, Direction.BOTTOM_LEFT.convert(RelationalDirection.BACKWARD));
 		
 		//Left
-		assertEquals(Direction.LEFT, Direction.UP.convert(RelationalDirection.LEFT));
-		assertEquals(Direction.DOWN, Direction.LEFT.convert(RelationalDirection.LEFT));
-		assertEquals(Direction.RIGHT, Direction.DOWN.convert(RelationalDirection.LEFT));
-		assertEquals(Direction.UP, Direction.RIGHT.convert(RelationalDirection.LEFT));
+		assertEquals(Direction.TOP_LEFT, Direction.UP.convert(RelationalDirection.LEFT));
+		assertEquals(Direction.BOTTOM_LEFT, Direction.LEFT.convert(RelationalDirection.LEFT));
+		assertEquals(Direction.BOTTOM_RIGHT, Direction.DOWN.convert(RelationalDirection.LEFT));
+		assertEquals(Direction.TOP_RIGHT, Direction.RIGHT.convert(RelationalDirection.LEFT));
 		
 		//Right
-		assertEquals(Direction.RIGHT, Direction.UP.convert(RelationalDirection.RIGHT));
+		assertEquals(Direction.TOP_RIGHT, Direction.UP.convert(RelationalDirection.RIGHT));
 		assertEquals(Direction.LEFT, Direction.DOWN.convert(RelationalDirection.RIGHT));
 		assertEquals(Direction.UP, Direction.LEFT.convert(RelationalDirection.RIGHT));
 		assertEquals(Direction.DOWN, Direction.RIGHT.convert(RelationalDirection.RIGHT));
