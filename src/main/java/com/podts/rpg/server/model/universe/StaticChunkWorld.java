@@ -589,7 +589,7 @@ public final class StaticChunkWorld extends World {
 				ChunkCoordinate oldCoord = getChunk().getCoordinate();
 				ChunkCoordinate newCoord = getSpace().getCoordinateFromLocation(nX, nY, nZ);
 				if(oldCoord.distance(newCoord) == 1)
-					c = getChunk().getNeighbor(Direction.get(newCoord.getXDifference(oldCoord), newCoord.getYDifference(oldCoord)));
+					c = getChunk().getNeighbor(Direction.get(newCoord.getXDifference(oldCoord), newCoord.getYDifference(oldCoord)).get());
 				else
 					c = null;
 			}
