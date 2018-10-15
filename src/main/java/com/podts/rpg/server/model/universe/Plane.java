@@ -61,7 +61,8 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 	}
 	
 	public Tile getTile(HasLocation l) {
-		if(!contains(l)) return null;
+		if(!contains(l))
+			return null;
 		return tiles()
 				.filter(l::isAt)
 				.findAny()

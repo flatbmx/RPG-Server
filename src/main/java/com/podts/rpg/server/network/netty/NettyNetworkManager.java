@@ -26,7 +26,9 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.util.concurrent.Future;
 
 public final class NettyNetworkManager extends NetworkManager {
-
+	
+	public static final int MAXIMUM_FRAME_LENGTH = 20_000;
+	
 	private ServerBootstrap bootstrap;
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
@@ -61,7 +63,7 @@ public final class NettyNetworkManager extends NetworkManager {
 	
 	private final class DefaultFrameDecoder extends LengthFieldBasedFrameDecoder {
 		DefaultFrameDecoder() {
-			super(20_000, 0, 4);
+			super(MAXIMUM_FRAME_LENGTH, 0, 4);
 		}
 	}
 	

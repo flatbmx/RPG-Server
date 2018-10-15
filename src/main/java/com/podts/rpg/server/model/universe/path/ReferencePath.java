@@ -33,6 +33,7 @@ public class ReferencePath extends Path {
 	
 	private final ReferencePath reference;
 	private final int length;
+	private final int turns;
 	private final Tile last;
 	
 	@Override
@@ -44,6 +45,16 @@ public class ReferencePath extends Path {
 			path = path.reference;
 		}
 		return list;
+	}
+	
+	@Override
+	public int length() {
+		return length;
+	}
+	
+	@Override
+	public int getTurns() {
+		return turns;
 	}
 	
 	public Stream<Tile> reverseTiles() {
@@ -74,10 +85,14 @@ public class ReferencePath extends Path {
 	
 	protected ReferencePath(ReferencePath reference, Tile last) {
 		this.reference = reference;
-		if(reference != null)
+		if(reference != null) {
 			length = reference.length + 1;
-		else
+			turns = reference.turns;
+		}
+		else {
 			length = 1;
+			turns = 0;
+		}
 		this.last = last;
 	}
 	

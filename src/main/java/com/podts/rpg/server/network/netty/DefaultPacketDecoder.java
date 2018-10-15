@@ -19,9 +19,11 @@ import com.podts.rpg.server.model.universe.Tile;
 import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.Packet;
+import com.podts.rpg.server.network.packet.AcknowledgementPacket;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
 import com.podts.rpg.server.network.packet.MessagePacket;
+import com.podts.rpg.server.network.packet.PingPacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 import com.podts.rpg.server.network.packet.TileSelectionPacket;
 
@@ -35,10 +37,11 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 	private static final PacketConstructor[] packetConstructors;
 	
 	private static final int PID_RSAHANDSHAKE = 0;
-	private static final int PID_LOGINREQUST = 1;
-	private static final int PID_MOVE = 2;
-	private static final int PID_MESSAGE = 3;
-	private static final int PID_TILESELECTION = 4;
+	private static final int PID_LOGINREQUEST = 1;
+	private static final int PID_PING = 2;
+	private static final int PID_MOVE = 3;
+	private static final int PID_MESSAGE = 4;
+	private static final int PID_TILESELECTION = 5;
 	
 	static {
 		packetConstructors = new PacketConstructor[128];
@@ -46,7 +49,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		// RSAHandShake Constructor
 		packetConstructors[PID_RSAHANDSHAKE] = new PacketConstructor() {
 			@Override
-			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
+			public RSAHandShakePacket construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				byte[] keyBytes = new byte[size];
 				buf.readBytes(keyBytes, 0, size);
 				try {
@@ -62,18 +65,25 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		};
 		
 		// LoginPacket Constructor
-		packetConstructors[PID_LOGINREQUST] = new PacketConstructor() {
+		packetConstructors[PID_LOGINREQUEST] = new PacketConstructor() {
 			@Override
-			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
+			public LoginPacket construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				String username = readEncryptedString(s, buf);
 				String password = readEncryptedString(s, buf);
 				return new LoginPacket(username, password);
 			}
 		};
 		
+		packetConstructors[PID_PING] = new AcknowledgementPacketConstructor() {
+			@Override
+			public PingPacket construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
+				return new PingPacket(buf.readInt());
+			}
+		};
+		
 		packetConstructors[PID_MOVE] = new PacketConstructor() {
 			@Override
-			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
+			public EntityPacket construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				Location newLocation = readLocation(buf);
 				return EntityPacket.constructMove(s.getPlayer().getEntity(), newLocation);
 			}
@@ -81,7 +91,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		
 		packetConstructors[PID_MESSAGE] = new PacketConstructor() {
 			@Override
-			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
+			public MessagePacket construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				String message = readEncryptedString(s, buf);
 				return new MessagePacket(s.getPlayer(), message);
 			}
@@ -89,7 +99,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		
 		packetConstructors[PID_TILESELECTION] = new PacketConstructor() {
 			@Override
-			public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
+			public TileSelectionPacket construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
 				int totalTiles = buf.readInt();
 				Collection<Tile> tiles = new HashSet<>();
 				for(int i=0; i<totalTiles; ++i) {
@@ -176,7 +186,11 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 	private static interface PacketConstructor {
 		public Packet construct(NetworkStream s, int size, byte opCode, ByteBuf buf);
 	}
-
+	
+	private static interface AcknowledgementPacketConstructor extends PacketConstructor {
+		public AcknowledgementPacket construct(NetworkStream s, int size, byte opCode, ByteBuf buf);
+	}
+	
 	DefaultPacketDecoder() {
 
 	}

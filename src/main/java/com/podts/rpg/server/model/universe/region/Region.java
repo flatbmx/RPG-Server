@@ -44,7 +44,7 @@ public interface Region {
 	
 	/**
 	 * Determines if a given point is in this Region.
-	 * All regions do <b>NOT</b> contain the null Locatable.
+	 * All regions do <b>NOT</b> contain null.
 	 * @param point - The given point in question.
 	 * @return True if the point is in this Region, false otherwise.
 	 */

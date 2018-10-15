@@ -23,10 +23,12 @@ import com.podts.rpg.server.network.NetworkStream;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.AcknowledgePacket;
+import com.podts.rpg.server.network.packet.AcknowledgementPacket;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.MessagePacket;
+import com.podts.rpg.server.network.packet.PingPacket;
 import com.podts.rpg.server.network.packet.PlayerInitPacket;
 import com.podts.rpg.server.network.packet.StatePacket;
 import com.podts.rpg.server.network.packet.TilePacket;
@@ -49,15 +51,16 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		encoder.init();
 	}
 	
-	private static final int PID_AESREPLY = 0;
-	private static final int PID_LOGINRESPONSE = 1;
-	private static final int PID_TILE = 2;
-	private static final int PID_INIT = 3;
-	private static final int PID_STATE = 4;
-	private static final int PID_ENTITY = 5;
-	private static final int PID_MESSAGE = 6;
-	private static final int PID_ACK = 7;
-	private static final int PID_TILESELECTION = 8;
+	private static final byte PID_AESREPLY = 0;
+	private static final byte PID_LOGINRESPONSE = 1;
+	private static final byte PID_PING = 2;
+	private static final byte PID_TILE = 3;
+	private static final byte PID_INIT = 4;
+	private static final byte PID_STATE = 5;
+	private static final byte PID_ENTITY = 6;
+	private static final byte PID_MESSAGE = 7;
+	private static final byte PID_ACK = 8;
+	private static final byte PID_TILESELECTION = 9;
 	
 	private static final String STRING_ENCODING = "UTF-8";
 	
@@ -65,7 +68,21 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		return Server.get().getLogger();
 	}
 	
+	private final static Map<TileType,Integer> tileTypes = new EnumMap<>(TileType.class);
+	
+	private final static int getTileID(Tile tile) {
+		return getTileID(tile.getType());
+	}
+	
+	private final static int getTileID(TileType type) {
+		return tileTypes.get(type);
+	}
+	
 	static {
+		
+		for(TileType type : TileType.values()) {
+			tileTypes.put(type, type.ordinal());
+		}
 		
 		addEncoder(AESReplyPacket.class, new PacketEncoder(PID_AESREPLY) {
 			@Override
@@ -96,6 +113,8 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			}
 		});
 		
+		addEncoder(PingPacket.class, new AcknowledgementPacketEncoder(PID_PING));
+		
 		addEncoder(StatePacket.class, new PacketEncoder(PID_STATE) {
 			@Override
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {
@@ -114,7 +133,6 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		});
 		
 		addEncoder(TilePacket.class, new PacketEncoder(PID_TILE) {
-			private final Map<TileType,Integer> tileTypes = new EnumMap<>(TileType.class);
 			private final Map<TileUpdateType,Integer> updateTypes = new EnumMap<>(TileUpdateType.class);
 			private final Map<TileSendType,Integer> sendTypes = new EnumMap<>(TileSendType.class);
 			@Override
@@ -125,18 +143,10 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 				if(TileUpdateType.CREATE.equals(p.getUpdateType())) {
 					if(p.getSendType().equals(TileSendType.SINGLE)) {
 						Tile tile = p.getTile();
-						buf.writeByte(tileTypes.get(tile.getType()));
+						buf.writeByte(getTileID(tile));
 						writeLocation(tile.getLocation(), buf);
 					} else if(p.getSendType().equals(TileSendType.GROUP)) {
-						Tile[][] tiles = p.getTiles();
-						writeLocation(tiles[0][0].getLocation(), buf);
-						buf.writeInt(tiles.length)
-						.writeInt(tiles[0].length);
-						for(int y=0; y<tiles[0].length; ++y) {
-							for(int x=0; x<tiles.length; ++x) {
-								buf.writeByte(tileTypes.get(tiles[x][y].getType()));
-							}
-						}
+						writeGridTiles(p.getTiles(), buf);
 					}
 				} else if(TileUpdateType.DESTROY.equals(p.getUpdateType())) {
 					if(p.getSendType().equals(TileSendType.SINGLE)) {
@@ -150,18 +160,14 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 					}
 				}
 			}
+			
+			@Override
 			void init() {
 				updateTypes.put(TileUpdateType.CREATE, 0);
 				updateTypes.put(TileUpdateType.DESTROY, 1);
 				
 				sendTypes.put(TileSendType.GROUP, 0);
 				sendTypes.put(TileSendType.SINGLE, 1);
-				
-				tileTypes.put(TileType.VOID, 0);
-				tileTypes.put(TileType.DIRT, 1);
-				tileTypes.put(TileType.GRASS, 2);
-				tileTypes.put(TileType.SAND, 3);
-				tileTypes.put(TileType.WATER, 4);
 			}
 		});
 		
@@ -269,6 +275,18 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		.writeInt(loc.getY());
 	}
 	
+	private static <T extends Tile> void writeGridTiles(T[][] tiles, ByteBuf buf) {
+		final int width = tiles.length;
+		final int height = tiles[0].length;
+		buf.writeInt(width).writeInt(height);
+		writeLocation(tiles[0][0], buf);
+		for(int j=0; j<height; ++j) {
+			for(int i=0; i<width; ++i) {
+				buf.writeByte(getTileID(tiles[i][j]));
+			}
+		}
+	}
+	
 	private static void writeEncryptedLocation(Location loc, NetworkStream networkStream, ByteBuf buf) {
 		ByteBuf plainBuf = Unpooled.buffer();
 		writeLocation(loc, plainBuf);
@@ -335,6 +353,25 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		
 		PacketEncoder(int opCode) {
 			this.opCode = opCode;
+		}
+		
+	}
+	
+	private static class AcknowledgementPacketEncoder extends PacketEncoder {
+		
+		@Override
+		public final void encode(NettyStream s, Packet op, ByteBuf buf) {
+			AcknowledgementPacket p = (AcknowledgementPacket) op;
+			buf.writeInt(p.getACK());
+			encodePayload(s, p, buf);
+		}
+		
+		public void encodePayload(NettyStream s, AcknowledgementPacket op, ByteBuf buf) {
+			
+		}
+		
+		AcknowledgementPacketEncoder(int opCode) {
+			super(opCode);
 		}
 		
 	}

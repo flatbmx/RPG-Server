@@ -26,6 +26,7 @@ import com.podts.rpg.server.network.packet.LoginPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.MessagePacket;
+import com.podts.rpg.server.network.packet.PingPacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 import com.podts.rpg.server.network.packet.TileSelectionPacket;
 
@@ -42,6 +43,10 @@ public final class PacketHandler {
 	
 	static {
 		handlers = new HashMap<>();
+		
+		handlers.put(PingPacket.class, (stream, oldPacket) -> {
+			PingPacket packet = (PingPacket) oldPacket;
+		});
 		
 		handlers.put(RSAHandShakePacket.class, (stream, oldPacket) -> {
 				RSAHandShakePacket packet = (RSAHandShakePacket) oldPacket;

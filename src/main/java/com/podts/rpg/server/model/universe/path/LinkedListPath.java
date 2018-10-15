@@ -26,5 +26,11 @@ class LinkedListPath extends Path implements ListPath {
 	LinkedListPath(LinkedList<Tile> list) {
 		this.list = list;
 	}
+
+	@Override
+	public int getTurns() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 	
 }

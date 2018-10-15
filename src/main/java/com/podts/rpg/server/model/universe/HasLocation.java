@@ -53,7 +53,7 @@ public interface HasLocation extends Locatable {
 	@Override
 	public default boolean isAt(Locatable loc) {
 		return loc.locations()
-				.anyMatch(getLocation()::isAt);
+				.anyMatch(this::isAt);
 	}
 	
 	@Override
@@ -62,7 +62,7 @@ public interface HasLocation extends Locatable {
 	}
 	
 	public default Stream<Tile> surroundingTiles(int radius) {
-		return getSpace().surroundingTiles(this, radius);
+		return getSpace().doSurroundingTiles(this, radius);
 	}
 	
 	public default Stream<Tile> surroundTiles() {

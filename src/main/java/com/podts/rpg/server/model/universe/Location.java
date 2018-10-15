@@ -175,7 +175,7 @@ public abstract class Location implements Shiftable, Cloneable {
 		}
 		
 		public boolean turns() {
-			return ordinal() > 2;
+			return ordinal() > 1;
 		}
 		
 		private RelationalDirection(BiFunction<Direction,Integer,Direction> operator) {
@@ -202,7 +202,7 @@ public abstract class Location implements Shiftable, Cloneable {
 	static final Collection<Direction> mapDirections(Collection<? extends HasLocation> points
 			, BiFunction<Location,Location,Optional<Direction>> dirFunction) {
 		if(points.size() < 2)
-			return Collections.emptyList();
+			return Collections.emptySet();
 		final Direction[] dirs = new Direction[points.size() - 1];
 		int i = 0;
 		final Iterator<? extends HasLocation> it = points.iterator();

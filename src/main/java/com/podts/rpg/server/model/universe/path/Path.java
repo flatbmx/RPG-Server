@@ -40,6 +40,8 @@ public abstract class Path implements Iterable<Tile> {
 		return getTiles().size();
 	}
 	
+	public abstract int getTurns();
+	
 	public Tile getStart() {
 		return getTiles().get(0);
 	}

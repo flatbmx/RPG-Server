@@ -1,9 +1,8 @@
 package com.podts.rpg.server.model.universe.path;
 
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.ListIterator;
 import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import com.podts.rpg.server.model.universe.HasLocation;
 import com.podts.rpg.server.model.universe.Space;
@@ -33,12 +32,12 @@ public class ReferencePathFinder implements PathFinder {
 			return Optional.of(new GeneralListPath(start.getTile()));
 		
 		Space space = startTile.getSpace();
-		LinkedList<ReferencePath> paths = new OrderedList<ReferencePath>(decider);
-		paths.addFirst(new ReferencePath(startTile));
+		Queue<ReferencePath> paths = new PriorityQueue<ReferencePath>(decider);
+		paths.add(new ReferencePath(startTile));
 		
 		while(!paths.isEmpty()) {
 			
-			ReferencePath path = paths.pop();
+			ReferencePath path = paths.poll();
 			
 			for(Tile newTile : space.getSurroundingTilesIterable(path.getEnd())) {
 				if(!newTile.isTraversable() || path.contains(newTile))
@@ -57,35 +56,6 @@ public class ReferencePathFinder implements PathFinder {
 		}
 		
 		return Optional.empty();
-	}
-	
-	private class OrderedList<T> extends LinkedList<T> {
-		
-		private static final long serialVersionUID = 7752541094933228489L;
-		private final Comparator<? super T> comparator;
-		
-		@Override
-	    public boolean add(T element) {
-	        ListIterator<T> itr = listIterator();
-	        while(true) {
-	            if (!itr.hasNext()) {
-	                itr.add(element);
-	                return true;
-	            }
-
-	            T elementInList = itr.next();
-	            if (comparator.compare(element, elementInList) > 0) {
-	                itr.previous();
-	                itr.add(element);
-	                return true;
-	            }
-	        }
-	    }
-		
-		OrderedList(Comparator<? super T> comparator) {
-			this.comparator = comparator;
-		}
-		
 	}
 	
 }

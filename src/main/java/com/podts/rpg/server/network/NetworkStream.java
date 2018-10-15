@@ -16,6 +16,8 @@ public interface NetworkStream {
 	
 	public InetAddress getAddress();
 	
+	public int getPing();
+	
 	public Player getPlayer();
 	
 	public void setPlayer(Player player);

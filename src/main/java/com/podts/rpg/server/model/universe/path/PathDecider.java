@@ -7,7 +7,10 @@ public interface PathDecider extends Predicate<Path>, Comparator<Path> {
 	
 	@Override
 	public default int compare(Path a, Path b) {
-		return a.length() - b.length();
+		final int lengthDiff = a.length() - b.length();
+		if(lengthDiff != 0)
+			return lengthDiff;
+		return a.getTurns() - b.getTurns();
 	}
 	
 }

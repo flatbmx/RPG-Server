@@ -97,7 +97,7 @@ public final class CommandHandler {
 			return;
 		}
 		
-		Server.get().getLogger().info(sender + " executing  " + commandText);
+		Server.logger().info(sender + " executing  " + commandText);
 		command.get().doExecute(sender, commandText, entry.parameters);
 		
 	}

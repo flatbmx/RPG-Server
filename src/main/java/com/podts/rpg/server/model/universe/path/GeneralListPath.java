@@ -21,5 +21,11 @@ class GeneralListPath extends Path implements ListPath {
 	GeneralListPath(Tile... tiles) {
 		list = Arrays.asList(tiles);
 	}
+
+	@Override
+	public int getTurns() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 	
 }

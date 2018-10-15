@@ -46,7 +46,17 @@ public abstract class Space implements HasSpace {
 		public boolean deRegister(Registerable r) {
 			return false;
 		}
-
+		
+		@Override
+		public Stream<Tile> surroundingTiles(HasLocation center, int distance) {
+			return Stream.empty();
+		}
+		
+		@Override
+		Stream<Tile> doSurroundingTiles(HasLocation center, int distance) {
+			return Stream.empty();
+		}
+		
 		@Override
 		public Collection<? extends Plane> getPlanes() {
 			return Collections.emptyList();
@@ -417,6 +427,10 @@ public abstract class Space implements HasSpace {
 	public Stream<Tile> surroundingTiles(HasLocation center, int distance) {
 		if(isInDifferentSpace(center))
 			return Stream.empty();
+		return doSurroundingTiles(center, Math.abs(distance));
+	}
+	
+	Stream<Tile> doSurroundingTiles(HasLocation center, int distance) {
 		return InfiniteSurroundingTileSpliterator.surroundingTiles(center.getTile(), distance);
 	}
 	

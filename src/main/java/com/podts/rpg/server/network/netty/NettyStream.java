@@ -3,13 +3,14 @@ package com.podts.rpg.server.network.netty;
 import java.net.InetAddress;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 import com.podts.rpg.server.Player;
-import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.NetworkStream;
+import com.podts.rpg.server.network.Packet;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ServerChannel;
@@ -31,15 +32,24 @@ class NettyStream extends NioSocketChannel implements NetworkStream {
 	private final SecretKey secret;
 	protected Player player;
 	
+	private Instant lastPing;
+	private int ping;
+	
+	public int getPing() {
+		return ping;
+	}
+	
 	@Override
 	public SecretKey getSecretKey() {
 		return secret;
 	}
 	
+	@Override
 	public final Player getPlayer() {
 		return player;
 	}
 	
+	@Override
 	public final void setPlayer(Player player) {
 		this.player = player;
 	}
@@ -49,6 +59,7 @@ class NettyStream extends NioSocketChannel implements NetworkStream {
 		writeAndFlush(p);
 	}
 	
+	@Override
 	public void sendPacket(Packet... packets) {
 		for(Packet p : packets)
 			write(p);
@@ -64,6 +75,7 @@ class NettyStream extends NioSocketChannel implements NetworkStream {
 		return remoteAddress().getAddress();
 	}
 	
+	@Override
 	public void closeStream() {
 		close();
 	}
