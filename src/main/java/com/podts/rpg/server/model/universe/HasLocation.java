@@ -4,6 +4,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Stream;
 
+/**
+ * A Locatable that occupies exactly one position or nowhere.
+ * @author David
+ *
+ */
 public interface HasLocation extends Locatable {
 	
 	public Location getLocation();

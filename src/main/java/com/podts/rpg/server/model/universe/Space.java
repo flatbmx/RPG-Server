@@ -140,12 +140,16 @@ public abstract class Space implements HasSpace {
 		@Override public final Stream<Location> locations() {return Stream.empty();}
 		@Override public final boolean isAt(Locatable loc) {return loc.isNowhere();}
 		@Override public final boolean isAt(HasLocation loc) {return this == loc.getLocation();}
+		@Override public final Tile getTile() {return NOWHERE_TILE;}
 		@Override public final CompleteLocation shift(int dx, int dy, int dz) {return this;}
 		@Override public final CompleteLocation shift(int dx, int dy) {return this;}
 		@Override public final Stream<Location> traceEvery(Direction dir, int increment) {return Stream.of(this);}
 		@Override public final Stream<Location> bitraceEvery(Direction dir, int increment) {return Stream.of(this);}
 		@Override public final CompleteLocation clone() {return this;}
 		@Override public final String toString() {return "[Nowhere]";}
+	};
+	public static final Tile NOWHERE_TILE = new Tile(TileType.VOID, NOWHERE) {
+		@Override public final boolean isNowhere() {return true;}
 	};
 	
 	private final Location origin = createLocation(0, 0, 0);

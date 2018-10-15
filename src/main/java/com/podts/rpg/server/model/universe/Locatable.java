@@ -14,7 +14,7 @@ public interface Locatable extends HasPlane {
 	
 	/**
 	 * Returns any location that this Locatable occupies.
-	 * If this Locatable is nowhere it will return the nowhere Location.
+	 * If this is nowhere it will return the nowhere Location.
 	 * @return
 	 */
 	public default Location anyLocation() {
