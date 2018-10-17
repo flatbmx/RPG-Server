@@ -8,10 +8,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public abstract class Location implements Shiftable, Cloneable {
+public abstract class Location implements Shiftable<Location>, Cloneable {
 	
 	public enum Direction {
 		UP(0,-1),
@@ -79,23 +80,27 @@ public abstract class Location implements Shiftable, Cloneable {
 			return get(dx, dy);
 		}
 		
-		private final int dx, dy;
+		private final Vector vector;
 		private final boolean isDiagonal;
 		
+		public final Vector asVector() {
+			return vector;
+		}
+		
 		public int getX(int distance) {
-			return dx * distance;
+			return getX() * distance;
 		}
 		
 		public int getX() {
-			return dx;
+			return asVector().getX();
 		}
 		
 		public int getY(int distance) {
-			return dy * distance;
+			return getY() * distance;
 		}
 		
 		public int getY() {
-			return dy;
+			return asVector().getY();
 		}
 		
 		public final boolean isDiagonal() {
@@ -139,8 +144,7 @@ public abstract class Location implements Shiftable, Cloneable {
 		}
 		
 		private Direction(int dx, int dy) {
-			this.dx = dx;
-			this.dy = dy;
+			this.vector = new Vector(dx, dy);
 			isDiagonal = dx != 0 && dy != 0;
 		}
 		
@@ -229,6 +233,31 @@ public abstract class Location implements Shiftable, Cloneable {
 		return mapDirections(Arrays.asList(points));
 	}
 	
+	private static final Collection<Location> doShiftLocations(Collection<Location> points, UnaryOperator<Location> op) {
+		if(points.isEmpty())
+			return Collections.emptySet();
+		List<Location> c = Arrays.asList(new Location[points.size()]);
+		int i=0;
+		for(Location point : points)
+			c.set(i++, op.apply(point));
+		return c;
+	}
+	
+	public static final Collection<Location> shiftLocations(Collection<Location> points, int x, int y, int z) {
+		Objects.requireNonNull(points, "");
+		return doShiftLocations(points, l -> l.shift(x, y, z));
+	}
+	
+	public static final Collection<Location> shiftLocations(Collection<Location> points, int x, int y) {
+		Objects.requireNonNull(points, "");
+		return doShiftLocations(points, l -> l.shift(x, y));
+	}
+	
+	public static final Collection<Location> shiftLocations(Collection<Location> points, Vector vector) {
+		Objects.requireNonNull(vector, "");
+		return doShiftLocations(points, l -> l.shift(vector));
+	}
+	
 	@Override
 	public final boolean isNowhere() {
 		return this == Space.NOWHERE;
@@ -274,6 +303,10 @@ public abstract class Location implements Shiftable, Cloneable {
 		return getZ() - other.getZ();
 	}
 	
+	public Vector asVector() {
+		return Vector.construct(getX(), getY(), getZ());
+	}
+	
 	@Override
 	public Location shift(int dx, int dy, int dz) {
 		if(dz == 0)
@@ -284,6 +317,11 @@ public abstract class Location implements Shiftable, Cloneable {
 	@Override
 	public Location shift(int dx, int dy) {
 		return getPlane().createLocation(getX() + dx, getY() + dy);
+	}
+	
+	@Override
+	public Location shift(Vector vector) {
+		return shift(vector.getX(), vector.getY(), vector.getZ());
 	}
 	
 	@Override
@@ -307,9 +345,12 @@ public abstract class Location implements Shiftable, Cloneable {
 	}
 	
 	@Override
-	public Plane getPlane() {
-		return getLocation().getPlane();
+	public Space getSpace() {
+		return getPlane().getSpace();
 	}
+	
+	@Override
+	public abstract Plane getPlane();
 	
 	public Stream<Entity> entities() {
 		return getSpace().entities(this);

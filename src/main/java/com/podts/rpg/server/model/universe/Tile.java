@@ -14,7 +14,7 @@ import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
 
-public class Tile extends Spatial implements Shiftable, Region, Registerable {
+public class Tile extends Spatial implements Shiftable<Tile>, Region, Registerable {
 	
 	private Set<RegionListener> regionListeners, safeRegionListeners;
 	private Set<TileListener> tileListeners, safeTileListeners;
