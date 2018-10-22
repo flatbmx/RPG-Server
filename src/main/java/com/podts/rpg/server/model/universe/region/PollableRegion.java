@@ -13,7 +13,7 @@ import com.podts.rpg.server.model.universe.Space;
 import com.podts.rpg.server.model.universe.Tile;
 
 /**
- * A Region that can be polled to give all the points that it contains at any give time.
+ * A {@link Region} that can be polled to give all the points that it contains at any give time.
  *
  */
 public interface PollableRegion extends Region, Iterable<Location> {

@@ -2,12 +2,6 @@ package com.podts.rpg.server.model.universe;
 
 public abstract class Spatial implements HasLocation {
 	
-	public static final Location validate(Location location) {
-		if(location == null)
-			return Space.NOWHERE;
-		return location;
-	}
-	
 	private Location location;
 	
 	@Override
@@ -21,7 +15,7 @@ public abstract class Spatial implements HasLocation {
 	}
 	
 	public Spatial(Location location) {
-		this.location = validate(location);
+		this.location = Location.validate(location);
 	}
 	
 	public Spatial() {

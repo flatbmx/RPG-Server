@@ -1,6 +1,6 @@
 package com.podts.rpg.server.model.universe;
 
-public abstract class SimpleLocation extends Location {
+public abstract class PrimativeLocation extends Location {
 	
 	protected final int x, y, z;
 	
@@ -19,7 +19,7 @@ public abstract class SimpleLocation extends Location {
 		return z;
 	}
 	
-	public SimpleLocation(final int x, final int y, final int z) {
+	public PrimativeLocation(final int x, final int y, final int z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;

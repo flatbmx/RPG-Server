@@ -1,5 +1,11 @@
 package com.podts.rpg.server.model.universe;
 
+/**
+ * A {@link Location} who's coordinates are internally represented as a {@link Vector}.
+ * This class only needs to be extended to implement querying a {@link Plane}.
+ * @author David
+ *
+ */
 public abstract class VectorLocation extends Location {
 	
 	public static final Vector validate(Vector v) {
@@ -11,22 +17,22 @@ public abstract class VectorLocation extends Location {
 	private final Vector vector;
 	
 	@Override
-	public Vector asVector() {
+	public final Vector asVector() {
 		return vector;
 	}
 	
 	@Override
-	public int getX() {
+	public final int getX() {
 		return asVector().getX();
 	}
 
 	@Override
-	public int getY() {
+	public final int getY() {
 		return asVector().getY();
 	}
 	
 	@Override
-	public int getZ() {
+	public final int getZ() {
 		return asVector().getZ();
 	}
 	

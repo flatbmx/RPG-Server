@@ -23,13 +23,48 @@ import com.podts.rpg.server.model.universe.region.PollableRegion;
 import com.podts.rpg.server.network.Packet;
 import com.podts.rpg.server.network.packet.TilePacket;
 
+/**
+ * A set of {@link Location locations} where all return this when {@link Location#getSpace()} returns this.
+ * @author David
+ *
+ */
 public abstract class Space implements HasSpace {
+	
+	public static final Space validate(Space space) {
+		if(space == null)
+			return Space.OBLIVION;
+		return space;
+	}
 	
 	private static final class Oblivion extends Space {
 		
+		private final Plane plane = new Plane(0) {
+
+			@Override
+			public Collection<Tile> getTiles() {
+				return Collections.singleton(Space.NOWHERE_TILE);
+			}
+
+			@Override
+			Stream<Tile> allTiles() {
+				return Stream.of(Space.NOWHERE_TILE);
+			}
+
+			@Override
+			public Collection<Entity> getEntities() {
+				return Collections.emptySet();
+			}
+
+			@Override
+			public Collection<PollableRegion> getRegions() {
+				return Collections.emptySet();
+			}
+			
+		};
+		
 		@Override
 		public Location createLocation(int x, int y, int z) {
-			return new CompleteLocation(this, x, y, z);
+			return Space.NOWHERE;
 		}
 
 		@Override
@@ -59,7 +94,7 @@ public abstract class Space implements HasSpace {
 		
 		@Override
 		public Collection<? extends Plane> getPlanes() {
-			return Collections.emptyList();
+			return Collections.singleton(plane);
 		}
 		
 		@Override
@@ -75,8 +110,7 @@ public abstract class Space implements HasSpace {
 
 		@Override
 		public Tile getTile(Location point) {
-			// TODO Auto-generated method stub
-			return null;
+			return Space.NOWHERE_TILE;
 		}
 
 		@Override
@@ -134,22 +168,32 @@ public abstract class Space implements HasSpace {
 		
 	}
 	
-	private static final Oblivion OBLIVION = new Oblivion();
-	public static final Location NOWHERE = new CompleteLocation(OBLIVION, 0, 0, 0) {
+	public static final Oblivion OBLIVION = new Oblivion();
+	public static final Location NOWHERE = new SpacePrimativeLocation(OBLIVION, 0, 0, 0) {
 		@Override public final Collection<Location> getLocations() {return Collections.emptySet();}
 		@Override public final Stream<Location> locations() {return Stream.empty();}
 		@Override public final boolean isAt(Locatable loc) {return loc.isNowhere();}
 		@Override public final boolean isAt(HasLocation loc) {return this == loc.getLocation();}
 		@Override public final Tile getTile() {return NOWHERE_TILE;}
-		@Override public final CompleteLocation shift(int dx, int dy, int dz) {return this;}
-		@Override public final CompleteLocation shift(int dx, int dy) {return this;}
+		@Override public final Plane getPlane() {return Space.OBLIVION.plane;}
+		@Override public final SpacePrimativeLocation shift(int dx, int dy, int dz) {return this;}
+		@Override public final SpacePrimativeLocation shift(int dx, int dy) {return this;}
 		@Override public final Stream<Location> traceEvery(Direction dir, int increment) {return Stream.of(this);}
 		@Override public final Stream<Location> bitraceEvery(Direction dir, int increment) {return Stream.of(this);}
-		@Override public final CompleteLocation clone() {return this;}
+		@Override public final SpacePrimativeLocation clone() {return this;}
 		@Override public final String toString() {return "[Nowhere]";}
 	};
 	public static final Tile NOWHERE_TILE = new Tile(TileType.VOID, NOWHERE) {
+		@Override public final Collection<Location> getLocations() {return Collections.emptySet();}
+		@Override public final Stream<Location> locations() {return Stream.empty();}
+		@Override public final boolean isAt(Locatable loc) {return loc.isNowhere();}
+		@Override public final boolean isAt(HasLocation loc) {return loc.isNowhere();}
 		@Override public final boolean isNowhere() {return true;}
+		@Override public final Plane getPlane() {return Space.OBLIVION.plane;}
+		@Override public final Tile shift(int dx, int dy, int dz) {return this;}
+		@Override public final Tile shift(int dx, int dy) {return this;}
+		@Override public final Stream<Tile> traceEvery(Direction dir, int increment) {return Stream.of(this);}
+		@Override public final String toString() {return "[Nowhere Tile]";}
 	};
 	
 	private final Location origin = createLocation(0, 0, 0);
@@ -164,6 +208,10 @@ public abstract class Space implements HasSpace {
 	}
 	
 	public abstract Location createLocation(int x, int y, int z);
+	
+	public Location createLocation(Vector vector) {
+		return createLocation(vector.getX(), vector.getY(), vector.getZ());
+	}
 	
 	public abstract boolean isRegistered(Registerable r);
 	public abstract boolean register(Registerable r);

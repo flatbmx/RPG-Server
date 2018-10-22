@@ -263,7 +263,7 @@ public final class StaticChunkWorld extends World {
 					.mapToObj(Integer::valueOf)
 					.flatMap(j -> {
 						return IntStream.range(0, chunkSize())
-								.mapToObj(i -> new CompleteLocation(getSpace(), topLeft.getX() + i, topLeft.getY() + j, getZ()));
+								.mapToObj(i -> new SpacePrimativeLocation(getSpace(), topLeft.getX() + i, topLeft.getY() + j, getZ()));
 					});
 		}
 		
@@ -552,7 +552,7 @@ public final class StaticChunkWorld extends World {
 		
 	}
 	
-	final class CLocation extends SimpleLocation {
+	final class CLocation extends PrimativeLocation {
 		
 		private Chunk chunk;
 		private final int hash;

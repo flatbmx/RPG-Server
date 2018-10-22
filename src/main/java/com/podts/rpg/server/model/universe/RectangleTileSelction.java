@@ -11,7 +11,7 @@ public final class RectangleTileSelction extends TileSelection {
 	
 	@Override
 	public SelectionType getSelectionType() {
-		return SelectionType.SQUARE;
+		return SelectionType.RECTANGULAR;
 	}
 	
 	@Override

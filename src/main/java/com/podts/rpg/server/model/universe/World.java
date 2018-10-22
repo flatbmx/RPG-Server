@@ -296,7 +296,7 @@ public abstract class World extends Space {
 	
 	@Override
 	public Location createLocation(int x, int y, int z) {
-		return new CompleteLocation(this, x, y, z);
+		return new SpacePrimativeLocation(this, x, y, z);
 	}
 	
 	public final Tile createTile(final TileType type, final int x, final int y, final int z) {

@@ -25,7 +25,7 @@ public class ArraySpace extends Space {
 	private final Set<PollableRegion> regions = new HashSet<>(),
 			safeRegions = Collections.unmodifiableSet(regions);
 	
-	private final class ArrayLocation extends SimpleLocation {
+	private final class ArrayLocation extends PrimativeLocation {
 		
 		@Override
 		public final ArraySpace getSpace() {

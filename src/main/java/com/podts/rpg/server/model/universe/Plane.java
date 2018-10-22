@@ -10,7 +10,20 @@ import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.region.IncompleteRegion;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 
+/**
+ * A 2d Spatial collection of all {@link Location Locations} who's Z coordinate matches this Planes Z height in a specific {@link Space}.
+ * This class requires only that {@link HasSpace#getSpace getSpace()}, {@link #getTiles()}, {@link #getEntities()} and {@link #getRegions()} is implemented.
+ * For the entire life of any instance of this class will always return the same space.
+ * @author David
+ *
+ */
 public abstract class Plane extends IncompleteRegion implements Comparable<Plane>, HasPlane {
+	
+	public static final Plane validate(Plane plane) {
+		if(plane == null)
+			return Space.NOWHERE.getPlane();
+		return plane;
+	}
 	
 	public static final Comparator<Plane> BOTTOM_TO_TOP_COMPARATOR = (a,b) -> a.getZ() - b.getZ(),
 			TOP_TO_BOTTOM_COMPARATOR = BOTTOM_TO_TOP_COMPARATOR.reversed();
@@ -51,6 +64,11 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 		return getSpace().getPlane(getZ() + dz);
 	}
 	
+	/**
+	 * Returns a {@link Collection} that contains all current {@link Tile tiles} that this Plane consists of.
+	 * The collection that is returned may change over subsiquent calls.
+	 * @return Collection of all tiles in this Plane.
+	 */
 	public abstract Collection<Tile> getTiles();
 	
 	abstract Stream<Tile> allTiles();
@@ -69,6 +87,10 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 				.orElse(null);
 	}
 	
+	/**
+	 * Returns a {@link Collection} of all {@link Entity entities} that are contained inside this Plane.
+	 * @return Collection of all entities inside this plane.
+	 */
 	public abstract Collection<Entity> getEntities();
 	
 	public Stream<Entity> entities() {
@@ -82,6 +104,10 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 				.map(PlayerEntity::getPlayer);
 	}
 	
+	/**
+	 * Returns a {@link Collection} that contains all of the registered {@link PollableRegion region}.
+	 * @return Collection of all currently registered regions that contain points in this plane.
+	 */
 	public abstract Collection<PollableRegion> getRegions();
 	
 	public Stream<PollableRegion> regions() {

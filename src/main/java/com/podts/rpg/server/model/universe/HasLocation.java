@@ -63,6 +63,8 @@ public interface HasLocation extends Locatable {
 	
 	@Override
 	public default int getArea() {
+		if(isNowhere())
+			return 0;
 		return 1;
 	}
 	

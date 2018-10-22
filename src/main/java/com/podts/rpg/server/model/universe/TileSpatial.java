@@ -2,12 +2,6 @@ package com.podts.rpg.server.model.universe;
 
 public class TileSpatial implements HasLocation {
 	
-	public static final Tile validate(Tile tile) {
-		if(tile == null)
-			return Space.NOWHERE_TILE;
-		return tile;
-	}
-	
 	private Tile tile;
 	
 	public boolean hasTile() {
@@ -30,11 +24,11 @@ public class TileSpatial implements HasLocation {
 	}
 	
 	TileSpatial(Tile tile) {
-		this.tile = validate(tile);
+		this.tile = Tile.validate(tile);
 	}
 	
 	TileSpatial(Location location) {
-		this(Spatial.validate(location).getTile());
+		this(Location.validate(location).getTile());
 	}
 	
 	TileSpatial() {

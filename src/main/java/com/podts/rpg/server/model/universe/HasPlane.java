@@ -2,8 +2,18 @@ package com.podts.rpg.server.model.universe;
 
 import java.util.Collection;
 
+/**
+ * Something that has or is inside exactly one {@link Plane}.
+ * This interface only requires that the {@link #getPlane()} method be implemented.
+ * @author David
+ *
+ */
 public interface HasPlane extends HasSpace {
 	
+	/**
+	 * Returns the {@link Plane plane} that this occupies or has.
+	 * @return the {@link Plane plane} that this occupies or has
+	 */
 	public Plane getPlane();
 	
 	@Override

@@ -2,8 +2,18 @@ package com.podts.rpg.server.model.universe;
 
 import java.util.Collection;
 
+/**
+ * Something has has or inside exactly one {@link Space}.
+ * This interface only requires that the {@link #getSpace()} method be implemented.
+ * @author David
+ *
+ */
 public interface HasSpace {
 	
+	/**
+	 * Returns the {@link Space space} that this occupies or has.
+	 * @return the {@link Space space} that this occupies or has.
+	 */
 	public Space getSpace();
 	
 	public default boolean isInSpace(Space s) {

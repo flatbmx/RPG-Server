@@ -8,10 +8,10 @@ import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.HasLocation;
 
 /**
- * A subset of the Universe.
- *  It also *may* support listeners that will be fired when an entity enters or leaves the region.
+ * A collection of {@link Location points}. It is not required that all points be in the same {@link Plane} or {@link Space}.
+ *  It also <b>may</b> support listeners that will be fired when an entity enters or leaves the region.
  *  Some implementations may not support {@link RegionListener RegionListeners}.
- *  The only method that is guaranteed to be supported is {@link #contains(Locatable) contains}.
+ *  The only method that is guaranteed to be supported is {@link #contains(Location)}.
  *
  */
 public interface Region {
@@ -46,7 +46,7 @@ public interface Region {
 	 * Determines if a given point is in this Region.
 	 * All regions do <b>NOT</b> contain null.
 	 * @param point - The given point in question.
-	 * @return True if the point is in this Region, false otherwise.
+	 * @return True if the point is in this Region, false otherwise
 	 */
 	public boolean contains(Location point);
 	

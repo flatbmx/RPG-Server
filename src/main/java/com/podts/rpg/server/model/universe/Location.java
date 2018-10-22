@@ -12,7 +12,19 @@ import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * A 3D point in a {@link Space}. This class is immutable in the sense that for any given Location for the instances entire life
+ * it will always return the same coordinates and plane.
+ * @author David
+ *
+ */
 public abstract class Location implements Shiftable<Location>, Cloneable {
+	
+	public static final Location validate(Location location) {
+		if(location == null)
+			return Space.NOWHERE;
+		return location;
+	}
 	
 	public enum Direction {
 		UP(0,-1),
@@ -25,21 +37,30 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		TOP_RIGHT(-1,1);
 		
 		private static final Direction[] vals = Direction.values();
+		private static final Direction[] basicVals = new Direction[4];
 		private static final Direction[] diagVals = new Direction[4];
 		private static final List<Direction> all = Collections.unmodifiableList(Arrays.asList(vals));
+		private static final List<Direction> basicAll;
 		private static final List<Direction> diagAll;
 		
 		static {
+			basicAll = Collections.unmodifiableList(Arrays.asList(basicVals));
 			diagAll = Collections.unmodifiableList(Arrays.asList(diagVals));
 			int i = 0;
 			for(Direction d : vals) {
 				if(d.isDiagonal())
 					diagVals[i++] = d;
+				else
+					basicVals[i] = d;
 			}
 		}
 		
 		public static Collection<Direction> getAll() {
 			return all;
+		}
+		
+		public static Collection<Direction> getBasics() {
+			return basicAll;
 		}
 		
 		public static Collection<Direction> getDiagonals() {
@@ -48,6 +69,10 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		
 		public static Stream<Direction> all() {
 			return getAll().stream();
+		}
+		
+		public static Stream<Direction> basics() {
+			return getBasics().stream();
 		}
 		
 		public static Stream<Direction> diagonals() {
@@ -59,7 +84,7 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		}
 		
 		public static Optional<Direction> get(int dx, int dy) {
-			if((Math.abs(dx) > 0 || Math.abs(dy) > 0)) {
+			if((Math.abs(dx) > 0 && Math.abs(dy) > 0)) {
 				if(Math.abs(dx) != Math.abs(dy))
 					return Optional.empty();
 			}
@@ -244,18 +269,27 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	}
 	
 	public static final Collection<Location> shiftLocations(Collection<Location> points, int x, int y, int z) {
-		Objects.requireNonNull(points, "");
+		Objects.requireNonNull(points, "Cannot shift null collection of Locations!");
 		return doShiftLocations(points, l -> l.shift(x, y, z));
 	}
 	
 	public static final Collection<Location> shiftLocations(Collection<Location> points, int x, int y) {
-		Objects.requireNonNull(points, "");
+		Objects.requireNonNull(points, "Cannot shift null collection of Locations!");
 		return doShiftLocations(points, l -> l.shift(x, y));
 	}
 	
 	public static final Collection<Location> shiftLocations(Collection<Location> points, Vector vector) {
-		Objects.requireNonNull(vector, "");
+		Objects.requireNonNull(points, "Cannot shift null collection of Locations!");
+		Objects.requireNonNull(vector, "Cannot shift Locations by a null Vector!");
+		if(vector.isZero())
+			return points;
 		return doShiftLocations(points, l -> l.shift(vector));
+	}
+	
+	public static final Collection<Location> shiftLocations(Collection<Location> points, Direction dir) {
+		Objects.requireNonNull(points, "Cannot shift null collection of Locations!");
+		Objects.requireNonNull(dir, "Cannot shift Locations by a null Direction!");
+		return doShiftLocations(points, l -> l.shift(dir));
 	}
 	
 	@Override
@@ -266,10 +300,6 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	@Override
 	public Location getLocation() {
 		return this;
-	}
-	
-	public final boolean planeExists() {
-		return getPlane() != null;
 	}
 	
 	public abstract int getX();
@@ -304,7 +334,7 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	}
 	
 	public Vector asVector() {
-		return Vector.construct(getX(), getY(), getZ());
+		return new Vector(getX(), getY(), getZ());
 	}
 	
 	@Override
@@ -317,21 +347,6 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	@Override
 	public Location shift(int dx, int dy) {
 		return getPlane().createLocation(getX() + dx, getY() + dy);
-	}
-	
-	@Override
-	public Location shift(Vector vector) {
-		return shift(vector.getX(), vector.getY(), vector.getZ());
-	}
-	
-	@Override
-	public Location shift(Direction dir, int distance) {
-		return shift(dir.getX(distance), dir.getY(distance));
-	}
-	
-	@Override
-	public Location shift(Direction dir) {
-		return shift(dir, 1);
 	}
 	
 	@Override
@@ -351,6 +366,12 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	
 	@Override
 	public abstract Plane getPlane();
+	
+	public Vector getDifference(Location other) {
+		return new Vector(other.getX() - getX()
+				, other.getY() - getY()
+				, other.getZ() - getZ());
+	}
 	
 	public Stream<Entity> entities() {
 		return getSpace().entities(this);

@@ -4,6 +4,11 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Occupies a certian Plane that can be nowhere(no locations) or multiple locations that all occupy the same plane and are connected.
+ * @author David
+ *
+ */
 public interface Locatable extends HasPlane {
 	
 	public Collection<Location> getLocations();

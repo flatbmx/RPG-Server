@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 public abstract class TileSelection implements Iterable<Tile> {
 	
 	public enum SelectionType {
-		SQUARE(),
+		RECTANGULAR(),
 		SET();
 	}
 	

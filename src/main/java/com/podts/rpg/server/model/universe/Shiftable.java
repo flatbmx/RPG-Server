@@ -10,12 +10,12 @@ public interface Shiftable<T extends Shiftable<?>> extends HasLocation {
 		return shift(dx, dy, 0);
 	}
 	
-	public default T shift(Direction d, int distance) {
-		return shift(d.getX(distance), d.getY(distance));
-	}
-	
 	public default T shift(Vector vector) {
 		return shift(vector.getX(), vector.getY(), vector.getZ());
+	}
+	
+	public default T shift(Direction d, int distance) {
+		return shift(d.getX(distance), d.getY(distance));
 	}
 	
 	public default T shift(Direction d) {

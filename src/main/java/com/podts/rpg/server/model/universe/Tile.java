@@ -16,6 +16,12 @@ import com.podts.rpg.server.model.universe.region.RegionListener;
 
 public class Tile extends Spatial implements Shiftable<Tile>, Region, Registerable {
 	
+	public static final Tile validate(Tile tile) {
+		if(tile == null)
+			return Space.NOWHERE_TILE;
+		return tile;
+	}
+	
 	private Set<RegionListener> regionListeners, safeRegionListeners;
 	private Set<TileListener> tileListeners, safeTileListeners;
 	TileElement element;
@@ -267,8 +273,8 @@ public class Tile extends Spatial implements Shiftable<Tile>, Region, Registerab
 		this(new TileElement(type), null);
 	}
 	
-	Tile(Location point) {
-		super(point);
+	Tile(Location location) {
+		super(location);
 	}
 	
 }
