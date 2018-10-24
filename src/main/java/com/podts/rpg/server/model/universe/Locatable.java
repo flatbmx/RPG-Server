@@ -5,22 +5,35 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Occupies a certian Plane that can be nowhere(no locations) or multiple locations that all occupy the same plane and are connected.
+ * Occupies a certain Plane that can be nowhere(no locations) or multiple locations that all occupy the same plane and are connected.
  * @author David
  *
  */
 public interface Locatable extends HasPlane {
 	
+	/**
+	 * Returns a collection that contains all the points that this occupies.
+	 * All points in the returned collection are in the same {@link Plane} and are connected.
+	 * If this object is nowhere then the returned collection will be empty.
+	 * Due to how often this method may be called by other methods it is highly recommended that the 
+	 * collection that is returned is cached/stored and not generated on demand otherwise performace may be lost.
+	 * @return Collection of all points this occupies
+	 */
 	public Collection<Location> getLocations();
 	
+	/**
+	 * Returns a stream consisting of all occupied points.
+	 * Default implementation returns {@link #getLocations()}.{@link Collection#stream() stream()}
+	 * @return Stream consisting of all occupied points
+	 */
 	public default Stream<Location> locations() {
 		return getLocations().stream();
 	}
 	
 	/**
 	 * Returns any location that this Locatable occupies.
-	 * If this is nowhere it will return the nowhere Location.
-	 * @return
+	 * If this occupies no locations it will return {@link Space#NOWHERE}.
+	 * @return any Location this occupies or {@link Space#NOWHERE}.
 	 */
 	public default Location anyLocation() {
 		return locations()
@@ -40,6 +53,11 @@ public interface Locatable extends HasPlane {
 		return !isNowhere();
 	}
 	
+	/**
+	 * Returns the number of tiles this occupies.
+	 * If this is nowhere it will return 0.
+	 * @return number of tiles this occupies.
+	 */
 	public default int getArea() {
 		return getLocations().size();
 	}
@@ -84,15 +102,15 @@ public interface Locatable extends HasPlane {
 		return distance(other, 0);
 	}
 	
-	public default int walkingDistance(Locatable other, int range) {
-		range = Integer.max(0, range);
+	public default int walkingDistance(Locatable other, int cutoff) {
+		cutoff = Integer.max(0, cutoff);
 		Collection<? extends Location> points = getLocations();
 		Collection<? extends Location> otherPoints = other.getLocations();
 		int shortest = Integer.MAX_VALUE;
 		for(Location p : points) {
 			for(Location o : otherPoints) {
 				int length = p.walkingDistance(o);
-				if(length <= range) return length;
+				if(length <= cutoff) return length;
 				if(length < shortest)
 					shortest = length;
 			}

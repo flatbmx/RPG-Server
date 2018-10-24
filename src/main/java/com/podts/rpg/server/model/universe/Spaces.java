@@ -1,6 +1,7 @@
 package com.podts.rpg.server.model.universe;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.MoveType;
@@ -63,21 +64,18 @@ public class Spaces {
 		}
 
 		@Override
-		public Tile getTile(Location point) {
-			// TODO Auto-generated method stub
-			return null;
+		public Optional<Tile> getTile(Location point) {
+			return space.getTile(point);
 		}
 
 		@Override
 		public Stream<Entity> nearbyEntities(HasLocation l) {
-			// TODO Auto-generated method stub
-			return null;
+			return space.nearbyEntities(l);
 		}
 
 		@Override
 		public Space moveEntity(Entity entity, Location newLocation, MoveType update) {
-			// TODO Auto-generated method stub
-			return null;
+			return space.moveEntity(entity, newLocation, update);
 		}
 		
 	}

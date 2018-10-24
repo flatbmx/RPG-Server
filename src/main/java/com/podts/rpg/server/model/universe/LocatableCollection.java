@@ -20,8 +20,16 @@ public class LocatableCollection implements Locatable {
 	
 	protected final Collection<Location> points, safePoints;
 	
+	protected final Collection<Location> getPoints() {
+		return points;
+	}
+	
+	protected final Collection<Location> getSafePoints() {
+		return safePoints;
+	}
+	
 	@Override
-	public Collection<Location> getLocations() {
+	public final Collection<Location> getLocations() {
 		return safePoints;
 	}
 	

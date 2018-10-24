@@ -2,7 +2,7 @@ package com.podts.rpg.server.model.universe;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
@@ -13,7 +13,7 @@ import com.podts.rpg.server.model.universe.region.PollableRegion;
 /**
  * A 2d Spatial collection of all {@link Location Locations} who's Z coordinate matches this Planes Z height in a specific {@link Space}.
  * This class requires only that {@link HasSpace#getSpace getSpace()}, {@link #getTiles()}, {@link #getEntities()} and {@link #getRegions()} is implemented.
- * For the entire life of any instance of this class will always return the same space.
+ * For the entire life of any instance of this class it will always return the same space and Z.
  * @author David
  *
  */
@@ -33,6 +33,8 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 	public final int getZ() {
 		return z;
 	}
+	
+	public abstract Space getSpace();
 	
 	@Override
 	public Plane getPlane() {
@@ -60,13 +62,13 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 		return equals(getSpace().getBottomPlane());
 	}
 	
-	public Plane shift(int dz) {
+	public Optional<? extends Plane> shift(int dz) {
 		return getSpace().getPlane(getZ() + dz);
 	}
 	
 	/**
 	 * Returns a {@link Collection} that contains all current {@link Tile tiles} that this Plane consists of.
-	 * The collection that is returned may change over subsiquent calls.
+	 * The collection that is returned may change over subsequent calls.
 	 * @return Collection of all tiles in this Plane.
 	 */
 	public abstract Collection<Tile> getTiles();
@@ -78,13 +80,12 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 				.filter(Tile::isNotVoid);
 	}
 	
-	public Tile getTile(HasLocation l) {
+	public Optional<Tile> getTile(HasLocation l) {
 		if(!contains(l))
 			return null;
 		return tiles()
 				.filter(l::isAt)
-				.findAny()
-				.orElse(null);
+				.findAny();
 	}
 	
 	/**
@@ -143,7 +144,7 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(getSpace(), getZ());
+		return getSpace().hashCode() * 31 + getZ();
 	}
 	
 	@Override

@@ -18,4 +18,8 @@ public interface Movable extends Locatable {
 		return move(dir, 1);
 	}
 	
+	public default Movable move(Vector vector) {
+		return move(vector.getX(), vector.getY(), vector.getZ());
+	}
+	
 }

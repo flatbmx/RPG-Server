@@ -23,9 +23,9 @@ public class PrimativePlaneLocation extends Location {
 	@Override
 	public PrimativePlaneLocation shift(int dx, int dy, int dz) {
 		if(dz == 0) {
-			return new PrimativePlaneLocation(getPlane(), getX() + dx, getY() + dy);
+			return shift(dx, dy);
 		} else
-			return new PrimativePlaneLocation(getSpace().getPlane(getZ() + dz), getX() + dx, getY() + dy);
+			return new PrimativePlaneLocation(getSpace().getPlane(getZ() + dz).get(), getX() + dx, getY() + dy);
 	}
 	
 	@Override

@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -16,7 +17,6 @@ import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.Utils;
-import com.podts.rpg.server.model.entity.CanSee;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.MoveType;
@@ -263,7 +263,7 @@ public final class StaticChunkWorld extends World {
 					.mapToObj(Integer::valueOf)
 					.flatMap(j -> {
 						return IntStream.range(0, chunkSize())
-								.mapToObj(i -> new SpacePrimativeLocation(getSpace(), topLeft.getX() + i, topLeft.getY() + j, getZ()));
+								.mapToObj(i -> new PrimativeSpaceLocation(getSpace(), topLeft.getX() + i, topLeft.getY() + j, getZ()));
 					});
 		}
 		
@@ -435,7 +435,7 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		@Override
-		public ChunkPlane shift(int dz) {
+		public Optional<ChunkPlane> shift(int dz) {
 			return getSpace().getPlane(getZ() + dz);
 		}
 		
@@ -510,48 +510,6 @@ public final class StaticChunkWorld extends World {
 		
 	}
 	
-	private final class MLocation extends Location {
-		
-		private int x, y, z;
-		
-		@Override
-		public final StaticChunkWorld getSpace() {
-			return StaticChunkWorld.this;
-		}
-		
-		@Override
-		public final ChunkPlane getPlane() {
-			return getSpace().getPlane(getZ());
-		}
-		
-		@Override
-		public final int getX() {
-			return x;
-		}
-		
-		@Override
-		public final int getY() {
-			return y;
-		}
-		
-		@Override
-		public final int getZ() {
-			return z;
-		}
-		
-		@Override
-		public final MLocation shift(final int dx, final int dy, final int dz) {
-			return new MLocation(x + dx, y + dy, z + dz);
-		}
-		
-		private MLocation(int nx, int ny, int nz) {
-			x = nx;
-			y = ny;
-			z = nz;
-		}
-		
-	}
-	
 	final class CLocation extends PrimativeLocation {
 		
 		private Chunk chunk;
@@ -621,7 +579,7 @@ public final class StaticChunkWorld extends World {
 		
 		@Override
 		public final CLocation clone() {
-			return new CLocation(chunk, x, y, z);
+			return this;
 		}
 		
 		/**
@@ -643,10 +601,18 @@ public final class StaticChunkWorld extends World {
 			return getChunk().generate();
 		}
 		
+		private final int computeHash() {
+			int n = 17;
+			n = n * 31 + getX();
+			n = n * 31 + getY();
+			n = n * 31 + getZ();
+			return n;
+		}
+		
 		private CLocation(final Chunk chunk, final int x, final int y, final int z) {
 			super(x, y, z);
 			this.chunk = chunk;
-			hash = Objects.hash(x, y, z);
+			hash = computeHash();
 		}
 		
 		private CLocation(final int x, final int y, final int z) {
@@ -684,11 +650,10 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	public Stream<Chunk> chunks(final int z) {
-		ChunkPlane plane = getPlane(z);
-		if(plane == null)
+		Optional<ChunkPlane> plane = getPlane(z);
+		if(!plane.isPresent())
 			return Stream.empty();
-		
-		return plane.chunks();
+		return plane.get().chunks();
 	}
 	
 	public Stream<Chunk> generatedChunks() {
@@ -697,11 +662,10 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	public Stream<Chunk> generatedChunks(final int z) {
-		ChunkPlane plane = getPlane(z);
-		if(plane == null)
+		Optional<ChunkPlane> plane = getPlane(z);
+		if(!plane.isPresent())
 			return Stream.empty();
-		
-		return plane.generatedChunks();
+		return plane.get().generatedChunks();
 	}
 	
 	@Override
@@ -715,8 +679,8 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public ChunkPlane getPlane(final int z) {
-		return safePlanes.get(z);
+	public Optional<ChunkPlane> getPlane(final int z) {
+		return Optional.ofNullable(safePlanes.get(z));
 	}
 	
 	private ChunkPlane getOrCreatePlane(final int z) {
@@ -900,12 +864,12 @@ public final class StaticChunkWorld extends World {
 	}
 	
 	@Override
-	public Tile doGetTile(final Location point) {
+	public Optional<Tile> doGetTile(final Location point) {
 		Chunk chunk = getGeneratedChunk(point);
 		final Location topLeft = chunk.topLeft;
 		int x = point.getX() - topLeft.getX();
 		int y = point.getY() - topLeft.getY();
-		return chunk.getTile(x, y);
+		return Optional.of(chunk.getTile(x, y));
 	}
 	
 	@Override
@@ -917,17 +881,7 @@ public final class StaticChunkWorld extends World {
 		Chunk bottomLeftChunk = tL.shift(0, tiles[0].length, 0).getChunk();
 		int chunkHeight = bottomLeftChunk.coord.getY() - topLeftChunk.coord.getY();
 		final int width = tiles.length, height = tiles[0].length;
-		MLocation loc = new MLocation(tL.x,tL.y, topLeft.getZ());
-		for(int i=0; i<=chunkWidth; ++i) {
-			for(int j=0; j<chunkHeight; ++j) {
-				Chunk chunk = getGeneratedChunk(topLeftChunk.coord.shift(i,j,0));
-				for(int dy=loc.getY() - chunk.topLeft.getY(); dy<getChunkSize(); ++dy) {
-					for(int dx=loc.getX() - chunk.topLeft.getX(); dx<getChunkSize(); ++dx) {
-						//TODO Implement this, holy shit!
-					}
-				}
-			}
-		}
+		//WOW
 	}
 	
 	protected void doSetTile(ChunkTile newTile) {

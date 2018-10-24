@@ -2,7 +2,7 @@ package com.podts.rpg.server.model.universe;
 
 import com.podts.rpg.server.model.universe.Location.Direction;
 
-public interface Shiftable<T extends Shiftable<?>> extends HasLocation {
+public interface Shiftable<T extends Shiftable<T>> extends HasLocation {
 	
 	public T shift(int dx, int dy, int dz);
 	

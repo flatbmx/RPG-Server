@@ -39,7 +39,12 @@ public abstract class Space implements HasSpace {
 	private static final class Oblivion extends Space {
 		
 		private final Plane plane = new Plane(0) {
-
+			
+			@Override
+			public Space getSpace() {
+				return OBLIVION;
+			}
+			
 			@Override
 			public Collection<Tile> getTiles() {
 				return Collections.singleton(Space.NOWHERE_TILE);
@@ -58,6 +63,11 @@ public abstract class Space implements HasSpace {
 			@Override
 			public Collection<PollableRegion> getRegions() {
 				return Collections.emptySet();
+			}
+			
+			@Override
+			public String toString() {
+				return "[Nowhere Plane]";
 			}
 			
 		};
@@ -109,8 +119,8 @@ public abstract class Space implements HasSpace {
 		}
 
 		@Override
-		public Tile getTile(Location point) {
-			return Space.NOWHERE_TILE;
+		public Optional<Tile> getTile(Location point) {
+			return Optional.of(Space.NOWHERE_TILE);
 		}
 
 		@Override
@@ -149,13 +159,13 @@ public abstract class Space implements HasSpace {
 			
 			if(dx == 0 && dy == 0)
 				dx = 1;
-			Tile tile = getTile(center.shift(dx, dy));
+			Optional<Tile> tile = getTile(center.shift(dx, dy));
 			if(dx == distance) {
 				++dy;
 				dx = -1 * distance;
 			} else
 				++dx;
-			return tile;
+			return tile.get();
 		}
 		
 		SurroundingIterable(HasLocation center, int distance) {
@@ -168,21 +178,38 @@ public abstract class Space implements HasSpace {
 		
 	}
 	
+	/**
+	 * The empty space in which {@link #NOWHERE} inhabits.
+	 */
 	public static final Oblivion OBLIVION = new Oblivion();
-	public static final Location NOWHERE = new SpacePrimativeLocation(OBLIVION, 0, 0, 0) {
+	
+	/**
+	 * The empty plane in which {@link #NOWHWERE} inhabits.
+	 */
+	public static final Plane NOWHERE_PLANE = OBLIVION.plane;
+	
+	/**
+	 * The non-null representation of nowhere.
+	 * When a method is to return a {@link Location} but does not have one it should return this rather than null.
+	 */
+	public static final Location NOWHERE = new PrimativeSpaceLocation(OBLIVION, 0, 0, 0) {
 		@Override public final Collection<Location> getLocations() {return Collections.emptySet();}
 		@Override public final Stream<Location> locations() {return Stream.empty();}
 		@Override public final boolean isAt(Locatable loc) {return loc.isNowhere();}
 		@Override public final boolean isAt(HasLocation loc) {return this == loc.getLocation();}
 		@Override public final Tile getTile() {return NOWHERE_TILE;}
 		@Override public final Plane getPlane() {return Space.OBLIVION.plane;}
-		@Override public final SpacePrimativeLocation shift(int dx, int dy, int dz) {return this;}
-		@Override public final SpacePrimativeLocation shift(int dx, int dy) {return this;}
+		@Override public final PrimativeSpaceLocation shift(int dx, int dy, int dz) {return this;}
+		@Override public final PrimativeSpaceLocation shift(int dx, int dy) {return this;}
 		@Override public final Stream<Location> traceEvery(Direction dir, int increment) {return Stream.of(this);}
 		@Override public final Stream<Location> bitraceEvery(Direction dir, int increment) {return Stream.of(this);}
-		@Override public final SpacePrimativeLocation clone() {return this;}
+		@Override public final PrimativeSpaceLocation clone() {return this;}
 		@Override public final String toString() {return "[Nowhere]";}
 	};
+	
+	/**
+	 * The non-null tile representation of nowhere.
+	 */
 	public static final Tile NOWHERE_TILE = new Tile(TileType.VOID, NOWHERE) {
 		@Override public final Collection<Location> getLocations() {return Collections.emptySet();}
 		@Override public final Stream<Location> locations() {return Stream.empty();}
@@ -236,11 +263,10 @@ public abstract class Space implements HasSpace {
 		return getPlane(z) != null;
 	}
 	
-	public Plane getPlane(int z) {
+	public Optional<? extends Plane> getPlane(int z) {
 		return planes()
 				.filter(plane -> plane.getZ() == z)
-				.findAny()
-				.orElse(null);
+				.findAny();
 	}
 	
 	public Plane getTopPlane() {
@@ -277,9 +303,10 @@ public abstract class Space implements HasSpace {
 	}
 	
 	Stream<Tile> allTiles(int z) {
-		Plane plane = getPlane(z);
-		if(plane == null) return Stream.empty();
-		return plane.allTiles();
+		Optional<? extends Plane> plane = getPlane(z);
+		if(!plane.isPresent())
+			return Stream.empty();
+		return plane.get().allTiles();
 	}
 	
 	public Stream<Tile> tiles(int z) {
@@ -290,7 +317,8 @@ public abstract class Space implements HasSpace {
 	public Stream<Tile> allTiles(int... z) {
 		return Arrays.stream(z)
 				.mapToObj(this::getPlane)
-				.filter(Objects::nonNull)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
 				.flatMap(Plane::allTiles);
 	}
 	
@@ -318,13 +346,15 @@ public abstract class Space implements HasSpace {
 				.filter(tile -> tile.isInWalkingRange(l, distance));
 	}
 	
-	public Tile getTile(Location point) {
+	public Optional<Tile> getTile(Location point) {
 		return point.getPlane().getTile(point);
 	}
 	
 	public Stream<Tile> tiles(PollableRegion r) {
 		return r.points()
-				.map(this::getTile);
+				.map(this::getTile)
+				.filter(Optional::isPresent)
+				.map(Optional::get);
 	}
 	
 	public Space setTile(Tile tile, TileElement element) {
@@ -387,7 +417,7 @@ public abstract class Space implements HasSpace {
 	 * @param point The location of the tile to change.
 	 * @return
 	 */
-	public final Tile setTile(TileElement element, Location point) {
+	public final Optional<Tile> setTile(TileElement element, Location point) {
 		Objects.requireNonNull(element, "Cannot set Tile with null TileElement!");
 		Objects.requireNonNull(point, "Canot set Tile at null Location!");
 		if(!contains(point))
@@ -397,10 +427,12 @@ public abstract class Space implements HasSpace {
 		return doSetTile(element, point);
 	}
 	
-	protected Tile doSetTile(TileElement element, Location point) {
-		final Tile tile = getTile(point);
-		doSetTile(tile, element);
-		return tile;
+	protected Optional<Tile> doSetTile(TileElement element, Location point) {
+		Optional<Tile> tileOpt = getTile(point);
+		if(tileOpt.isPresent()) {
+			doSetTile(tileOpt.get(), element);
+		}
+		return tileOpt;
 	}
 	
 	public boolean isTraversable(Tile tile) {
@@ -501,9 +533,10 @@ public abstract class Space implements HasSpace {
 	}
 	
 	public Stream<PollableRegion> regions(int z) {
-		Plane plane = getPlane(z);
-		if(plane == null) return Stream.empty();
-		return plane.regions();
+		Optional<? extends Plane> plane = getPlane(z);
+		if(!plane.isPresent())
+			return Stream.empty();
+		return plane.get().regions();
 	}
 	
 	public Stream<PollableRegion> regions(HasLocation l) {
@@ -527,7 +560,8 @@ public abstract class Space implements HasSpace {
 	public Stream<Entity> entities(int... z) {
 		return Arrays.stream(z)
 				.mapToObj(this::getPlane)
-				.filter(Objects::nonNull)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
 				.flatMap(Plane::entities);
 	}
 	

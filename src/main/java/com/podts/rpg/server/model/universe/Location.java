@@ -351,7 +351,7 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	
 	@Override
 	public Tile getTile() {
-		return getSpace().getTile(this);
+		return getSpace().getTile(this).orElse(null);
 	}
 	
 	@Override
@@ -468,7 +468,11 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(getSpace(), getX(), getY(), getZ());
+		int hash = getSpace().hashCode();
+		hash = hash * 31 + getX();
+		hash = hash * 31 + getY();
+		hash = hash * 31 + getZ();
+		return hash;
 	}
 	
 	protected Location() {

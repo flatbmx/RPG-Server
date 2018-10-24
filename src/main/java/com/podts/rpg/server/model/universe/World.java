@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -68,13 +69,13 @@ public abstract class World extends Space {
 	 * @param point - The location of the Tile.
 	 * @return The Tile that is located at the given point.
 	 */
-	public final Tile getTile(Location point) {
+	public final Optional<Tile> getTile(Location point) {
 		Utils.assertNullArg(point, "Cannot get Tile for null location.");
 		Utils.assertArg(!doContains(point), "Cannot get Tile that exists in a different World.");
 		return doGetTile(point);
 	}
 	
-	protected abstract Tile doGetTile(Location point);
+	protected abstract Optional<Tile> doGetTile(Location point);
 	
 	public final World getTiles(Tile[][] tiles, Location topLeft) {
 		Utils.assertNullArg(tiles, "Cannot get Tiles with null array.");
@@ -230,7 +231,7 @@ public abstract class World extends Space {
 	public
 	final World moveEntity(final Entity entity, final Location newLoc, final MoveType type) {
 		
-		if(getTile(newLoc).isVoid())
+		if(!getTile(newLoc).isPresent())
 			return this;
 		
 		final Collection<Region>[] regionChanges = findRegionChanges(entity.getLocation(), newLoc);
@@ -296,7 +297,7 @@ public abstract class World extends Space {
 	
 	@Override
 	public Location createLocation(int x, int y, int z) {
-		return new SpacePrimativeLocation(this, x, y, z);
+		return new PrimativeSpaceLocation(this, x, y, z);
 	}
 	
 	public final Tile createTile(final TileType type, final int x, final int y, final int z) {

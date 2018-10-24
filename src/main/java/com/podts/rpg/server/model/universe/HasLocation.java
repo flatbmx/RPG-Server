@@ -11,6 +11,12 @@ import java.util.stream.Stream;
  */
 public interface HasLocation extends Locatable {
 	
+	/**
+	 * Returns the location that this occupies.
+	 * If this is nowhere it will return {@link Space#NOWHERE}.
+	 * This is <b>guaranteed</b> to return a non-null value.
+	 * @return the location this occupies.
+	 */
 	public Location getLocation();
 	
 	public default Tile getTile() {

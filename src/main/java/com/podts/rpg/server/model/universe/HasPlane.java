@@ -12,6 +12,8 @@ public interface HasPlane extends HasSpace {
 	
 	/**
 	 * Returns the {@link Plane plane} that this occupies or has.
+	 * This method is <b>guarenteed</b> to return a non-null value.
+	 * If you wish to represent this object as having no Plane then return {@link Space#NOWHERE_PLANE}.
 	 * @return the {@link Plane plane} that this occupies or has
 	 */
 	public Plane getPlane();

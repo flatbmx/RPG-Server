@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,7 +35,7 @@ public class ArraySpace extends Space {
 		
 		@Override
 		public final ArrayPlane getPlane() {
-			return getSpace().getPlane(getZ());
+			return getSpace().getPlane(getZ()).get();
 		}
 		
 		public ArrayLocation(final int x, final int y, final int z) {
@@ -104,11 +105,11 @@ public class ArraySpace extends Space {
 		}
 		
 		@Override
-		public Tile getTile(HasLocation l) {
+		public Optional<Tile> getTile(HasLocation l) {
 			if(!contains(l)) throw new IllegalArgumentException("Cannot get Tile from another Space!");
 			Location point = l.getLocation();
-			if(isInBounds(point)) return new Tile(TileType.VOID, point);
-			return tiles[point.getX()][point.getY()];
+			if(isInBounds(point)) return Optional.empty();
+			return Optional.of(tiles[point.getX()][point.getY()]);
 		}
 		
 		@Override
@@ -163,7 +164,7 @@ public class ArraySpace extends Space {
 			Tile tile = (Tile) r;
 			Location point = tile.getLocation();
 			if(!isInBounds(point)) return false;
-			ArrayPlane plane = getPlane(point.getZ());
+			ArrayPlane plane = getPlane(point.getZ()).get();
 			plane.tiles[point.getX()][point.getY()] = tile;
 			return true;
 		}
@@ -189,9 +190,9 @@ public class ArraySpace extends Space {
 	}
 	
 	@Override
-	public ArrayPlane getPlane(int z) {
-		if(z < 0 || z >= planes.length) return null;
-		return planes[z];
+	public Optional<ArrayPlane> getPlane(int z) {
+		if(z < 0 || z >= planes.length) return Optional.empty();
+		return Optional.ofNullable(planes[z]);
 	}
 	
 	public Collection<PollableRegion> getRegions() {
@@ -215,12 +216,12 @@ public class ArraySpace extends Space {
 	}
 	
 	protected final boolean isInBounds(final int x, final int y, final int z) {
-		final ArrayPlane plane = getPlane(z);
-		if(plane == null) return false;
+		final Optional<ArrayPlane> plane = getPlane(z);
+		if(!plane.isPresent()) return false;
 		return x >= 0 &&
-				x < plane.getWidth() &&
+				x < plane.get().getWidth() &&
 				y >= 0 &&
-				y < plane.getHeight();
+				y < plane.get().getHeight();
 	}
 	
 	protected ArraySpace(final int width, final int height, final int totalPlanes) {

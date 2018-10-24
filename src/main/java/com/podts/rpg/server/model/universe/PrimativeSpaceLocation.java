@@ -2,7 +2,7 @@ package com.podts.rpg.server.model.universe;
 
 import java.util.Objects;
 
-public class SpacePrimativeLocation extends PrimativeLocation {
+public class PrimativeSpaceLocation extends PrimativeLocation {
 	
 	protected final Space space;
 	
@@ -13,17 +13,17 @@ public class SpacePrimativeLocation extends PrimativeLocation {
 	
 	@Override
 	public Plane getPlane() {
-		return getSpace().getPlane(getZ());
+		return getSpace().getPlane(getZ()).get();
 	}
 	
 	@Override
-	public SpacePrimativeLocation shift(int dx, int dy, int dz) {
-		return new SpacePrimativeLocation(getSpace(), getX() + dx, getY() + dy, getZ() + dz);
+	public PrimativeSpaceLocation shift(int dx, int dy, int dz) {
+		return new PrimativeSpaceLocation(getSpace(), getX() + dx, getY() + dy, getZ() + dz);
 	}
 	
 	@Override
-	public SpacePrimativeLocation clone() {
-		return new SpacePrimativeLocation(getSpace(), getX(), getY(), getZ());
+	public PrimativeSpaceLocation clone() {
+		return new PrimativeSpaceLocation(getSpace(), getX(), getY(), getZ());
 	}
 	
 	@Override
@@ -31,7 +31,7 @@ public class SpacePrimativeLocation extends PrimativeLocation {
 		return Objects.hash(getSpace(), getX(), getY(), getZ());
 	}
 	
-	public SpacePrimativeLocation(Space space, int x, int y, int z) {
+	public PrimativeSpaceLocation(Space space, int x, int y, int z) {
 		super(x, y, z);
 		this.space = Objects.requireNonNull(space, "Cannot create CompleteLocation with a null Space!");
 	}
