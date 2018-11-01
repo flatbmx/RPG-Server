@@ -16,17 +16,34 @@ public class TestLocation {
 		
 		Space space = new StaticChunkWorld("Earth", new FillGenerator(TileType.GRASS));
 		
-		Location point = (Location) space.getOrigin();
+		Location point = space.getOrigin();
 		Tile tile = point.getTile();
 		
 		boolean b = tile.traceEvery(Direction.UP, 6)
-				.limit(10000)
+				.limit(1000)
 				.flatMap(t -> t.traceEvery(Direction.RIGHT, 6).limit(100))
 				.map(Tile::getLocation)
 				.map(CLocation.class::cast)
 				.allMatch(p -> p.hasChunk() && p.getChunk().isGenerated());
 		
 		assertTrue(b);
+		
+	}
+	
+	@Test
+	public void testTraceBehavior() {
+		
+		Space space = new StaticChunkWorld("Earth", new FillGenerator(TileType.GRASS));
+		
+		Location point = space.getOrigin();
+		Tile tile = point.getTile();
+		
+		boolean b = tile.trace(new SpiralShifter())
+				.limit(100)
+				.allMatch(t -> t.getType().equals(TileType.GRASS));
+		
+		assertTrue(b);
+		
 		
 	}
 	

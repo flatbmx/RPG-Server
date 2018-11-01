@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -313,7 +312,7 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		return Math.abs(getX());
 	}
 	
-	public final int getXDifference(Location other) {
+	public final int getXDiff(Location other) {
 		return getX() - other.getX();
 	}
 	
@@ -321,7 +320,7 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		return Math.abs(getY());
 	}
 	
-	public final int getYDifference(Location other) {
+	public final int getYDiff(Location other) {
 		return getY() - other.getY();
 	}
 	
@@ -329,7 +328,7 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		return Math.abs(getZ());
 	}
 	
-	public final int getZDifference(Location other) {
+	public final int getZDiff(Location other) {
 		return getZ() - other.getZ();
 	}
 	
@@ -381,67 +380,40 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		return getSpace().entities(this);
 	}
 	
-	public Stream<? extends Location> traceTo(Location other) {
-		if(isInDifferentSpace(other))
-			return Stream.empty();
-		
-		Optional<Direction> dirOpt = Direction.get(this, other);
-		if(!dirOpt.isPresent())
-			return Stream.empty();
-		Direction dir = dirOpt.get();
-		Location end = other.shift(dir);
-		
-		//TODO use limit instead of takeWhile
-		return trace(dir)
-				.takeWhile(p -> !end.equals(p));
+	public final double distance(final Location otherPoint) {
+		return Math.sqrt(Math.pow(getXDiff(otherPoint), 2) + Math.pow(getYDiff(otherPoint), 2));
 	}
 	
-	public Stream<? extends Location> trace(Direction dir, int distance) {
-		return trace(dir)
-				.limit(distance + 1);
+	@Override
+	public final double distance(final Locatable loc, double cutoff) {
+		cutoff = Double.max(0d, cutoff);
+		Collection<? extends Location> points = loc.getLocations();
+		double shortest = Double.MAX_VALUE;
+		for(Location p : points) {
+			double length = distance(p);
+			if(length <= cutoff) return length;
+			if(length < shortest)
+				shortest = length;
+		}
+		return shortest;
 	}
 	
-	public Stream<? extends Location> traceEvery(Direction dir, int increment) {
-		if(dir == null)
-			return Stream.empty();
-		return Stream.iterate(this, point -> point.shift(dir, increment));
+	public final int walkingDistance(final Location otherPoint) {
+		return Math.max(Math.abs(getXDiff(otherPoint)), Math.abs(getYDiff(otherPoint)));
 	}
 	
-	/**
-	 * Returns an infinite Stream consisting of this point and all points in the given direction from closest to farthest in order.
-	 * @param dir - The direction to shift this point.
-	 * @return infinite Stream consisting of this point and all points in the given direction from closest to farthest in order
-	 */
-	public Stream<? extends Location> trace(Direction dir) {
-		return traceEvery(dir, 1);
-	}
-	
-	public Stream<? extends Location> bitrace(Direction dir, int distance) {
-		return bitrace(dir)
-				.limit(distance * 2 + 1);
-	}
-	
-	public Stream<? extends Location> bitraceEvery(Direction dir, int increment) {
-		if(dir == null)
-			return Stream.empty();
-		return IntStream.iterate(0, i -> {
-			i *= -1;
-			if(i >= 0)
-				i += increment;
-			return i;
-		}).mapToObj(i -> shift(dir, i));
-	}
-	
-	public Stream<? extends Location> bitrace(Direction dir) {
-		return bitraceEvery(dir, 1);
-	}
-	
-	final double distance(final Location otherPoint) {
-		return Math.sqrt(Math.pow(getX() - otherPoint.getX(), 2) + Math.pow(getY() - otherPoint.getY(), 2));
-	}
-	
-	final int walkingDistance(final Location otherPoint) {
-		return Math.max(Math.abs(getXDifference(otherPoint)), Math.abs(getYDifference(otherPoint)));
+	@Override
+	public final int walkingDistance(final Locatable loc, int cutoff) {
+		cutoff = Integer.max(0, cutoff);
+		Collection<? extends Location> points = loc.getLocations();
+		int shortest = Integer.MAX_VALUE;
+		for(Location p : points) {
+			int length = walkingDistance(p);
+			if(length <= cutoff) return length;
+			if(length < shortest)
+				shortest = length;
+		}
+		return shortest;
 	}
 	
 	public final boolean isBetween(Location point, double innerRadius, double outerRadius) {

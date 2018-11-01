@@ -291,8 +291,8 @@ public final class StaticChunkWorld extends World {
 		}
 		
 		private ChunkTile getTile(CLocation point) {
-			return getTile( ((getChunkSize()) - topLeft.getXDifference(point)) % getChunkSize()
-					, ((getChunkSize()) - topLeft.getYDifference(point)) % getChunkSize());
+			return getTile( ((getChunkSize()) - topLeft.getXDiff(point)) % getChunkSize()
+					, ((getChunkSize()) - topLeft.getYDiff(point)) % getChunkSize());
 		}
 		
 		ChunkTile getTile(int x, int y) {

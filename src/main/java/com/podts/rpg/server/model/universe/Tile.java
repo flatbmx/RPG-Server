@@ -5,11 +5,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.region.Region;
 import com.podts.rpg.server.model.universe.region.RegionListener;
@@ -185,38 +183,6 @@ public class Tile extends Spatial implements Shiftable<Tile>, Region, Registerab
 		return getSpace().doIsTraversable(this);
 	}
 	
-	public Stream<Tile> traceTo(HasLocation loc) {
-		if(isInDifferentSpace(loc))
-			return Stream.empty();
-		
-		Optional<Direction> dirOpt = Direction.get(this, loc);
-		if(!dirOpt.isPresent())
-			return Stream.empty();
-		Direction dir = dirOpt.get();
-		
-		Location end = loc.getLocation().shift(dir);
-		
-		return trace(dir)
-				.takeWhile(t -> !end.isAt(t));
-	}
-	
-	public Stream<Tile> traceEvery(Direction dir, int increment) {
-		return Stream.iterate(this, tile -> tile.shift(dir, increment));
-	}
-	
-	public Stream<Tile> trace(Direction dir) {
-		return traceEvery(dir, 1);
-	}
-	
-	public Stream<Tile> biTraceEvery(Direction dir, int increment) {
-		return getLocation().bitraceEvery(dir, increment)
-				.map(Location::getTile);
-	}
-	
-	public Stream<Tile> biTrace(Direction dir) {
-		return biTraceEvery(dir, 1);
-	}
-	
 	@Override
 	public Tile shift(int dx, int dy, int dz) {
 		return getLocation().shift(dx, dy, dz).getTile();
@@ -225,16 +191,6 @@ public class Tile extends Spatial implements Shiftable<Tile>, Region, Registerab
 	@Override
 	public Tile shift(int dx, int dy) {
 		return getLocation().shift(dx, dy).getTile();
-	}
-	
-	@Override
-	public Tile shift(Direction dir, int distance) {
-		return shift(dir.getX(distance), dir.getY(distance));
-	}
-	
-	@Override
-	public Tile shift(Direction dir) {
-		return shift(dir, 1);
 	}
 	
 	@Override
