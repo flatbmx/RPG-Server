@@ -189,12 +189,15 @@ public class Tile extends Spatial implements Shiftable<Tile>, Region, Registerab
 		if(isInDifferentSpace(loc))
 			return Stream.empty();
 		
-		Optional<Direction> dir = Direction.get(this, loc);
-		if(!dir.isPresent())
+		Optional<Direction> dirOpt = Direction.get(this, loc);
+		if(!dirOpt.isPresent())
 			return Stream.empty();
+		Direction dir = dirOpt.get();
 		
-		return trace(dir.get())
-				.limit(walkingDistance(loc) + 1);
+		Location end = loc.getLocation().shift(dir);
+		
+		return trace(dir)
+				.takeWhile(t -> !end.isAt(t));
 	}
 	
 	public Stream<Tile> traceEvery(Direction dir, int increment) {

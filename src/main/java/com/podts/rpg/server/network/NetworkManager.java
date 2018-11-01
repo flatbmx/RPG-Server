@@ -48,24 +48,24 @@ public abstract class NetworkManager {
 	private String address;
 	private int port;
 	private final Set<NetworkStatusHook> statusHooks = new HashSet<NetworkStatusHook>();;
-	private final LinkedList<StreamListener> streamListeners = new LinkedList<>();
-	private final StreamListener veryLastStreamListener;
+	private final LinkedList<NetworkStreamListener> streamListeners = new LinkedList<>();
+	private final NetworkStreamListener veryLastStreamListener;
 	
 	private final List<LoginPacket> loginRequests = new LinkedList<>();
 	
-	public final boolean addStreamListenerLast(StreamListener listener) {
+	public final boolean addStreamListenerLast(NetworkStreamListener listener) {
 		if(streamListeners.contains(listener)) return false;
 		streamListeners.addLast(listener);
 		return true;
 	}
 	
-	public final boolean addStreamListenerFirst(StreamListener listener) {
+	public final boolean addStreamListenerFirst(NetworkStreamListener listener) {
 		if(streamListeners.contains(listener)) return false;
 		streamListeners.addFirst(listener);
 		return true;
 	}
 	
-	public final boolean removeStreamListener(StreamListener listener) {
+	public final boolean removeStreamListener(NetworkStreamListener listener) {
 		return streamListeners.remove(listener);
 	}
 	
@@ -179,14 +179,14 @@ public abstract class NetworkManager {
 	}
 	
 	protected final void onPlayerDisconnect(NetworkStream networkStream) {
-		for(StreamListener listener : streamListeners) {
+		for(NetworkStreamListener listener : streamListeners) {
 			listener.onDisconnect(networkStream);
 		}
 		if(veryLastStreamListener != null)
 			veryLastStreamListener.onDisconnect(networkStream);
 	}
 	
-	public NetworkManager(StreamListener last) {
+	public NetworkManager(NetworkStreamListener last) {
 		status = NetworkStatus.OFFLINE;
 		veryLastStreamListener = last;
 	}

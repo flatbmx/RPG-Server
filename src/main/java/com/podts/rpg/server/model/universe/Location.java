@@ -261,11 +261,11 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	private static final Collection<Location> doShiftLocations(Collection<Location> points, UnaryOperator<Location> op) {
 		if(points.isEmpty())
 			return Collections.emptySet();
-		List<Location> c = Arrays.asList(new Location[points.size()]);
+		Location[] pArr = new Location[points.size()];
 		int i=0;
 		for(Location point : points)
-			c.set(i++, op.apply(point));
-		return c;
+			pArr[i++] = op.apply(point);
+		return Arrays.asList(pArr);
 	}
 	
 	public static final Collection<Location> shiftLocations(Collection<Location> points, int x, int y, int z) {
@@ -354,6 +354,10 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		return getSpace().getTile(this).orElse(null);
 	}
 	
+	public final boolean tileExists() {
+		return getTile() != null;
+	}
+	
 	@Override
 	public final boolean occupies(HasLocation loc) {
 		return equals(loc.getLocation());
@@ -381,12 +385,15 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		if(isInDifferentSpace(other))
 			return Stream.empty();
 		
-		Optional<Direction> dir = Direction.get(this, other);
-		if(!dir.isPresent())
+		Optional<Direction> dirOpt = Direction.get(this, other);
+		if(!dirOpt.isPresent())
 			return Stream.empty();
+		Direction dir = dirOpt.get();
+		Location end = other.shift(dir);
 		
-		return trace(dir.get())
-				.limit(walkingDistance(other) + 1);
+		//TODO use limit instead of takeWhile
+		return trace(dir)
+				.takeWhile(p -> !end.equals(p));
 	}
 	
 	public Stream<? extends Location> trace(Direction dir, int distance) {
@@ -434,7 +441,7 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	}
 	
 	final int walkingDistance(final Location otherPoint) {
-		return Math.abs(getX() - otherPoint.getX()) + Math.abs(getY() - otherPoint.getY());
+		return Math.max(Math.abs(getXDifference(otherPoint)), Math.abs(getYDifference(otherPoint)));
 	}
 	
 	public final boolean isBetween(Location point, double innerRadius, double outerRadius) {

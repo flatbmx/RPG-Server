@@ -1,6 +1,6 @@
 package com.podts.rpg.server.network;
 
-public interface StreamListener {
+public interface NetworkStreamListener {
 	
 	public default void onConnect(NetworkStream networkStream) {
 		

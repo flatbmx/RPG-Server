@@ -350,6 +350,10 @@ public abstract class Space implements HasSpace {
 		return point.getPlane().getTile(point);
 	}
 	
+	public final boolean tileExists(Location point) {
+		return getTile(point).isPresent();
+	}
+	
 	public Stream<Tile> tiles(PollableRegion r) {
 		return r.points()
 				.map(this::getTile)

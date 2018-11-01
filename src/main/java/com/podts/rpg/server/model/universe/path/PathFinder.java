@@ -15,7 +15,7 @@ public interface PathFinder {
 		if(start.isAt(finish))
 			return Optional.of(new GeneralListPath(start.getTile()));
 		maxLength = Math.max(0, maxLength);
-		if(maxLength < start.walkingDistance(finish))
+		if(maxLength < start.distance(finish))
 			return Optional.empty();
 		
 		return findPath(start, finish, new LengthPathDecider(maxLength));

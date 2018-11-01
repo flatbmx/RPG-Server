@@ -4,6 +4,11 @@ import java.util.Objects;
 
 public class PrimativeSpaceLocation extends PrimativeLocation {
 	
+	public static final PrimativeSpaceLocation construct(Space space, int x, int y, int z) {
+		Objects.requireNonNull(space, "Cannot create CompleteLocation with a null Space!");
+		return new PrimativeSpaceLocation(space, x, y, z);
+	}
+	
 	protected final Space space;
 	
 	@Override
@@ -31,9 +36,9 @@ public class PrimativeSpaceLocation extends PrimativeLocation {
 		return Objects.hash(getSpace(), getX(), getY(), getZ());
 	}
 	
-	public PrimativeSpaceLocation(Space space, int x, int y, int z) {
+	PrimativeSpaceLocation(Space space, int x, int y, int z) {
 		super(x, y, z);
-		this.space = Objects.requireNonNull(space, "Cannot create CompleteLocation with a null Space!");
+		this.space = space;
 	}
 	
 }

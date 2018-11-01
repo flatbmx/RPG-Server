@@ -62,6 +62,12 @@ public abstract class Plane extends IncompleteRegion implements Comparable<Plane
 		return equals(getSpace().getBottomPlane());
 	}
 	
+	/**
+	 * Returns the plane that is shifted up or down by dz compared to this Plane.
+	 * If the {@link Space space} does not have that plane it will return an empty Optional.
+	 * @param dz - The change in Z
+	 * @return The optional of the new plane.
+	 */
 	public Optional<? extends Plane> shift(int dz) {
 		return getSpace().getPlane(getZ() + dz);
 	}

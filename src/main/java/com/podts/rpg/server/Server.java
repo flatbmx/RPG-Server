@@ -21,7 +21,7 @@ import com.podts.rpg.server.model.universe.Universe.WorldAlreadyExistsException;
 import com.podts.rpg.server.model.universe.generators.PerlinNoiseGenerator;
 import com.podts.rpg.server.network.NetworkManager;
 import com.podts.rpg.server.network.NetworkStream;
-import com.podts.rpg.server.network.StreamListener;
+import com.podts.rpg.server.network.NetworkStreamListener;
 import com.podts.rpg.server.network.netty.NettyNetworkManager;
 
 public final class Server {
@@ -234,7 +234,7 @@ public final class Server {
 		networkListenPort = port;
 		statusHooks = new HashSet<>();
 		commandHandler = new CommandHandler();
-		networkManager = new NettyNetworkManager(new StreamListener() {
+		networkManager = new NettyNetworkManager(new NetworkStreamListener() {
 			@Override
 			public void onDisconnect(NetworkStream networkStream) {
 				Server.logger().info(networkStream + " disconnected ");

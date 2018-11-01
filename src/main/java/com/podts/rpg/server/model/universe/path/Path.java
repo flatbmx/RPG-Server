@@ -14,7 +14,7 @@ public abstract class Path implements Iterable<Tile> {
 		Tile recent = it.next();
 		while(it.hasNext()) {
 			Tile next = it.next();
-			if(!recent.isInWalkingRange(next, 1)) return false;
+			if(next.distance(recent) >= 2) return false;
 			recent = next;
 		}
 		return true;

@@ -91,7 +91,7 @@ public final class PacketHandler {
 				}
 				Location newLocation = p.getNewLocation();
 				
-				if(pE.walkingDistance(newLocation) > 1) {
+				if(pE.distance(newLocation) >= 2) {
 					//TODO TOO FAR
 					getLogger().warning(player + " moved too far, probabbly out of sync!");
 					return;

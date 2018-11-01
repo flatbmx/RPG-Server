@@ -2,47 +2,45 @@ package com.podts.rpg.server.model.universe;
 
 import com.podts.rpg.server.model.universe.Location.RelationalDirection;
 
-public interface MovableFacable extends Movable, Facable {
+public interface MovableFacable<T extends MovableFacable<T>> extends Movable<T>, Facable {
 	
-	public default MovableFacable move(RelationalDirection relDir, int distance) {
-		move(relDir.convert(getFacingDirection()), distance);
-		return this;
+	public default T move(RelationalDirection relDir, int distance) {
+		return move(relDir.convert(getFacingDirection()), distance);
 	}
 	
-	public default MovableFacable move(RelationalDirection relDir) {
+	public default T move(RelationalDirection relDir) {
 		return move(relDir, 1);
 	}
 	
-	public default MovableFacable moveForward(int distance) {
-		move(getFacingDirection(), distance);
-		return this;
+	public default T moveForward(int distance) {
+		return move(getFacingDirection(), distance);
 	}
 	
-	public default MovableFacable moveForward() {
+	public default T moveForward() {
 		return moveForward(1);
 	}
 	
-	public default MovableFacable moveBackward(int distance) {
+	public default T moveBackward(int distance) {
 		return move(RelationalDirection.BACKWARD, distance);
 	}
 	
-	public default MovableFacable moveBackward() {
+	public default T moveBackward() {
 		return moveBackward(1);
 	}
 	
-	public default MovableFacable strafeLeft(int distance) {
+	public default T strafeLeft(int distance) {
 		return move(RelationalDirection.LEFT, distance);
 	}
 	
-	public default MovableFacable strafeLeft() {
+	public default T strafeLeft() {
 		return strafeLeft(1);
 	}
 	
-	public default MovableFacable strafeRight(int distance) {
+	public default T strafeRight(int distance) {
 		return move(RelationalDirection.RIGHT, distance);
 	}
 	
-	public default MovableFacable strafeRight() {
+	public default T strafeRight() {
 		return strafeRight(1);
 	}
 	

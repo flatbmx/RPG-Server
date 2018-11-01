@@ -113,7 +113,7 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			}
 		});
 		
-		addEncoder(PingPacket.class, new AcknowledgementPacketEncoder(PID_PING));
+		//addEncoder(PingPacket.class, new AcknowledgementPacketEncoder(PID_PING));
 		
 		addEncoder(StatePacket.class, new PacketEncoder(PID_STATE) {
 			@Override
