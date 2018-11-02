@@ -31,9 +31,7 @@ import com.podts.rpg.server.network.packet.TilePacket;
 public abstract class Space implements HasSpace {
 	
 	public static final Space validate(Space space) {
-		if(space == null)
-			return Space.OBLIVION;
-		return space;
+		return Objects.requireNonNullElse(space, Space.OBLIVION);
 	}
 	
 	private static final class Oblivion extends Space {

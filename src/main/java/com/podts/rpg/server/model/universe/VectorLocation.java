@@ -37,7 +37,7 @@ public abstract class VectorLocation extends Location {
 	}
 	
 	VectorLocation(Vector vector) {
-		this.vector = validate(vector);
+		this.vector = vector;
 	}
 	
 	VectorLocation(int x, int y, int z) {
