@@ -1,6 +1,13 @@
 package com.podts.rpg.server.model.universe;
 
+import java.util.Objects;
+
 public class PrimativePlaneLocation extends Location {
+	
+	public static final PrimativePlaneLocation construct(Plane plane, int x, int y) {
+		Objects.requireNonNull(plane, "Cannot create PrimativePlaneLocation with a null plane!");
+		return new PrimativePlaneLocation(plane, x, y);
+	}
 	
 	private final Plane plane;
 	private final int x, y;
@@ -35,10 +42,10 @@ public class PrimativePlaneLocation extends Location {
 	
 	@Override
 	public PrimativePlaneLocation clone() {
-		return new PrimativePlaneLocation(getPlane(), getX(), getY());
+		return this;
 	}
 	
-	public PrimativePlaneLocation(Plane plane, int x, int y) {
+	PrimativePlaneLocation(Plane plane, int x, int y) {
 		this.plane = plane;
 		this.x = x;
 		this.y = y;

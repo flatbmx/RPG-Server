@@ -3,7 +3,7 @@ package com.podts.rpg.server.model.universe;
 import java.util.Collection;
 
 /**
- * Something has has or inside exactly one {@link Space}.
+ * Something has has or is inside exactly one {@link Space}.
  * This interface only requires that {@link #getSpace()} be implemented.
  * @author David
  *
@@ -12,7 +12,7 @@ public interface HasSpace {
 	
 	/**
 	 * Returns the {@link Space space} that this occupies or has.
-	 * This method is <b>guarenteed</b> to return a non-null value.
+	 * This method is <b>guaranteed</b> to return a non-null value.
 	 * If you wish to represent this object has having no space then this method should return {@link Space#OBLIVION}.
 	 * @return the {@link Space space} that this occupies or has.
 	 */
@@ -49,6 +49,14 @@ public interface HasSpace {
 	
 	public default boolean isInDifferentSpace(HasSpace s) {
 		return !isInSameSpace(s);
+	}
+	
+	public default boolean isNowhere() {
+		return Space.OBLIVION.equals(getSpace());
+	}
+	
+	public default boolean isSomewhere() {
+		return !isNowhere();
 	}
 	
 }

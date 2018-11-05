@@ -31,16 +31,23 @@ import com.podts.rpg.server.network.packet.TilePacket;
 public abstract class Space implements HasSpace {
 	
 	public static final Space validate(Space space) {
-		return Objects.requireNonNullElse(space, Space.OBLIVION);
+		if(space == null)
+			return Space.OBLIVION;
+		return space;
 	}
 	
-	private static final class Oblivion extends Space {
+	static final class Oblivion extends Space {
 		
 		private final Plane plane = new Plane(0) {
 			
 			@Override
 			public Space getSpace() {
 				return OBLIVION;
+			}
+			
+			@Override
+			public boolean isNowhere() {
+				return true;
 			}
 			
 			@Override
@@ -74,7 +81,12 @@ public abstract class Space implements HasSpace {
 		public Location createLocation(int x, int y, int z) {
 			return Space.NOWHERE;
 		}
-
+		
+		@Override
+		public boolean isNowhere() {
+			return true;
+		}
+		
 		@Override
 		public boolean isRegistered(Registerable r) {
 			return false;

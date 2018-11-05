@@ -3,10 +3,13 @@ package com.podts.rpg.server.model.universe;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -23,6 +26,14 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		if(location == null)
 			return Space.NOWHERE;
 		return location;
+	}
+	
+	public static final double distance(int x1, int y1, int x2, int y2) {
+		return Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2));
+	}
+	
+	public static final int walkingDistance(int x1, int y1, int x2, int y2) {
+		return Math.max(x2-x1, y2-y1);
 	}
 	
 	public enum Direction {
@@ -78,8 +89,21 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 			return getDiagonals().stream();
 		}
 		
-		public static Optional<Direction> get(HasLocation first, HasLocation second) {
-			return get(first.getLocation(), second.getLocation());
+		public static Collection<Direction> sortedDistance(Location from, Location to) {
+			Queue<Direction> result = new PriorityQueue<Direction>((a,b) -> {
+				return (int)(distance(from.getX() + a.getX(), from.getY() + a.getX(), to.getX(), to.getY())
+						- distance(from.getX() + b.getX(), from.getY() + b.getX(), to.getX(), to.getY()));
+			});
+			result.addAll(getAll());
+			return result;
+		}
+		
+		public static Collection<Direction> sortedDistance(HasLocation from, HasLocation to) {
+			return sortedDistance(from.getLocation(), to.getLocation());
+		}
+		
+		public static Optional<Direction> get(HasLocation from, HasLocation to) {
+			return get(from.getLocation(), to.getLocation());
 		}
 		
 		public static Optional<Direction> get(int dx, int dy) {
@@ -380,8 +404,12 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		return getSpace().entities(this);
 	}
 	
-	public final double distance(final Location otherPoint) {
-		return Math.sqrt(Math.pow(getXDiff(otherPoint), 2) + Math.pow(getYDiff(otherPoint), 2));
+	public final double distance(final Location point) {
+		return distance(getX(), point.getX(), getY(), point.getY());
+	}
+	
+	public final double distance(final HasLocation loc) {
+		return distance(loc.getLocation());
 	}
 	
 	@Override
@@ -398,8 +426,12 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		return shortest;
 	}
 	
-	public final int walkingDistance(final Location otherPoint) {
-		return Math.max(Math.abs(getXDiff(otherPoint)), Math.abs(getYDiff(otherPoint)));
+	public final int walkingDistance(final Location point) {
+		return walkingDistance(getX(), getY(), point.getX(), point.getY());
+	}
+	
+	public final int walkingDistance(final HasLocation loc) {
+		return walkingDistance(loc.getLocation());
 	}
 	
 	@Override
@@ -421,6 +453,14 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 		return d >= innerRadius && d <= outerRadius;
 	}
 	
+	public final <L extends Location> Comparator<L> getDistanceComparator() {
+		return (a,b) -> (int)(distance(a) - distance(b));
+	}
+	
+	public final <L extends Location> Comparator<L> getWalkingDistanceComparator() {
+		return (a,b) -> walkingDistance(a) - walkingDistance(b);
+	}
+	
 	@Override
 	public String toString() {
 		return "[" + getSpace() + " | " + getX() + ", " + getY() + ", " + getZ() + "]";
@@ -428,7 +468,7 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	
 	@Override
 	public Location clone() {
-		return getSpace().createLocation(getX(), getY(), getZ());
+		return this;
 	}
 	
 	@Override

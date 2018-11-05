@@ -19,7 +19,7 @@ public abstract class PrimativeLocation extends Location {
 		return z;
 	}
 	
-	public PrimativeLocation(final int x, final int y, final int z) {
+	PrimativeLocation(final int x, final int y, final int z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;

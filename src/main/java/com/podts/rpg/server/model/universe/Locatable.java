@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Occupies a certain Plane that can be nowhere(no locations) or multiple locations that all occupy the same plane and are connected.
+ * Occupies a certain Plane that can be nowhere(no locations) or multiple connected locations.
  * @author David
  *
  */
@@ -16,7 +16,7 @@ public interface Locatable extends HasPlane {
 	 * All points in the returned collection are in the same {@link Plane} and are connected.
 	 * If this object is nowhere then the returned collection will be empty.
 	 * Due to how often this method may be called by other methods it is highly recommended that the 
-	 * collection that is returned is cached/stored and not generated on demand otherwise performace may be lost.
+	 * returned collection be cached/stored and not generated on demand otherwise performance may be lost.
 	 * @return Collection of all points this occupies
 	 */
 	public Collection<Location> getLocations();
@@ -45,12 +45,9 @@ public interface Locatable extends HasPlane {
 		return getLocations().contains(loc.getLocation());
 	}
 	
+	@Override
 	public default boolean isNowhere() {
 		return getLocations().isEmpty();
-	}
-	
-	public default boolean isSomewhere() {
-		return !isNowhere();
 	}
 	
 	/**

@@ -3,7 +3,7 @@ package com.podts.rpg.server.model.universe;
 import java.util.Collection;
 
 /**
- * Something that has or is inside exactly one {@link Plane}.
+ * Something that has or is in exactly one {@link Plane}.
  * This interface only requires that the {@link #getPlane()} method be implemented.
  * @author David
  *
@@ -12,7 +12,7 @@ public interface HasPlane extends HasSpace {
 	
 	/**
 	 * Returns the {@link Plane plane} that this occupies or has.
-	 * This method is <b>guarenteed</b> to return a non-null value.
+	 * This method is <b>guaranteed</b> to return a non-null value.
 	 * If you wish to represent this object as having no Plane then return {@link Space#NOWHERE_PLANE}.
 	 * @return the {@link Plane plane} that this occupies or has
 	 */
@@ -68,6 +68,11 @@ public interface HasPlane extends HasSpace {
 	public default boolean isBetweenPlanes(Plane a, Plane b) {
 		if(a.isInDifferentSpace(b)) return false;
 		return isBetweenPlanes(a.getZ(), b.getZ());
+	}
+	
+	@Override
+	public default boolean isNowhere() {
+		return Space.NOWHERE_PLANE.equals(getPlane());
 	}
 	
 }
