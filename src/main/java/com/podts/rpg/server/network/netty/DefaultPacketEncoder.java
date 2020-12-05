@@ -293,6 +293,12 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 		buf.writeBytes(encrypt(plainBuf.array(), networkStream.getSecretKey()));
 	}
 	
+	private static void writeEncryptedPlaneLocation(Location loc, NetworkStream stream, ByteBuf buf) {
+		ByteBuf plainBuf = Unpooled.buffer();
+		writePlaneLocation(loc, plainBuf);
+		buf.writeBytes(encrypt(plainBuf.array(), stream.getSecretKey()));
+	}
+	
 	private static void writeEncryptedString(String string, NetworkStream networkStream, ByteBuf buf) {
 		try {
 			ByteBuf plainBuf = Unpooled.buffer();

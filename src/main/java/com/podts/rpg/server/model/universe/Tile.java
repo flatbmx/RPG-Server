@@ -171,6 +171,10 @@ public class Tile extends Spatial implements Shiftable<Tile>, Region, Registerab
 		return getElement().getType();
 	}
 	
+	public final boolean is(TileType type) {
+		return getType().equals(type);
+	}
+	
 	public final boolean isVoid() {
 		return TileType.VOID.equals(getType());
 	}

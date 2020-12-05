@@ -20,7 +20,7 @@ public interface NetworkStream {
 	
 	public Player getPlayer();
 	
-	public void setPlayer(Player player);
+	void setPlayer(Player player);
 	
 	public SecretKey getSecretKey();
 	
@@ -30,6 +30,13 @@ public interface NetworkStream {
 	
 	public default void acknowledge(AcknowledgementPacket packet) {
 		sendPacket(new AcknowledgePacket(packet));
+	}
+	
+	public default String ownerString() {
+		if(getPlayer() != null) {
+			return getPlayer().getName();
+		}
+		return getAddress().toString();
 	}
 	
 }

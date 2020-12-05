@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import com.podts.rpg.server.command.CommandSender;
 import com.podts.rpg.server.model.EntityType;
@@ -18,6 +19,12 @@ import com.podts.rpg.server.network.packet.StatePacket;
 import com.podts.rpg.server.network.packet.TileSelectionPacket;
 
 public class Player implements CommandSender {
+	
+	public static enum LogoutReason {
+		DISCONNECT(),
+		KICK(),
+		LOGOUT();
+	}
 	
 	public static final boolean is(Locatable l) {
 		return l instanceof PlayerEntity;
@@ -59,6 +66,10 @@ public class Player implements CommandSender {
 		return safeSelectedTiles;
 	}
 	
+	public Stream<Tile> selectedTiles() {
+		return safeSelectedTiles.stream();
+	}
+	
 	public Player setSelectedTiles(Collection<Tile> newTiles, boolean update) {
 		selectedTiles.clear();
 		selectedTiles.addAll(newTiles);
@@ -71,8 +82,36 @@ public class Player implements CommandSender {
 		return setSelectedTiles(newTiles, true);
 	}
 	
+	public Player selectTiles(Collection<Tile> tiles) {
+		for(Tile t : tiles)
+			selectedTiles.add(t);
+		sendSelectedTiles();
+		return this;
+	}
+	
+	public Player selectTile(Tile... tile) {
+		for(Tile t : tile)
+			selectedTiles.add(t);
+		sendSelectedTiles();
+		return this;
+	}
+	
 	public Player selectTile(Tile tile) {
 		selectedTiles.add(tile);
+		sendSelectedTiles();
+		return this;
+	}
+	
+	public Player deSelectTIles(Collection<Tile> tiles) {
+		for(Tile t : tiles)
+			selectedTiles.remove(t);
+		sendSelectedTiles();
+		return this;
+	}
+	
+	public Player deSelectTIles(Tile... tiles) {
+		for(Tile t : tiles)
+			selectedTiles.remove(t);
 		sendSelectedTiles();
 		return this;
 	}
@@ -186,11 +225,6 @@ public class Player implements CommandSender {
 		this.username = username;
 		this.password = password;
 		currentState = GameStates.NONE;
-	}
-	
-	public static enum LogoutReason {
-		DISCONNECT(),
-		LOGOUT();
 	}
 	
 }

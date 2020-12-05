@@ -16,11 +16,11 @@ public abstract class Packet {
 		return getOrigin() != null;
 	}
 	
-	public Packet() {
+	protected Packet() {
 		origin = null;
 	}
 	
-	public Packet(NetworkStream origin) {
+	protected Packet(NetworkStream origin) {
 		this.origin = origin;
 	}
 	

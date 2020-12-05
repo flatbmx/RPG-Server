@@ -1,6 +1,7 @@
 package com.podts.rpg.server.command;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
 
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.Server;
@@ -169,11 +171,49 @@ public final class CommandHandler {
 			}
 		});
 		
+		addCommand(new PlayerCommand("filtertile", 1, -1, "t_filter") {
+			@Override
+			protected boolean doExecute(Player player, String original, String[] parameters) {
+				if(parameters.length == 1) {
+					player.sendMessage("Tile filter command needs tile types.");
+					return false;
+				}
+				
+				if(player.getSelectedTiles().isEmpty())
+					return true;
+				
+				Collection<TileType> types = new HashSet<>();
+				for(String param : parameters) {
+					TileType type = TileType.valueOf(param.toUpperCase());
+					if(type == null) {
+						player.sendMessage("Tile type \"" + param + "\" does not exist!" );
+						return true;
+					}
+					types.add(type);
+				}
+				
+				Collection<Tile> newSelectedTiles = player.selectedTiles()
+				.filter(t -> types.contains(t.getType()))
+				.collect(Collectors.toSet());
+				
+				int diff = player.getSelectedTiles().size() - newSelectedTiles.size();
+				
+				if(diff != 0) {
+					player.setSelectedTiles(newSelectedTiles);
+				}
+				
+				player.sendMessage("Filtered " + diff + " tiles.");
+				
+				return true;
+			}
+		});
+		
 		addCommand(new PlayerCommand("settile", 1, 1, "set", "settiles") {
 			@Override
 			protected boolean doExecute(Player player, String original, String[] parameters) {
 				if(parameters.length != 1) {
 					player.sendMessage("Incorrect amount of paremeters!");
+					return false;
 				}
 				
 				TileType type = null;

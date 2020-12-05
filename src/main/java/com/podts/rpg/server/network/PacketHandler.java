@@ -15,10 +15,12 @@ import com.podts.rpg.server.GameEngine;
 import com.podts.rpg.server.GameStates;
 import com.podts.rpg.server.Player;
 import com.podts.rpg.server.Server;
+import com.podts.rpg.server.command.Command;
 import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Location.Direction;
+import com.podts.rpg.server.model.universe.Universe;
 import com.podts.rpg.server.network.NetworkManager.NetworkStatus;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.EntityPacket;
@@ -58,22 +60,22 @@ public final class PacketHandler {
 		handlers.put(MessagePacket.class, (stream, oldPacket) -> {
 				MessagePacket packet = (MessagePacket) oldPacket;
 				String message = packet.getMessage();
-				if(message.startsWith("/")) {
+				if(Command.isPossibleCommand(message)) {
 					Server.get().getCommandHandler().execute(packet.getSender(), message);
 				} else {
-					String newMessage = packet.getSender().getName() + ": " + message;
-					stream.getPlayer().getEntity().getSpace().players()
-					.forEach(p -> p.sendMessage(newMessage));
-					getLogger().info(newMessage);
+					String formattedMessage = packet.getSender().getName() + ": " + message;
+					getLogger().info(formattedMessage);
+					Server.get().players()
+					.forEach(p -> p.sendMessage(formattedMessage));
 				}
 			}
 		);
 		
 		handlers.put(TileSelectionPacket.class, new PacketConsumer() {
 			@Override
-			public void accept(NetworkStream s, Packet op) {
+			public void accept(NetworkStream stream, Packet op) {
 				TileSelectionPacket p = (TileSelectionPacket) op;
-				Player player = s.getPlayer();
+				Player player = stream.getPlayer();
 				player.setSelectedTiles(p.getSelections(), false);
 			}
 		});
@@ -110,7 +112,7 @@ public final class PacketHandler {
 			public void accept(NetworkStream networkStream, Packet oldPacket) {
 				LoginPacket packet = (LoginPacket) oldPacket;
 				
-				if(!NetworkStatus.ONLINE.equals(NetworkManager.networkManager.getStatus())) {
+				if(!NetworkManager.networkManager.isOnline()) {
 					NetworkManager.networkManager.addLoginRequest(packet);
 					networkStream.sendPacket(new LoginResponsePacket(LoginResponseType.WAIT, "Server is loading, please wait."));
 					return;
@@ -171,12 +173,13 @@ public final class PacketHandler {
 		final PacketConsumer handler = handlers.get(packet.getClass());
 		final NetworkStream networkStream = packet.getOrigin();
 		
-		//sServer.get().getLogger().info("Recieved " + packet.getClass().getSimpleName() + " from " + packet.getOrigin().getPlayer());
+		//Server.get().getLogger().info("Recieved " + packet.getClass().getSimpleName() + " from " + packet.getOrigin().getPlayer());
 		
 		if(handler != null) {;
 			GameEngine.get().submit(new PacketRunner(handler, packet, networkStream));
 		} else {
-			getLogger().warning("Recieved unhandled packet " + packet.getClass().getSimpleName());
+			getLogger().warning("Recieved unhandled packet(" + packet.getClass().getSimpleName()
+					+ ") from " + packet.getOrigin().ownerString());
 		}
 		
 	}

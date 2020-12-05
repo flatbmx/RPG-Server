@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import com.podts.rpg.server.Player;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 
 public final class Universe {

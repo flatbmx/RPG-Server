@@ -15,6 +15,10 @@ public abstract class Command {
 	
 	private final int minArgs, maxArgs;
 	
+	public static final boolean isPossibleCommand(String text) {
+		return text.startsWith("/");
+	}
+	
 	public final String getSlashedName() {
 		return "/" + getName();
 	}

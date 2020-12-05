@@ -100,6 +100,10 @@ public abstract class NetworkManager {
 		return status;
 	}
 	
+	public final boolean isOnline() {
+		return getStatus().equals(NetworkStatus.ONLINE);
+	}
+	
 	protected void changeStatus(final NetworkStatus newStatus) {
 		if(status == newStatus) return;
 		synchronized(this) {
