@@ -157,6 +157,22 @@ public final class CommandHandler {
 			}
 		});
 		
+		addCommand(new PlayerCommand("ping") {
+			@Override
+			protected boolean doExecute(Player player, String original, String[] parameters) {
+				Player pingie = player;
+				if(parameters.length == 1) {
+					Player other = Server.get().getPlayer(parameters[0]);
+					if(other == null) {
+						player.sendMessage("No player found with name \"" + parameters[0] + "\"");
+					}
+					pingie = other;
+				}
+				player.sendMessage(pingie.getPing());
+				return true;
+			}
+		});
+		
 		addCommand(new PlayerCommand("tile") {
 			@Override
 			protected boolean doExecute(Player player, String original, String[] parameters) {

@@ -13,4 +13,8 @@ public interface Facable {
 		return this;
 	}
 	
+	public default boolean isFacing(Direction dir) {
+		return getFacingDirection().equals(dir);
+	}
+	
 }

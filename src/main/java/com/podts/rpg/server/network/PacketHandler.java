@@ -20,8 +20,6 @@ import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Location.Direction;
-import com.podts.rpg.server.model.universe.Universe;
-import com.podts.rpg.server.network.NetworkManager.NetworkStatus;
 import com.podts.rpg.server.network.packet.AESReplyPacket;
 import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginPacket;
@@ -76,7 +74,19 @@ public final class PacketHandler {
 			public void accept(NetworkStream stream, Packet op) {
 				TileSelectionPacket p = (TileSelectionPacket) op;
 				Player player = stream.getPlayer();
-				player.setSelectedTiles(p.getSelections(), false);
+				switch(p.getType()) {
+				case ADD:
+					player.selectTiles(p.getSelections(), false);
+					break;
+				case REMOVE:
+					player.deSelectTIles(p.getSelections(), false);
+					break;
+				case TOTAL:
+					player.setSelectedTiles(p.getSelections(), false);
+					break;
+				default:
+					break;
+				}
 			}
 		});
 		
@@ -160,7 +170,7 @@ public final class PacketHandler {
 				
 				//Login is accepted
 				player.setStream(networkStream);
-				Server.logger().info(player + " logged in.");
+				getLogger().info(player + " logged in.");
 				player.changeGameState(GameStates.LOGGING_IN);
 				
 			}
@@ -173,7 +183,7 @@ public final class PacketHandler {
 		final PacketConsumer handler = handlers.get(packet.getClass());
 		final NetworkStream networkStream = packet.getOrigin();
 		
-		//Server.get().getLogger().info("Recieved " + packet.getClass().getSimpleName() + " from " + packet.getOrigin().getPlayer());
+		Server.get().getLogger().finer("Recieved " + packet.getClass().getSimpleName() + " from " + packet.getOrigin().getPlayer());
 		
 		if(handler != null) {;
 			GameEngine.get().submit(new PacketRunner(handler, packet, networkStream));

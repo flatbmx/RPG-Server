@@ -1,6 +1,7 @@
 package com.podts.rpg.server.model.universe.region;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
@@ -58,8 +59,8 @@ public interface MonitoringRegion extends Region {
 	
 	public default Stream<Player> players() {
 		return entities()
-				.filter(Player::is)
-				.map(e -> ((PlayerEntity)e).getPlayer());
+				.map(Player::get)
+				.filter(Objects::nonNull);
 	}
 	
 }

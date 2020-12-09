@@ -300,7 +300,7 @@ public abstract class World extends Space {
 		return new PrimativeSpaceLocation(this, x, y, z);
 	}
 	
-	public final Tile createTile(final TileType type, final int x, final int y, final int z) {
+	final Tile createTile(final TileType type, final int x, final int y, final int z) {
 		Utils.assertNullArg(type, "Cannot create Tile with null type!");
 		return new Tile(type, createLocation(x,y,z));
 	}

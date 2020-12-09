@@ -8,12 +8,15 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
+import com.podts.rpg.server.Server;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Tile;
 import com.podts.rpg.server.model.universe.Universe;
@@ -26,6 +29,7 @@ import com.podts.rpg.server.network.packet.MessagePacket;
 import com.podts.rpg.server.network.packet.PingPacket;
 import com.podts.rpg.server.network.packet.RSAHandShakePacket;
 import com.podts.rpg.server.network.packet.TileSelectionPacket;
+import com.podts.rpg.server.network.packet.TileSelectionPacket.SelectionType;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -43,7 +47,19 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 	private static final int PID_MESSAGE = 4;
 	private static final int PID_TILESELECTION = 5;
 	
+	private static final Map<Byte,TileSelectionPacket.SelectionType> selectionMap = new HashMap<>();
+	
+	private static final TileSelectionPacket.SelectionType getSelectionTypeFromByte(byte b) {
+		return selectionMap.get(b);
+	}
+	
 	static {
+		
+		selectionMap.put(Byte.valueOf("0"), SelectionType.ADD);
+		selectionMap.put(Byte.valueOf("1"), SelectionType.REMOVE);
+		selectionMap.put(Byte.valueOf("2"), SelectionType.TOTAL);
+		
+		
 		packetConstructors = new PacketConstructor[128];
 
 		// RSAHandShake Constructor
@@ -100,12 +116,14 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		packetConstructors[PID_TILESELECTION] = new PacketConstructor() {
 			@Override
 			public TileSelectionPacket construct(NetworkStream s, int size, byte opCode, ByteBuf buf) {
-				int totalTiles = buf.readInt();
 				Collection<Tile> tiles = new HashSet<>();
+				byte typeByte = buf.readByte();
+				final TileSelectionPacket.SelectionType type = getSelectionTypeFromByte(typeByte);
+				int totalTiles = buf.readInt();
 				for(int i=0; i<totalTiles; ++i) {
 					tiles.add(readLocation(buf).getTile());
 				}
-				return new TileSelectionPacket(tiles);
+				return new TileSelectionPacket(type, tiles);
 			}
 		};
 		
@@ -126,9 +144,8 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 					NettyNetworkManager.get().doSetPacketStream(packet, networkStream);
 					out.add(packet);
 				}
-					
 			} else {
-				System.out.println("WARNING ==== Recieved unknown Packet OPCODE = " + opCode + " with size " + (size-1) + " from " + networkStream.getAddress());
+				Server.get().getLogger().warning("Recieved unknown Packet OPCODE = " + opCode + " with size " + (size-1) + " from " + networkStream.ownerString());
 				buf.skipBytes(size-1);
 			}
 		}
@@ -156,7 +173,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		try {
 			result = new String(realChars, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			throw new AssertionError("Unable to encode UTF-8!");
 		}
 		return result;
 	}

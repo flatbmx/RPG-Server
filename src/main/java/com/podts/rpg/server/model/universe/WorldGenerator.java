@@ -1,17 +1,12 @@
 package com.podts.rpg.server.model.universe;
 
 import com.podts.rpg.server.Utils;
-import com.podts.rpg.server.model.universe.TileElement.TileType;
 
 /**
  * A class that can generate Tiles based on a location.
  *
  */
-public abstract class WorldGenerator {
-	
-	protected static TileElement constructElement(TileType type) {
-		return new TileElement(type);
-	}
+public abstract class WorldGenerator extends TileGenerator {
 	
 	public final TileElement generateTile(Location point) {
 		Utils.assertNull(point, "Cannot generate Tile with null location.");

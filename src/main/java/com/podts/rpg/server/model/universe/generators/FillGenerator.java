@@ -2,8 +2,8 @@ package com.podts.rpg.server.model.universe.generators;
 
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.TileElement;
-import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.WorldGenerator;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 
 /**
  * World Generator that generates the same Tile everywhere.

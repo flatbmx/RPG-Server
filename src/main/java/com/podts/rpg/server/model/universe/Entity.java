@@ -73,7 +73,7 @@ public abstract class Entity extends Spatial implements Registerable, MovableFac
 	
 	@Override
 	public String toString() {
-		return "[" + name + " | " + getLocation() + "]";
+		return "[" + getName() + " | " + getLocation() + "]";
 	}
 	
 	public Entity(String name, EntityType type, Location loc, Direction face) {

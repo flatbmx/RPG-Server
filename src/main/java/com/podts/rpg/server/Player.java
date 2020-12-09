@@ -1,8 +1,10 @@
 package com.podts.rpg.server;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -74,7 +76,7 @@ public class Player implements CommandSender {
 		selectedTiles.clear();
 		selectedTiles.addAll(newTiles);
 		if(update)
-			sendSelectedTiles();
+			sendAllSelectedTiles();
 		return this;
 	}
 	
@@ -82,50 +84,60 @@ public class Player implements CommandSender {
 		return setSelectedTiles(newTiles, true);
 	}
 	
-	public Player selectTiles(Collection<Tile> tiles) {
-		for(Tile t : tiles)
-			selectedTiles.add(t);
-		sendSelectedTiles();
+	public Player selectTiles(Collection<Tile> tiles, boolean update) {
+		boolean needUpdate = false;
+		for(Tile t : tiles) {
+			if(selectedTiles.add(t))
+				needUpdate = true;
+		}
+		if(update && needUpdate)
+			sendAddSelectedTiles(tiles);
 		return this;
 	}
 	
-	public Player selectTile(Tile... tile) {
-		for(Tile t : tile)
-			selectedTiles.add(t);
-		sendSelectedTiles();
+	public Player selectTiles(Collection<Tile> tiles) {
+		return selectTiles(tiles, true);
+	}
+	
+	public Player selectTiles(boolean update, Tile... tiles) {
+		return selectTiles(Arrays.asList(tiles), update);
+	}
+	
+	public Player selectTile(Tile tile, boolean update) {
+		if(selectedTiles.add(tile) && update)
+			sendAddSelectedTiles(List.of(tile));
 		return this;
 	}
 	
 	public Player selectTile(Tile tile) {
-		selectedTiles.add(tile);
-		sendSelectedTiles();
+		return selectTile(tile, true);
+	}
+	
+	public Player deSelectTIles(Collection<Tile> tiles, boolean update) {
+		boolean needUpdate = false;
+		for(Tile t : tiles) {
+			if(selectedTiles.remove(t))
+				needUpdate = true;
+		}
+		if(update && needUpdate)
+			sendRemoveSelectedTiles(tiles);
 		return this;
 	}
 	
-	public Player deSelectTIles(Collection<Tile> tiles) {
-		for(Tile t : tiles)
-			selectedTiles.remove(t);
-		sendSelectedTiles();
-		return this;
+	public Player deSelectTIles(boolean update, Tile... tiles) {
+		return deSelectTIles(Arrays.asList(tiles), update);
 	}
 	
-	public Player deSelectTIles(Tile... tiles) {
-		for(Tile t : tiles)
-			selectedTiles.remove(t);
-		sendSelectedTiles();
-		return this;
-	}
-	
-	public Player deSelectTile(Tile tile) {
-		selectedTiles.remove(tile);
-		sendSelectedTiles();
+	public Player deSelectTile(Tile tile, boolean update) {
+		if(selectedTiles.remove(tile) && update)
+			sendRemoveSelectedTiles(List.of(tile));
 		return this;
 	}
 	
 	public Player clearSelectedTiles() {
-		if(selectedTiles.isEmpty()) {
+		if(!selectedTiles.isEmpty()) {
 			selectedTiles.clear();
-			sendSelectedTiles();
+			sendAllSelectedTiles();
 		}
 		return this;
 	}
@@ -134,8 +146,16 @@ public class Player implements CommandSender {
 		return getSelectedTiles().contains(tile);
 	}
 	
-	private void sendSelectedTiles() {
-		sendPacket(new TileSelectionPacket(selectedTiles));
+	private void sendAllSelectedTiles() {
+		sendPacket(new TileSelectionPacket(TileSelectionPacket.SelectionType.TOTAL, selectedTiles));
+	}
+	
+	private void sendAddSelectedTiles(Collection<Tile> tiles) {
+		sendPacket(new TileSelectionPacket(TileSelectionPacket.SelectionType.ADD, selectedTiles));
+	}
+	
+	private void sendRemoveSelectedTiles(Collection<Tile> tiles) {
+		sendPacket(new TileSelectionPacket(TileSelectionPacket.SelectionType.REMOVE, selectedTiles));
 	}
 	
 	public final GameState getGameState() {
@@ -162,6 +182,10 @@ public class Player implements CommandSender {
 	//TODO REALLY REALLY need to change this scope.
 	public final void setStream(NetworkStream s) {
 		networkStream = s;
+	}
+	
+	public final int getPing() {
+		return getStream().getPing();
 	}
 	
 	public final String getUsername() {

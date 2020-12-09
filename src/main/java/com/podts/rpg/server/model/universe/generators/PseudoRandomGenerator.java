@@ -4,8 +4,8 @@ import java.util.Random;
 
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.TileElement;
-import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.WorldGenerator;
+import com.podts.rpg.server.model.universe.TileElement.TileType;
 
 public final class PseudoRandomGenerator extends WorldGenerator {
 	
