@@ -28,7 +28,6 @@ import com.podts.rpg.server.network.packet.EntityPacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket;
 import com.podts.rpg.server.network.packet.LoginResponsePacket.LoginResponseType;
 import com.podts.rpg.server.network.packet.MessagePacket;
-import com.podts.rpg.server.network.packet.PingPacket;
 import com.podts.rpg.server.network.packet.PlayerInitPacket;
 import com.podts.rpg.server.network.packet.StatePacket;
 import com.podts.rpg.server.network.packet.TilePacket;
@@ -138,21 +137,23 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 			@Override
 			public void encode(NettyStream s, Packet op, ByteBuf buf) {
 				TilePacket p = (TilePacket) op;
+				//Head
 				buf.writeByte(updateTypes.get(p.getUpdateType()))
 				.writeByte(sendTypes.get(p.getSendType()));
-				if(TileUpdateType.CREATE.equals(p.getUpdateType())) {
-					if(p.getSendType().equals(TileSendType.SINGLE)) {
+				
+				if(p.isCreate()) {
+					if(p.isSingle()) {
 						Tile tile = p.getTile();
 						buf.writeByte(getTileID(tile));
 						writeLocation(tile.getLocation(), buf);
-					} else if(p.getSendType().equals(TileSendType.GROUP)) {
+					} else if(p.isGroup()) {
 						writeGridTiles(p.getTiles(), buf);
 					}
-				} else if(TileUpdateType.DESTROY.equals(p.getUpdateType())) {
-					if(p.getSendType().equals(TileSendType.SINGLE)) {
+				} else if(p.isDestroy()) {
+					if(p.isSingle()) {
 						Tile tile = p.getTile();
 						writeLocation(tile.getLocation(), buf);
-					} else if(p.getSendType().equals(TileSendType.GROUP)) {
+					} else if(p.isGroup()) {
 						Tile[][] tiles = p.getTiles();
 						writeLocation(tiles[0][0].getLocation(), buf);
 						buf.writeInt(tiles.length)

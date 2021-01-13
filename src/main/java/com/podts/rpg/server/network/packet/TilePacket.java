@@ -36,6 +36,22 @@ public final class TilePacket extends Packet {
 		return tiles;
 	}
 	
+	public boolean isGroup() {
+		return TileSendType.GROUP.equals(sendType);
+	}
+	
+	public boolean isSingle() {
+		return TileSendType.SINGLE.equals(sendType);
+	}
+	
+	public boolean isCreate() {
+		return TileUpdateType.CREATE.equals(updateType);
+	}
+	
+	public boolean isDestroy() {
+		return TileUpdateType.DESTROY.equals(updateType);
+	}
+	
 	public static final TilePacket constructCreate(Tile tile) {
 		return new TilePacket(tile, TileUpdateType.CREATE);
 	}

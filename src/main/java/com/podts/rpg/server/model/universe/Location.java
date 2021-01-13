@@ -405,7 +405,7 @@ public abstract class Location implements Shiftable<Location>, Cloneable {
 	}
 	
 	public final double distance(final Location point) {
-		return distance(getX(), point.getX(), getY(), point.getY());
+		return distance(getX(), getY(), point.getX(), point.getY());
 	}
 	
 	public final double distance(final HasLocation loc) {
