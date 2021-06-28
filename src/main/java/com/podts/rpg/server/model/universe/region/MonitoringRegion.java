@@ -5,7 +5,6 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.Player;
-import com.podts.rpg.server.model.entity.PlayerEntity;
 import com.podts.rpg.server.model.universe.Entity;
 
 /**

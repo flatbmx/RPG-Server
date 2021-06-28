@@ -28,6 +28,14 @@ public interface NetworkStream {
 	
 	public void sendPacket(Packet... packets);
 	
+	public int getFlagTolerance();
+	public int getFlags();
+	public NetworkStream flag(int severity);
+	
+	public default NetworkStream flag() {
+		return flag(1);
+	}
+	
 	public default void acknowledge(AcknowledgementPacket packet) {
 		sendPacket(new AcknowledgePacket(packet));
 	}

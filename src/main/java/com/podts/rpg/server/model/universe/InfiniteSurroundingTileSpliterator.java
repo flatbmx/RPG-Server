@@ -7,7 +7,6 @@ import java.util.stream.StreamSupport;
 
 import com.podts.rpg.server.model.universe.Location.Direction;
 import com.podts.rpg.server.model.universe.Location.RelationalDirection;
-import com.podts.rpg.server.model.universe.Tile;
 
 public class InfiniteSurroundingTileSpliterator implements Spliterator<Tile> {
 	

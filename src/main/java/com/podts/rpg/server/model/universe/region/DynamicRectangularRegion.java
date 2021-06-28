@@ -3,10 +3,9 @@ package com.podts.rpg.server.model.universe.region;
 import java.util.Arrays;
 import java.util.List;
 
-import com.podts.rpg.server.model.universe.Locatable;
+import com.podts.rpg.server.model.universe.HasLocation;
 import com.podts.rpg.server.model.universe.Location;
 import com.podts.rpg.server.model.universe.Space;
-import com.podts.rpg.server.model.universe.HasLocation;
 
 class DynamicRectangularRegion extends SimpleRegion implements RectangularRegion {
 	

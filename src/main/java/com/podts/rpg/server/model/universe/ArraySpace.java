@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.MoveType;
-import com.podts.rpg.server.model.universe.TileElement.TileType;
 import com.podts.rpg.server.model.universe.region.PollableRegion;
 
 public class ArraySpace extends Space {

@@ -19,6 +19,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 class NettyStream extends NioSocketChannel implements NetworkStream {
 	
 	private static KeyGenerator keyGenerator;
+	private static final int DEFAULT_FLAG_TOLERANCE = 20;
 	
 	static {
 		try {
@@ -30,13 +31,31 @@ class NettyStream extends NioSocketChannel implements NetworkStream {
 	}
 	
 	private final SecretKey secret;
+	private int flags;
+	private int flagTolerance;
 	protected Player player;
 	
-	private Instant lastPing;
-	private int ping;
+	Instant lastPing;
+	int ping;
 	
 	public int getPing() {
 		return ping;
+	}
+	
+	@Override
+	public int getFlags() {
+		return flags;
+	}
+	
+	@Override
+	public int getFlagTolerance() {
+		return flagTolerance;
+	}
+	
+	@Override
+	public NetworkStream flag(int severity) {
+		flags += severity;
+		return this;
 	}
 	
 	@Override
@@ -85,9 +104,14 @@ class NettyStream extends NioSocketChannel implements NetworkStream {
 		return "[" + getAddress() + "]";
 	}
 	
-	NettyStream(ServerChannel sc, SocketChannel c) {
+	NettyStream(ServerChannel sc, SocketChannel c, int flagTolerance) {
 		super(sc, c);
 		secret = keyGenerator.generateKey();
+		this.flagTolerance = flagTolerance;
+	}
+	
+	NettyStream(ServerChannel sc, SocketChannel c) {
+		this(sc, c, DEFAULT_FLAG_TOLERANCE);
 	}
 	
 }

@@ -3,7 +3,6 @@ package com.podts.rpg.server.model.universe.region;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.podts.rpg.server.model.universe.Locatable;
 import com.podts.rpg.server.model.universe.Location;
 
 public interface TorusRegion extends CenteredRegion, PollableRegion {

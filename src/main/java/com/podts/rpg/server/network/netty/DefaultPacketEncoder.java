@@ -313,13 +313,25 @@ class DefaultPacketEncoder extends MessageToByteEncoder<Packet> {
 	}
 	
 	private static void writeString(String string, ByteBuf buf) {
+		byte[] plain = encodeString(string);
+		buf.writeInt(plain.length);
+		buf.writeBytes(plain);
+	}
+	
+	private static final byte[] encodeString(String string) {
 		try {
-			byte[] plain = string.getBytes(STRING_ENCODING);
-			buf.writeInt(plain.length);
-			buf.writeBytes(plain);
+			return string.getBytes(STRING_ENCODING);
 		} catch (UnsupportedEncodingException e) {
 			throw new AssertionError("No string encoder for " + STRING_ENCODING + "!");
 		}
+	}
+	
+	private static final void encryptBuf(ByteBuf in, ByteBuf out, int size, SecretKey secretKey) {
+		in.resetReaderIndex();
+		byte[] rawBytes = new byte[size];
+		in.readBytes(rawBytes);
+		byte[] encBytes = encrypt(rawBytes, secretKey);
+		out.writeInt(encBytes.length).writeBytes(encBytes);
 	}
 	
 	private static byte[] encrypt(byte[] bytes, SecretKey secretKey) {

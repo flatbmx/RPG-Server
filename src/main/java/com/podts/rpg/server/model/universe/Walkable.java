@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 import com.podts.rpg.server.model.universe.Location.Direction;
 
-public interface Walkable extends MovableFacable {
+public interface Walkable<T extends MovableFacable<T>> extends MovableFacable<T> {
 	
 	public List<Direction> getWalkingQueue();
 	
@@ -51,17 +51,17 @@ public interface Walkable extends MovableFacable {
 				.anyMatch(loc::isAt);
 	}
 	
-	public Walkable addStep(Direction direction);
+	public Walkable<T> addStep(Direction direction);
 	
-	public default Walkable addSteps(Direction... directions) {
+	public default Walkable<T> addSteps(Direction... directions) {
 		for(Direction dir : directions)
 			addStep(dir);
 		return this;
 	}
 	
-	public Walkable stopWalking();
+	public Walkable<T> stopWalking();
 	
-	public default Walkable walk(Direction direction) {
+	public default Walkable<T> walk(Direction direction) {
 		if(!isWalking())
 			addStep(direction);
 		return this;

@@ -120,7 +120,7 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 				byte typeByte = buf.readByte();
 				final TileSelectionPacket.SelectionType type = getSelectionTypeFromByte(typeByte);
 				int totalTiles = buf.readInt();
-				for(int i=0; i<totalTiles; ++i) {
+				for(int i=0; i<totalTiles; ++i) { 
 					tiles.add(readLocation(buf).getTile());
 				}
 				return new TileSelectionPacket(type, tiles);
@@ -132,20 +132,21 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 	@Override
 	protected void decode(ChannelHandlerContext c, ByteBuf buf, List<Object> out) throws Exception {
 
-		NetworkStream networkStream = (NetworkStream) c.channel();
+		NetworkStream stream = (NetworkStream) c.channel();
 
 		int size = buf.readInt();
-		byte opCode = buf.readByte();
+		byte opCode = buf.readByte(); 
 
 		if(opCode > -1 && opCode < packetConstructors.length) {
 			if(packetConstructors[opCode] != null) {
-				Packet packet = packetConstructors[opCode].construct(networkStream, size - 1, opCode, buf);
+				Packet packet = packetConstructors[opCode].construct(stream, size - 1, opCode, buf);
 				if(packet != null) {
-					NettyNetworkManager.get().doSetPacketStream(packet, networkStream);
+					NettyNetworkManager.get().doSetPacketStream(packet, stream);
 					out.add(packet);
 				}
 			} else {
-				Server.get().getLogger().warning("Recieved unknown Packet OPCODE = " + opCode + " with size " + (size-1) + " from " + networkStream.ownerString());
+				stream.flag();
+				Server.get().getLogger().warning("Recieved unknown Packet OPCODE = " + opCode + " with size " + (size-1) + " from " + stream.ownerString());
 				buf.skipBytes(size-1);
 			}
 		}
@@ -167,15 +168,30 @@ class DefaultPacketDecoder extends ByteToMessageDecoder {
 		realBuf.writeBytes(decrypt(encryptedBytes, networkStream.getSecretKey()));
 		realBuf.resetReaderIndex();
 		int size = realBuf.readInt();
-		String result = null;
 		byte[] realChars = new byte[size];
 		realBuf.readBytes(realChars);
+		return decodeString(realChars);
+	}
+	
+	private static final String decodeString(byte[] bytes) {
 		try {
-			result = new String(realChars, "UTF-8");
+			return new String(bytes, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			throw new AssertionError("Unable to encode UTF-8!");
 		}
-		return result;
+	}
+	
+	public static final ByteBuf decryptBuf(ByteBuf buf, SecretKey secretKey) {
+		return decryptBuf(buf, buf.readInt(), secretKey);
+	}
+	
+	public static final ByteBuf decryptBuf(ByteBuf buf, int size, SecretKey secretKey) {
+		final ByteBuf rawBuf = Unpooled.buffer();
+		byte[] encBytes = new byte[size];
+		buf.readBytes(encBytes);
+		rawBuf.writeBytes(decrypt(encBytes, secretKey));
+		rawBuf.resetReaderIndex();
+		return rawBuf;
 	}
 	
 	public static byte[] decrypt(byte[] bytes, SecretKey secretKey) {
